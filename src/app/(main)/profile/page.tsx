@@ -17,21 +17,6 @@ import { mockRankings, mockPosts, mockInquiries, mockUsers } from '@/lib/mockDat
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
 
-const getRankTextClass = (rank: number) => {
-  if (rank === 1) return 'rank-1';
-  if (rank === 2) return 'rank-2';
-  if (rank === 3) return 'rank-3';
-  return '';
-};
-
-const getRankWrapperClass = (rank: number) => {
-  if (rank === 1) return 'rank-1-border rank-1-badge-bg';
-  if (rank === 2) return 'rank-2-border rank-2-badge-bg';
-  if (rank === 3) return 'rank-3-border rank-3-badge-bg';
-  return 'border-transparent';
-};
-
-
 export default function ProfilePage() {
   const { user, isAdmin, updateUser, loading: authLoading } = useAuth();
   const router = useRouter();
@@ -122,11 +107,34 @@ export default function ProfilePage() {
                     <AvatarImage src={user.avatar || `https://placehold.co/200x200.png?text=${user.nickname.substring(0,1)}`} alt={user.nickname} data-ai-hint="fantasy portrait" />
                     <AvatarFallback className="text-4xl bg-muted text-muted-foreground">{user.nickname.substring(0, 2).toUpperCase()}</AvatarFallback>
                 </Avatar>
-                <h1 className={cn("text-3xl font-bold font-headline", isAdmin && "text-admin")}>{user.nickname}</h1>
-                <p className="text-sm opacity-80">{user.email || "이메일 미등록"}</p>
+                 {isAdmin ? (
+                  <div className="admin-badge-bg admin-badge-border rounded-lg px-3 py-1 text-sm font-medium">
+                    <h1 className="text-3xl font-bold font-headline text-admin">{user.nickname}</h1>
+                  </div>
+                ) : user.rank > 0 && user.rank <=3 ? (
+                  <div className={cn(
+                    user.rank === 1 && 'rank-1-badge',
+                    user.rank === 2 && 'rank-2-badge',
+                    user.rank === 3 && 'rank-3-badge'
+                  )}>
+                    <h1 className={cn("text-3xl font-bold font-headline",
+                      user.rank === 1 && 'rank-1-text',
+                      user.rank === 2 && 'rank-2-text',
+                      user.rank === 3 && 'rank-3-text'
+                    )}>{user.nickname}</h1>
+                  </div>
+                ) : (
+                  <h1 className="text-3xl font-bold font-headline">{user.nickname}</h1>
+                )}
+                <p className="text-sm opacity-80 mt-1">{user.email || "이메일 미등록"}</p>
                 <div className="mt-4 text-center">
                     <p className="text-2xl font-semibold">{user.score.toLocaleString()} 점</p>
-                     <p className={cn("text-lg", isAdmin ? "text-admin" : getRankTextClass(user.rank))}>
+                     <p className={cn("text-lg", 
+                        isAdmin ? "text-admin" : 
+                        user.rank === 1 ? "rank-1-text" :
+                        user.rank === 2 ? "rank-2-text" :
+                        user.rank === 3 ? "rank-3-text" : ""
+                     )}>
                         {isAdmin ? "관리자" : user.rank > 0 ? `랭킹 ${user.rank}위` : "랭킹 정보 없음"}
                     </p>
                 </div>
@@ -219,35 +227,55 @@ export default function ProfilePage() {
           </CardHeader>
           <CardContent>
             <div className="space-y-3 max-h-[500px] overflow-y-auto p-1">
-              {mockRankings.map((ranker) => ( 
-                <div key={ranker.userId} className={`flex items-center justify-between p-3 rounded-lg border ${ranker.userId === user.id ? 'bg-primary/10 border-primary shadow-md' : 'bg-background/30 border-border/50'}`}>
-                  <div className="flex items-center gap-3">
-                    <span className={cn("font-bold text-lg w-8 text-center", ranker.rank > 0 ? getRankTextClass(ranker.rank) : "")}>
-                        {ranker.rank > 0 ? `${ranker.rank}.` : <Star className="h-5 w-5 inline text-yellow-400" />}
-                    </span>
-                    <Avatar className="h-10 w-10 border-2 border-accent/50">
-                      <Image src={ranker.avatar || `https://placehold.co/40x40.png?text=${ranker.nickname.substring(0,1)}`} alt={ranker.nickname} width={40} height={40} className="rounded-full" data-ai-hint="fantasy character icon" />
-                      <AvatarFallback className="bg-muted text-muted-foreground">{ranker.nickname.substring(0,1)}</AvatarFallback>
-                    </Avatar>
-                    {ranker.rank > 0 && ranker.rank <= 3 ? (
-                       <div className={cn(
-                          "font-medium rounded-lg px-3 py-1 border", 
-                          getRankWrapperClass(ranker.rank)
-                        )}
-                      >
-                        <span className={cn(getRankTextClass(ranker.rank), "font-semibold")}>
+              {mockRankings.map((ranker) => {
+                const rankerUser = mockUsers.find(u => u.id === ranker.userId);
+                const isAdminRanker = rankerUser?.username === 'WANGJUNLAND';
+                const isTopRanker = !isAdminRanker && ranker.rank > 0 && ranker.rank <= 3;
+
+                return (
+                  <div key={ranker.userId} className={`flex items-center justify-between p-3 rounded-lg border ${ranker.userId === user.id ? 'bg-primary/10 border-primary shadow-md' : 'bg-background/30 border-border/50'}`}>
+                    <div className="flex items-center gap-3">
+                      <span className={cn("font-bold text-lg w-8 text-center", 
+                          !isAdminRanker && ranker.rank === 1 && 'rank-1-text',
+                          !isAdminRanker && ranker.rank === 2 && 'rank-2-text',
+                          !isAdminRanker && ranker.rank === 3 && 'rank-3-text',
+                          isAdminRanker && 'text-admin' // Admin rank number style
+                      )}>
+                          {isAdminRanker ? <Star className="h-5 w-5 inline text-primary" /> : ranker.rank > 0 ? `${ranker.rank}.` : <Star className="h-5 w-5 inline text-yellow-400" />}
+                      </span>
+                      <Avatar className="h-10 w-10 border-2 border-accent/50">
+                        <Image src={ranker.avatar || `https://placehold.co/40x40.png?text=${ranker.nickname.substring(0,1)}`} alt={ranker.nickname} width={40} height={40} className="rounded-full" data-ai-hint="fantasy character icon" />
+                        <AvatarFallback className="bg-muted text-muted-foreground">{ranker.nickname.substring(0,1)}</AvatarFallback>
+                      </Avatar>
+                      {isAdminRanker ? (
+                        <div className="admin-badge-bg admin-badge-border rounded-lg px-3 py-1">
+                           <span className="text-admin">{ranker.nickname}</span>
+                        </div>
+                      ) : isTopRanker ? (
+                         <div className={cn(
+                            ranker.rank === 1 && 'rank-1-badge',
+                            ranker.rank === 2 && 'rank-2-badge',
+                            ranker.rank === 3 && 'rank-3-badge'
+                          )}
+                        >
+                          <span className={cn(
+                            ranker.rank === 1 && 'rank-1-text',
+                            ranker.rank === 2 && 'rank-2-text',
+                            ranker.rank === 3 && 'rank-3-text'
+                          )}>
+                            {ranker.nickname}
+                          </span>
+                        </div>
+                      ) : (
+                        <span className="font-medium text-foreground">
                           {ranker.nickname}
                         </span>
-                      </div>
-                    ) : (
-                      <span className={cn("font-medium text-foreground", mockUsers.find(u => u.id === ranker.userId)?.username === 'WANGJUNLAND' && 'text-admin')}>
-                        {ranker.nickname}
-                      </span>
-                    )}
+                      )}
+                    </div>
+                    <span className="text-sm font-semibold text-accent">{ranker.score.toLocaleString()} 점</span>
                   </div>
-                  <span className="text-sm font-semibold text-accent">{ranker.score.toLocaleString()} 점</span>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </CardContent>
         </Card>
@@ -255,3 +283,4 @@ export default function ProfilePage() {
     </div>
   );
 }
+```

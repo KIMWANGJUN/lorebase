@@ -26,6 +26,9 @@ const PostItem = ({ post, isAdmin, isPopularPost }: { post: Post, isAdmin: boole
   const formattedDate = `${postDate.getFullYear()}년 ${postDate.getMonth() + 1}월 ${postDate.getDate()}일 ${postDate.getHours()}시 ${postDate.getMinutes()}분`;
 
   const isNotice = post.type === 'Notice' || post.type === 'Announcement';
+  const isAuthorAdmin = author?.username === 'WANGJUNLAND';
+  const isAuthorTopRanker = author && !isAuthorAdmin && author.rank > 0 && author.rank <= 3;
+
 
   return (
     <Card 
@@ -44,7 +47,7 @@ const PostItem = ({ post, isAdmin, isPopularPost }: { post: Post, isAdmin: boole
               {isNotice && <ScrollText className="h-4 w-4 mr-2 text-primary" />} {/* Changed Icon for Notice */}
               {post.title}
             </CardTitle>
-            {isAdmin && (
+            {isAdmin && ( // Admin edit/delete buttons
               <div className="flex gap-1 absolute top-2 right-2">
                 <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-foreground" onClick={(e) => {e.preventDefault(); alert('Edit clicked'); }}>
                   <Edit className="h-3 w-3" />
@@ -60,7 +63,30 @@ const PostItem = ({ post, isAdmin, isPopularPost }: { post: Post, isAdmin: boole
               <AvatarImage src={authorAvatar} />
               <AvatarFallback>{getInitials(authorDisplayName)}</AvatarFallback>
             </Avatar>
-            <span className={cn("text-xs", author?.username === 'WANGJUNLAND' && 'text-admin')}>{authorDisplayName}</span>
+             {isAuthorAdmin ? (
+                <div className="admin-badge-bg admin-badge-border rounded-lg px-1.5 py-0.5 text-xs">
+                  <span className="text-admin font-semibold">{authorDisplayName}</span>
+                </div>
+              ) : isAuthorTopRanker && author ? (
+                 <div className={cn(
+                    "rounded-lg px-1.5 py-0.5 text-xs",
+                    author.rank === 1 && 'rank-1-badge',
+                    author.rank === 2 && 'rank-2-badge',
+                    author.rank === 3 && 'rank-3-badge'
+                  )}
+                >
+                  <span className={cn(
+                    "font-semibold",
+                    author.rank === 1 && 'rank-1-text',
+                    author.rank === 2 && 'rank-2-text',
+                    author.rank === 3 && 'rank-3-text'
+                  )}>
+                    {authorDisplayName}
+                  </span>
+                </div>
+              ) : (
+              <span className="text-xs">{authorDisplayName}</span>
+            )}
             <span>·</span>
             <span className="text-xs">{formattedDate}</span>
             <span>·</span>
@@ -93,6 +119,8 @@ export default function TavernPage() {
     if (activeTab === 'notices') {
       posts = posts.filter(p => p.type === 'Notice' || p.type === 'Announcement');
     } else if (activeTab === 'popular') {
+      // Add logic for popularFilter (weekly, monthly, yearly) if needed
+      // For now, sorting by views as a general popularity metric
       posts.sort((a,b) => b.views - a.views); 
     } else if (activeTab === 'qna') {
       posts = posts.filter(p => p.type === 'QnA');
@@ -103,6 +131,7 @@ export default function TavernPage() {
         p.authorNickname.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
+    // Pinned posts first, then by creation date
     return posts.sort((a,b) => (b.isPinned ? 1 : 0) - (a.isPinned ? 1 : 0) || new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
   }, [activeTab, popularFilter, searchTerm]);
   
@@ -119,7 +148,7 @@ export default function TavernPage() {
 
   const renderPageNumbers = () => {
     const pageNumbers = [];
-    const maxPagesToShow = 10; 
+    const maxPagesToShow = 10; // Number of page buttons to show at a time
     
     const currentBlock = Math.ceil(currentPage / maxPagesToShow);
     let startPage = (currentBlock - 1) * maxPagesToShow + 1;
@@ -153,14 +182,14 @@ export default function TavernPage() {
     paginate(Math.min(totalPages, currentBlockFirstPage + 10));
   };
 
-  const bannerImageUrl = "https://placehold.co/1920x800.png";
+  const bannerImageUrl = "https://placehold.co/1920x600.png";
 
   return (
     <div className="container mx-auto py-8 px-4">
       <section 
         className="text-center py-20 md:py-32 rounded-xl shadow-xl mb-10 relative bg-cover bg-center"
         style={{ backgroundImage: `url(${bannerImageUrl})` }}
-        data-ai-hint="fantasy tavern bustling"
+        data-ai-hint="fantasy tavern interior"
       >
         <div className="absolute inset-0 bg-gradient-to-r from-accent-orange/70 via-yellow-500/50 to-black/70 rounded-xl z-0"></div>
         <div className="relative z-10">
@@ -220,7 +249,7 @@ export default function TavernPage() {
       {currentPostsToDisplay.length > 0 ? (
         <div className="space-y-3"> 
           {currentPostsToDisplay.map((post) => (
-            <PostItem key={post.id} post={post} isAdmin={isAdmin} isPopularPost={activeTab === 'popular'} />
+            <PostItem key={post.id} post={post} isAdmin={!!isAdmin} isPopularPost={activeTab === 'popular'} />
           ))}
         </div>
       ) : (

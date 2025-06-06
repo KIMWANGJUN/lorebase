@@ -33,7 +33,7 @@ const CommentEntry = ({ comment, currentUser, onAddReply, onEditComment, depth =
   
   const author = mockUsers.find(u => u.id === comment.authorId);
   const isAuthor = currentUser?.id === comment.authorId;
-  const canReply = depth < MAX_REPLY_DEPTH -1; // Allow reply if current depth is 0, 1. No reply button if depth is 2.
+  const canReply = depth < MAX_REPLY_DEPTH -1; 
 
 
   const isReplyBoxOpen = activeReplyBoxId === comment.id;
@@ -56,8 +56,8 @@ const CommentEntry = ({ comment, currentUser, onAddReply, onEditComment, depth =
   };
 
   const handleEditToggle = () => {
-    if (isEditing) { // If cancelling edit
-      setEditedContent(comment.content); // Reset to original content
+    if (isEditing) { 
+      setEditedContent(comment.content); 
     }
     setIsEditing(!isEditing);
   };
@@ -72,6 +72,9 @@ const CommentEntry = ({ comment, currentUser, onAddReply, onEditComment, depth =
   const commentDate = comment.updatedAt ? new Date(comment.updatedAt) : new Date(comment.createdAt);
   const formattedDate = `${commentDate.toLocaleDateString()} ${commentDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
 
+  const isAuthorAdmin = author?.username === 'WANGJUNLAND';
+  const isAuthorTopRanker = author && !isAuthorAdmin && author.rank > 0 && author.rank <= 3;
+
 
   return (
     <div className={cn("py-3", depth > 0 && "ml-4 pl-4 border-l md:ml-6 md:pl-6")}>
@@ -82,7 +85,29 @@ const CommentEntry = ({ comment, currentUser, onAddReply, onEditComment, depth =
         </Avatar>
         <div className="flex-1">
           <div className="flex items-center justify-between">
-            <p className={cn("text-sm font-medium", author?.username === 'WANGJUNLAND' && 'text-admin')}>{comment.authorNickname}</p>
+            {isAuthorAdmin ? (
+              <div className="admin-badge-bg admin-badge-border rounded-md px-2 py-0.5 inline-block">
+                 <p className="text-sm font-medium text-admin">{comment.authorNickname}</p>
+              </div>
+            ) : isAuthorTopRanker ? (
+              <div className={cn(
+                'inline-block text-sm rounded-md px-2 py-0.5', // Adjusted padding
+                author.rank === 1 && 'rank-1-badge',
+                author.rank === 2 && 'rank-2-badge',
+                author.rank === 3 && 'rank-3-badge'
+              )}>
+                <p className={cn(
+                  'text-sm font-medium',
+                  author.rank === 1 && 'rank-1-text',
+                  author.rank === 2 && 'rank-2-text',
+                  author.rank === 3 && 'rank-3-text'
+                )}>
+                  {comment.authorNickname}
+                </p>
+              </div>
+            ) : (
+              <p className="text-sm font-medium text-foreground">{comment.authorNickname}</p>
+            )}
             <p className="text-xs text-muted-foreground">
               {formattedDate}
               {comment.isEdited && <span className="ml-1 text-muted-foreground/80">(수정함)</span>}
@@ -307,3 +332,4 @@ export default function CommentSection({ postId, initialComments }: CommentSecti
     </Card>
   );
 }
+```

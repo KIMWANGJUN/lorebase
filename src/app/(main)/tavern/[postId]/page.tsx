@@ -104,6 +104,9 @@ export default function PostDetailPage() {
   const formattedDate = `${postDate.getFullYear()}년 ${postDate.getMonth() + 1}월 ${postDate.getDate()}일 ${postDate.getHours()}시 ${postDate.getMinutes()}분`;
   const isNotice = post.type === 'Notice' || post.type === 'Announcement';
 
+  const isAuthorAdmin = author?.username === 'WANGJUNLAND';
+  const isAuthorTopRanker = author && !isAuthorAdmin && author.rank > 0 && author.rank <= 3;
+
   return (
     <div className="container mx-auto py-8 px-4 max-w-3xl">
       <Button asChild variant="outline" className="mb-6">
@@ -133,7 +136,29 @@ export default function PostDetailPage() {
               <AvatarFallback>{getInitials(authorDisplayName)}</AvatarFallback>
             </Avatar>
             <div>
-              <span className={cn("font-medium", author?.username === 'WANGJUNLAND' && 'text-admin')}>{authorDisplayName}</span>
+              {isAuthorAdmin ? (
+                <div className="admin-badge-bg admin-badge-border rounded-md px-2 py-0.5 inline-block">
+                  <span className="text-admin font-medium">{authorDisplayName}</span>
+                </div>
+              ) : isAuthorTopRanker ? (
+                <div className={cn(
+                  'inline-block rounded-md px-2 py-0.5', // Adjusted padding for inline look
+                  author.rank === 1 && 'rank-1-badge',
+                  author.rank === 2 && 'rank-2-badge',
+                  author.rank === 3 && 'rank-3-badge'
+                )}>
+                  <span className={cn(
+                    'font-medium',
+                    author.rank === 1 && 'rank-1-text',
+                    author.rank === 2 && 'rank-2-text',
+                    author.rank === 3 && 'rank-3-text'
+                  )}>
+                    {authorDisplayName}
+                  </span>
+                </div>
+              ) : (
+                <span className="font-medium text-foreground">{authorDisplayName}</span>
+              )}
               <div className="text-xs text-muted-foreground">
                 <span>{formattedDate}</span>
                 <span className="mx-1">·</span>
@@ -169,3 +194,4 @@ export default function PostDetailPage() {
     </div>
   );
 }
+```
