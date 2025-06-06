@@ -136,19 +136,19 @@ export default function PostDetailPage() {
               <AvatarFallback>{getInitials(authorDisplayName)}</AvatarFallback>
             </Avatar>
             <div>
-              {isAuthorAdmin ? (
-                <div className="admin-badge-bg admin-badge-border rounded-md px-2 py-0.5 inline-block">
-                  <span className="text-admin font-medium">{authorDisplayName}</span>
+              {isAuthorAdmin && author ? (
+                <div className="admin-badge-bg admin-badge-border rounded-lg px-2 py-0.5 inline-block">
+                  <span className="text-admin font-semibold">{authorDisplayName}</span>
                 </div>
-              ) : isAuthorTopRanker ? (
+              ) : isAuthorTopRanker && author ? (
                 <div className={cn(
-                  'inline-block rounded-md px-2 py-0.5', // Adjusted padding for inline look
+                  'inline-block rounded-lg px-2 py-0.5',
                   author.rank === 1 && 'rank-1-badge',
                   author.rank === 2 && 'rank-2-badge',
                   author.rank === 3 && 'rank-3-badge'
                 )}>
                   <span className={cn(
-                    'font-medium',
+                    'font-semibold',
                     author.rank === 1 && 'rank-1-text',
                     author.rank === 2 && 'rank-2-text',
                     author.rank === 3 && 'rank-3-text'
@@ -194,4 +194,3 @@ export default function PostDetailPage() {
     </div>
   );
 }
-```

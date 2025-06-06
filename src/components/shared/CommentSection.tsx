@@ -85,27 +85,28 @@ const CommentEntry = ({ comment, currentUser, onAddReply, onEditComment, depth =
         </Avatar>
         <div className="flex-1">
           <div className="flex items-center justify-between">
-            {isAuthorAdmin ? (
-              <div className="admin-badge-bg admin-badge-border rounded-md px-2 py-0.5 inline-block">
-                 <p className="text-sm font-medium text-admin">{comment.authorNickname}</p>
-              </div>
-            ) : isAuthorTopRanker ? (
-              <div className={cn(
-                'inline-block text-sm rounded-md px-2 py-0.5', // Adjusted padding
-                author.rank === 1 && 'rank-1-badge',
-                author.rank === 2 && 'rank-2-badge',
-                author.rank === 3 && 'rank-3-badge'
-              )}>
-                <p className={cn(
-                  'text-sm font-medium',
-                  author.rank === 1 && 'rank-1-text',
-                  author.rank === 2 && 'rank-2-text',
-                  author.rank === 3 && 'rank-3-text'
-                )}>
-                  {comment.authorNickname}
-                </p>
-              </div>
-            ) : (
+            {isAuthorAdmin && author ? (
+                <div className="admin-badge-bg admin-badge-border rounded-lg px-2 py-0.5 inline-block">
+                  <p className="text-sm font-medium text-admin">{comment.authorNickname}</p>
+                </div>
+              ) : isAuthorTopRanker && author ? (
+                 <div className={cn(
+                    "inline-block rounded-lg px-2 py-0.5 text-sm", // Adjusted padding & base styles
+                    author.rank === 1 && 'rank-1-badge',
+                    author.rank === 2 && 'rank-2-badge',
+                    author.rank === 3 && 'rank-3-badge'
+                  )}
+                >
+                  <p className={cn(
+                    "text-sm font-semibold", // Ensured font-semibold is applied
+                    author.rank === 1 && 'rank-1-text',
+                    author.rank === 2 && 'rank-2-text',
+                    author.rank === 3 && 'rank-3-text'
+                  )}>
+                    {comment.authorNickname}
+                  </p>
+                </div>
+              ) : (
               <p className="text-sm font-medium text-foreground">{comment.authorNickname}</p>
             )}
             <p className="text-xs text-muted-foreground">
@@ -332,4 +333,3 @@ export default function CommentSection({ postId, initialComments }: CommentSecti
     </Card>
   );
 }
-```

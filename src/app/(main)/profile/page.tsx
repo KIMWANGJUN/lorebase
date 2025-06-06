@@ -90,7 +90,7 @@ export default function ProfilePage() {
         style={{ backgroundImage: `url(${bannerImageUrl})` }}
         data-ai-hint="personal coat_of_arms"
       >
-        <div className="absolute inset-0 bg-black/60 rounded-xl z-0"></div>
+        <div className="absolute inset-0 bg-black/70 rounded-xl z-0"></div>
         <div className="relative z-10 text-center">
            <h1 className="text-4xl md:text-5xl font-bold font-headline text-primary-foreground drop-shadow-lg flex items-center justify-center">
             <Wand2 className="h-10 w-10 mr-3 text-accent animate-pulse" />
@@ -113,6 +113,7 @@ export default function ProfilePage() {
                   </div>
                 ) : user.rank > 0 && user.rank <=3 ? (
                   <div className={cn(
+                    "rounded-lg px-3 py-1", // Base badge styles
                     user.rank === 1 && 'rank-1-badge',
                     user.rank === 2 && 'rank-2-badge',
                     user.rank === 3 && 'rank-3-badge'
@@ -253,12 +254,14 @@ export default function ProfilePage() {
                         </div>
                       ) : isTopRanker ? (
                          <div className={cn(
+                            "rounded-lg px-3 py-1", // Keep rounded-lg
                             ranker.rank === 1 && 'rank-1-badge',
                             ranker.rank === 2 && 'rank-2-badge',
                             ranker.rank === 3 && 'rank-3-badge'
                           )}
                         >
                           <span className={cn(
+                            "font-semibold", // Added font-semibold here
                             ranker.rank === 1 && 'rank-1-text',
                             ranker.rank === 2 && 'rank-2-text',
                             ranker.rank === 3 && 'rank-3-text'
@@ -283,4 +286,3 @@ export default function ProfilePage() {
     </div>
   );
 }
-```
