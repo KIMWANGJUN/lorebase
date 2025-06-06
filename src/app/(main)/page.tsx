@@ -66,35 +66,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Latest Free Assets */}
-      <section className="mb-16">
-        <div className="flex justify-between items-center mb-8">
-          <h2 className="text-3xl font-bold font-headline">최신 무료 에셋</h2>
-          <Button variant="outline" asChild>
-            <Link href="/free-assets">모두 보기 <ArrowRight className="ml-2 h-4 w-4" /></Link>
-          </Button>
-        </div>
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {latestAssets.map((asset) => (
-            <Card key={asset.id} className="shadow-lg hover:shadow-xl transition-shadow duration-300">
-               <Image src={asset.imageUrl || "https://placehold.co/600x400.png"} alt={asset.name} width={600} height={400} className="w-full h-48 object-cover" data-ai-hint="digital asset texture" />
-              <CardHeader>
-                <CardTitle className="font-headline">{asset.name}</CardTitle>
-                <CardDescription>{asset.type} - {asset.updateFrequency ? `${asset.updateFrequency} 업데이트` : '정보 확인'}</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground line-clamp-2">{asset.description}</p>
-              </CardContent>
-              <CardFooter>
-                <Button variant="secondary" asChild className="w-full">
-                  <a href={asset.siteUrl} target="_blank" rel="noopener noreferrer">사이트 방문</a>
-                </Button>
-              </CardFooter>
-            </Card>
-          ))}
-        </div>
-      </section>
-
       {/* Community Highlights & Ranking */}
       <section className="grid lg:grid-cols-3 gap-12 mb-16">
         <div className="lg:col-span-2">
