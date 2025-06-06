@@ -55,7 +55,7 @@ export interface Post {
   views: number;
   isPinned?: boolean;
   tags?: string[];
-  commentCount: number;
+  commentCount: number; // This will be the initial count, actual display might be dynamic
 }
 
 export interface Comment {
@@ -68,6 +68,8 @@ export interface Comment {
   createdAt: string; // ISO Date string
   upvotes: number;
   downvotes: number;
+  parentId?: string; // ID of the comment this is a reply to
+  replies?: Comment[]; // Nested replies for display
 }
 
 export interface RankEntry {

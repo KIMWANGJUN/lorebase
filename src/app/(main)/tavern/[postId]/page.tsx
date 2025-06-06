@@ -1,22 +1,89 @@
 // src/app/(main)/tavern/[postId]/page.tsx
-import { mockPosts, mockUsers } from '@/lib/mockData';
-import type { Post } from '@/types';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+"use client"; 
+
+import { mockPosts, mockUsers, mockComments as globalMockComments } from '@/lib/mockData';
+import type { Post, Comment as CommentType } from '@/types';
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { ArrowLeft, MessageSquare, ThumbsUp, Eye, Pin } from 'lucide-react'; 
+import { ArrowLeft, MessageSquare, ThumbsUp, Eye, Pin } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import MiniPostList from '@/components/shared/MiniPostList';
+import CommentSection from '@/components/shared/CommentSection';
+import { useEffect, useState, useMemo } from 'react';
+import { useParams } from 'next/navigation';
 
-export async function generateStaticParams() {
-  return mockPosts.map((post) => ({
-    postId: post.id,
-  }));
-}
+export default function PostDetailPage() {
+  const params = useParams();
+  const postId = typeof params.postId === 'string' ? params.postId : undefined;
+  
+  const [post, setPost] = useState<Post | null | undefined>(undefined); 
 
-export default function PostDetailPage({ params }: { params: { postId: string } }) {
-  const post = mockPosts.find(p => p.id === params.postId);
+  const initialCommentsForPost = useMemo(() => {
+    if (!postId) return [];
+    const commentsForThisPost = globalMockComments.filter(c => c.postId === postId);
+    const commentMap: { [id: string]: CommentType & { replies: CommentType[] } } = {}; // Ensure replies is always an array
+    const topLevelComments: CommentType[] = [];
+
+    commentsForThisPost.forEach(c => {
+      commentMap[c.id] = { ...c, replies: c.replies || [] }; // Use existing replies or initialize
+    });
+    
+    commentsForThisPost.forEach(c => {
+      // If mockData already has replies nested, this might create duplicates or incorrect structures
+      // So, we first clear pre-existing parentId-based replies if mockData has them flat
+      // and then rebuild if needed, or trust mockData's structure.
+      // For simplicity, if mockData.replies exists, we assume it's correct.
+      // If flat, we build. Let's assume flat structure for robust rebuilding for now.
+      
+      // To ensure correct hierarchy, reset replies and build from parentId
+      const currentCommentInMap = commentMap[c.id];
+      currentCommentInMap.replies = []; // Reset and rebuild based on parentId
+
+      if (c.parentId && commentMap[c.parentId]) {
+        commentMap[c.parentId].replies = commentMap[c.parentId].replies || [];
+        if (!commentMap[c.parentId].replies.find(r => r.id === c.id)) { // Avoid duplicates
+            commentMap[c.parentId].replies.push(currentCommentInMap);
+        }
+      } else if (!c.parentId) {
+        if (!topLevelComments.find(tlc => tlc.id === c.id)) { // Avoid duplicates
+            topLevelComments.push(currentCommentInMap);
+        }
+      }
+    });
+    
+    Object.values(commentMap).forEach(c => {
+        if (c.replies) {
+            c.replies.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+        }
+    });
+    topLevelComments.sort((a,b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+
+    return topLevelComments;
+  }, [postId]);
+
+
+  useEffect(() => {
+    if (postId) {
+      const foundPost = mockPosts.find(p => p.id === postId);
+      setPost(foundPost || null);
+    }
+  }, [postId]);
+
+  const totalCommentCount = useMemo(() => {
+    const count = (comments: CommentType[]): number => {
+      return comments.reduce((acc, comment) => {
+        return acc + 1 + (comment.replies ? count(comment.replies) : 0);
+      }, 0);
+    };
+    return count(initialCommentsForPost);
+  }, [initialCommentsForPost]);
+
+
+  if (post === undefined) { 
+    return <div className="container mx-auto py-8 px-4 text-center">게시글을 불러오는 중...</div>;
+  }
 
   if (!post) {
     return (
@@ -62,7 +129,7 @@ export default function PostDetailPage({ params }: { params: { postId: string } 
           </div>
           <div className="flex items-center text-sm text-muted-foreground space-x-2 mt-2">
             <Avatar className="h-8 w-8">
-              <AvatarImage src={authorAvatar} />
+              <AvatarImage src={authorAvatar || `https://placehold.co/40x40.png?text=${getInitials(authorDisplayName)}`} alt={authorDisplayName} />
               <AvatarFallback>{getInitials(authorDisplayName)}</AvatarFallback>
             </Avatar>
             <div>
@@ -76,13 +143,12 @@ export default function PostDetailPage({ params }: { params: { postId: string } 
           </div>
         </CardHeader>
         <CardContent className="prose dark:prose-invert max-w-none prose-sm sm:prose-base">
-          <p className="whitespace-pre-wrap">{post.content}</p> 
+          <div className="whitespace-pre-wrap">{post.content}</div> 
         </CardContent>
         <CardFooter className="flex justify-between items-center text-muted-foreground border-t pt-4 mt-4">
            <div className="flex gap-4 items-center text-sm">
             <span className="flex items-center"><ThumbsUp className="h-4 w-4 mr-1" /> {post.upvotes}</span>
-            {/* {isAdmin && <span className="flex items-center"><ThumbsDown className="h-4 w-4 mr-1" /> {post.downvotes}</span>} */}
-            <span className="flex items-center"><MessageSquare className="h-4 w-4 mr-1" /> {post.commentCount}</span>
+            <span className="flex items-center"><MessageSquare className="h-4 w-4 mr-1" /> {totalCommentCount}</span>
             <span className="flex items-center"><Eye className="h-4 w-4 mr-1" /> {post.views}</span>
           </div>
            {post.tags && post.tags.length > 0 && (
@@ -95,20 +161,11 @@ export default function PostDetailPage({ params }: { params: { postId: string } 
         </CardFooter>
       </Card>
 
-      {/* Comments Section (Placeholder) */}
-      <Card className="mb-8">
-        <CardHeader>
-          <CardTitle>댓글 ({post.commentCount})</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-muted-foreground">댓글 기능은 현재 준비 중입니다.</p>
-        </CardContent>
-      </Card>
-
+      {/* Comments Section */}
+      <CommentSection postId={post.id} initialComments={initialCommentsForPost} />
+      
       {/* Mini Post List Section */}
       <MiniPostList allPosts={mockPosts} currentPostId={post.id} />
-      
     </div>
   );
 }
-
