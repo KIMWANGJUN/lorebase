@@ -9,14 +9,14 @@ import { mockStarterProjects } from '@/lib/mockData';
 import type { StarterProject } from '@/types';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Cube, AppWindow, PenTool, Search, Download, PlusCircle, Edit, Trash2 } from 'lucide-react';
+import { Box, AppWindow, PenTool, Search, Download, PlusCircle, Edit, Trash2, Compass } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 
 const engineIcons = {
-  Unity: <Cube className="h-5 w-5 mr-2 text-purple-500" />,
+  Unity: <Box className="h-5 w-5 mr-2 text-purple-500" />,
   Unreal: <AppWindow className="h-5 w-5 mr-2 text-blue-500" />,
   Godot: <PenTool className="h-5 w-5 mr-2 text-green-500" />,
-  Other: <Cube className="h-5 w-5 mr-2 text-gray-500" />,
+  Other: <Box className="h-5 w-5 mr-2 text-gray-500" />,
 };
 
 const EngineIcon = ({ engine }: { engine: StarterProject['engine'] }) => {
@@ -60,10 +60,10 @@ export default function GameWorkshopPage() {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">모든 엔진</SelectItem>
-            <SelectItem value="Unity"><Cube className="inline-block h-4 w-4 mr-2" /> Unity</SelectItem>
+            <SelectItem value="Unity"><Box className="inline-block h-4 w-4 mr-2" /> Unity</SelectItem>
             <SelectItem value="Unreal"><AppWindow className="inline-block h-4 w-4 mr-2" /> Unreal</SelectItem>
             <SelectItem value="Godot"><PenTool className="inline-block h-4 w-4 mr-2" /> Godot</SelectItem>
-            <SelectItem value="Other"><Cube className="inline-block h-4 w-4 mr-2" /> Other</SelectItem>
+            <SelectItem value="Other"><Box className="inline-block h-4 w-4 mr-2" /> Other</SelectItem>
           </SelectContent>
         </Select>
         {isAdmin && (
