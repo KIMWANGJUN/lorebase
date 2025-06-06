@@ -221,7 +221,7 @@ export default function ProfilePage() {
                     </Avatar>
                     {ranker.rank > 0 && ranker.rank <= 3 ? (
                        <div className={cn(
-                          "font-medium rounded-full px-3 py-1 border",
+                          "font-medium rounded-lg px-3 py-1 border", // Changed from rounded-full
                           getRankWrapperClass(ranker.rank)
                         )}
                       >

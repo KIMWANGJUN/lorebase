@@ -9,7 +9,7 @@ import { cn } from '@/lib/utils';
 
 export default function HomePage() {
   const popularPosts = mockPosts.sort((a, b) => b.views - a.views).slice(0, 3);
-  const topRankers = mockRankings.filter(r => r.rank > 0).slice(0, 3); // Exclude admin (rank 0) and get top 3
+  const topRankers = mockRankings.filter(r => r.rank > 0 && r.rank <=3).slice(0, 3); 
 
   const getRankTextClass = (rank: number) => {
     if (rank === 1) return 'rank-1';
@@ -123,7 +123,7 @@ export default function HomePage() {
                     <span className={cn("font-bold text-lg w-6 text-center", getRankTextClass(ranker.rank))}>{ranker.rank}.</span>
                     <Image src={ranker.avatar || `https://placehold.co/40x40.png`} alt={ranker.nickname} width={40} height={40} className="rounded-full border-2 border-accent" data-ai-hint="fantasy character avatar" />
                     <div className={cn(
-                        "font-medium rounded-full px-3 py-1 border",
+                        "font-medium rounded-lg px-3 py-1 border", // Changed from rounded-full
                         getRankWrapperClass(ranker.rank)
                       )}
                     >
