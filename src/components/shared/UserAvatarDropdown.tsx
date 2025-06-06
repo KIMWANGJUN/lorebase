@@ -28,42 +28,36 @@ export default function UserAvatarDropdown({ user, isAdmin, onLogout }: UserAvat
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <button className="flex items-center gap-2 rounded-full focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2">
-          <Avatar className="h-9 w-9">
-            <AvatarImage src={user.avatar} alt={user.nickname} />
-            <AvatarFallback>{getInitials(user.nickname)}</AvatarFallback>
+        <button className="flex items-center gap-2 rounded-full focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 hover:opacity-90 transition-opacity">
+          <Avatar className="h-9 w-9 border-2 border-accent/50">
+            <AvatarImage src={user.avatar} alt={user.nickname} data-ai-hint="user avatar icon"/>
+            <AvatarFallback className="bg-muted text-muted-foreground">{getInitials(user.nickname)}</AvatarFallback>
           </Avatar>
-           <span className={cn("text-sm font-medium hidden sm:inline", isAdmin && "text-admin")}>{user.nickname}</span>
+           <span className={cn("text-sm font-medium hidden sm:inline text-foreground", isAdmin && "text-admin")}>{user.nickname}</span>
         </button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-56">
+      <DropdownMenuContent align="end" className="w-56 bg-popover border-border text-popover-foreground shadow-xl">
         <DropdownMenuLabel>
-          <div className="font-medium">{user.nickname}</div>
+          <div className="font-medium text-foreground">{user.nickname}</div>
           {user.email && <div className="text-xs text-muted-foreground">{user.email}</div>}
         </DropdownMenuLabel>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem asChild>
-          <Link href="/profile" className="flex items-center">
+        <DropdownMenuSeparator className="bg-border/50"/>
+        <DropdownMenuItem asChild className="hover:bg-muted/50 focus:bg-muted/50">
+          <Link href="/profile" className="flex items-center text-popover-foreground">
             <UserCircle className="mr-2 h-4 w-4" />
             내 프로필
           </Link>
         </DropdownMenuItem>
-        {/* <DropdownMenuItem asChild>
-          <Link href="/settings" className="flex items-center"> // Settings page not requested yet
-            <Settings className="mr-2 h-4 w-4" />
-            설정
-          </Link>
-        </DropdownMenuItem> */}
         {isAdmin && (
-          <DropdownMenuItem asChild>
-            <Link href="/admin" className="flex items-center text-destructive">
+          <DropdownMenuItem asChild className="hover:bg-muted/50 focus:bg-muted/50">
+            <Link href="/admin" className="flex items-center text-destructive/90 hover:text-destructive">
               <ShieldCheck className="mr-2 h-4 w-4" />
               관리자 페이지
             </Link>
           </DropdownMenuItem>
         )}
-        <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={onLogout} className="flex items-center cursor-pointer">
+        <DropdownMenuSeparator className="bg-border/50"/>
+        <DropdownMenuItem onClick={onLogout} className="flex items-center cursor-pointer text-popover-foreground hover:bg-muted/50 focus:bg-muted/50">
           <LogOut className="mr-2 h-4 w-4" />
           로그아웃
         </DropdownMenuItem>

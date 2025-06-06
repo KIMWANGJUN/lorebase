@@ -9,7 +9,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { mockPosts, mockUsers } from '@/lib/mockData';
 import type { Post } from '@/types';
 import Link from 'next/link';
-import { Search, PlusCircle, MessageSquare, ThumbsUp, ThumbsDown, Eye, Filter, ArrowUpDown, Pin, Edit, Trash2, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
+import { Search, PlusCircle, MessageSquare, ThumbsUp, ThumbsDown, Eye, Filter, ArrowUpDown, Pin, Edit, Trash2, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, ScrollText } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from '@/contexts/AuthContext';
 import { cn } from '@/lib/utils';
@@ -30,33 +30,33 @@ const PostItem = ({ post, isAdmin, isPopularPost }: { post: Post, isAdmin: boole
   return (
     <Card 
       className={cn(
-        "shadow-md hover:shadow-lg transition-shadow duration-300 ease-in-out",
-        post.isPinned && "border-t-4 border-primary dark:border-primary/80",
-        isNotice && "bg-sky-50 dark:bg-sky-900/30 border-sky-200 dark:border-sky-700",
+        "shadow-md hover:shadow-lg transition-shadow duration-300 ease-in-out bg-card border-border hover:border-primary/30",
+        post.isPinned && "border-t-4 border-accent dark:border-accent/80",
+        isNotice && "bg-primary/10 dark:bg-primary/20 border-primary/50 dark:border-primary/70",
         isPopularPost && !isNotice && !post.isPinned && "border-2 border-yellow-400 dark:border-yellow-500"
       )}
     >
-      <Link href={`/tavern/${post.id}`} className="block hover:bg-muted/20 transition-colors rounded-lg">
+      <Link href={`/tavern/${post.id}`} className="block hover:bg-card/5 transition-colors rounded-lg">
         <CardHeader className="pb-1 pt-2 px-3">
           <div className="flex justify-between items-start">
-            <CardTitle className="font-headline text-md mb-0.5 flex items-center">
-              {post.isPinned && <Pin className="h-4 w-4 mr-2 text-primary" />} 
-              {isNotice && <MessageSquare className="h-4 w-4 mr-2 text-sky-600 dark:text-sky-400" />}
+            <CardTitle className="font-headline text-md mb-0.5 flex items-center text-foreground">
+              {post.isPinned && <Pin className="h-4 w-4 mr-2 text-accent" />} 
+              {isNotice && <ScrollText className="h-4 w-4 mr-2 text-primary" />} {/* Changed Icon for Notice */}
               {post.title}
             </CardTitle>
             {isAdmin && (
-              <div className="flex gap-1 absolute top-2 right-2"> {/* Position admin buttons absolutely */}
-                <Button variant="ghost" size="icon" className="h-6 w-6" onClick={(e) => {e.preventDefault(); alert('Edit clicked'); /* Implement edit action */ }}>
+              <div className="flex gap-1 absolute top-2 right-2">
+                <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-foreground" onClick={(e) => {e.preventDefault(); alert('Edit clicked'); }}>
                   <Edit className="h-3 w-3" />
                 </Button>
-                <Button variant="ghost" size="icon" className="h-6 w-6 text-destructive" onClick={(e) => {e.preventDefault(); alert('Delete clicked'); /* Implement delete action */ }}>
+                <Button variant="ghost" size="icon" className="h-6 w-6 text-destructive/70 hover:text-destructive" onClick={(e) => {e.preventDefault(); alert('Delete clicked'); }}>
                   <Trash2 className="h-3 w-3" />
                 </Button>
               </div>
             )}
           </div>
           <div className="flex items-center text-xs text-muted-foreground space-x-1.5">
-            <Avatar className="h-4 w-4">
+            <Avatar className="h-4 w-4 border border-border">
               <AvatarImage src={authorAvatar} />
               <AvatarFallback>{getInitials(authorDisplayName)}</AvatarFallback>
             </Avatar>
@@ -67,10 +67,6 @@ const PostItem = ({ post, isAdmin, isPopularPost }: { post: Post, isAdmin: boole
             <span className="capitalize text-xs">{post.type}</span>
           </div>
         </CardHeader>
-        {/* Post content removed from list view */}
-        {/* <CardContent className="py-1 px-3">
-          <p className="text-sm text-foreground line-clamp-2">{post.content}</p>
-        </CardContent> */}
         <CardFooter className="flex justify-start items-center text-xs text-muted-foreground px-3 py-1 mt-1">
           <div className="flex gap-2 items-center">
             <span className="flex items-center text-[10px]"><ThumbsUp className="h-2.5 w-2.5 mr-0.5" /> {post.upvotes}</span>
@@ -78,7 +74,6 @@ const PostItem = ({ post, isAdmin, isPopularPost }: { post: Post, isAdmin: boole
             <span className="flex items-center text-[10px]"><MessageSquare className="h-2.5 w-2.5 mr-0.5" /> {post.commentCount}</span>
             <span className="flex items-center text-[10px]"><Eye className="h-2.5 w-2.5 mr-0.5" /> {post.views}</span>
           </div>
-          {/* "자세히 보기" button can be removed if the whole card is a link, or kept for explicit action */}
         </CardFooter>
       </Link>
     </Card>
@@ -89,31 +84,25 @@ const PostItem = ({ post, isAdmin, isPopularPost }: { post: Post, isAdmin: boole
 export default function TavernPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [activeTab, setActiveTab] = useState('all');
-  const [popularFilter, setPopularFilter] = useState('weekly'); // weekly, monthly, yearly
+  const [popularFilter, setPopularFilter] = useState('weekly'); 
   const [currentPage, setCurrentPage] = useState(1);
   const { user, isAdmin } = useAuth();
 
   const filteredPosts = useMemo(() => {
-    let posts = [...mockPosts]; // Create a mutable copy for sorting
+    let posts = [...mockPosts]; 
     if (activeTab === 'notices') {
       posts = posts.filter(p => p.type === 'Notice' || p.type === 'Announcement');
     } else if (activeTab === 'popular') {
-      // For popular, sort by views first, then potentially by date if needed
-      // This example sorts primarily by views for the "popular" tab.
-      // You might adjust logic based on popularFilter (weekly, monthly, yearly) if you have date filters.
       posts.sort((a,b) => b.views - a.views); 
     } else if (activeTab === 'qna') {
       posts = posts.filter(p => p.type === 'QnA');
     }
-    // General search filter, applied after tab-specific filtering
     if (searchTerm) {
       posts = posts.filter(p => 
         p.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        // p.content.toLowerCase().includes(searchTerm.toLowerCase()) || // Content search removed
         p.authorNickname.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
-    // Always sort pinned posts to top, then by creation date for remaining posts
     return posts.sort((a,b) => (b.isPinned ? 1 : 0) - (a.isPinned ? 1 : 0) || new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
   }, [activeTab, popularFilter, searchTerm]);
   
@@ -145,7 +134,7 @@ export default function TavernPage() {
           variant={currentPage === i ? 'default' : 'outline'}
           size="sm"
           onClick={() => paginate(i)}
-          className="h-8 w-8 p-0"
+          className={cn("h-8 w-8 p-0", currentPage === i ? "bg-accent text-accent-foreground border-accent" : "text-muted-foreground border-border hover:bg-muted/50 hover:border-accent/50")}
         >
           {i}
         </Button>
@@ -164,12 +153,20 @@ export default function TavernPage() {
     paginate(Math.min(totalPages, currentBlockFirstPage + 10));
   };
 
+  const bannerImageUrl = "https://placehold.co/1920x800.png";
 
   return (
     <div className="container mx-auto py-8 px-4">
-      <section className="text-center py-12 mb-10 bg-gradient-to-r from-accent-orange to-accent rounded-lg shadow-md">
-        <h1 className="text-4xl font-bold font-headline text-primary-foreground">선술집 (커뮤니티)</h1>
-        <p className="text-lg text-primary-foreground/90 mt-2">개발자들과 자유롭게 소통하고 정보를 공유하세요.</p>
+      <section 
+        className="text-center py-20 md:py-32 rounded-xl shadow-xl mb-10 relative bg-cover bg-center"
+        style={{ backgroundImage: `url(${bannerImageUrl})` }}
+        data-ai-hint="fantasy tavern bustling"
+      >
+        <div className="absolute inset-0 bg-gradient-to-r from-accent-orange/70 via-yellow-500/50 to-black/70 rounded-xl z-0"></div>
+        <div className="relative z-10">
+            <h1 className="text-4xl md:text-5xl font-bold font-headline text-primary-foreground drop-shadow-lg">선술집 (커뮤니티)</h1>
+            <p className="text-lg md:text-xl text-primary-foreground/90 mt-2 drop-shadow-sm">개발자들과 자유롭게 소통하고 정보를 공유하세요.</p>
+        </div>
       </section>
 
       <div className="mb-8 flex flex-col md:flex-row gap-4 items-center">
@@ -178,24 +175,24 @@ export default function TavernPage() {
           <Input
             type="text"
             placeholder="게시글 검색 (제목, 작성자)..."
-            className="pl-10 w-full"
+            className="pl-10 w-full bg-card border-border focus:ring-accent"
             value={searchTerm}
             onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1);}}
           />
         </div>
         {user && (
-          <Button className="w-full md:w-auto bg-gradient-to-r from-green-500 to-teal-500 text-primary-foreground">
+          <Button className="w-full md:w-auto bg-gradient-to-r from-green-500 to-teal-500 text-primary-foreground hover:opacity-90 shadow-md">
             <PlusCircle className="mr-2 h-5 w-5" /> 새 글 작성
           </Button>
         )}
       </div>
 
       <Tabs value={activeTab} onValueChange={(value) => {setActiveTab(value); setCurrentPage(1);}} className="mb-8">
-        <TabsList className="grid w-full grid-cols-2 md:grid-cols-4">
-          <TabsTrigger value="all">전체 글</TabsTrigger>
-          <TabsTrigger value="notices">공지</TabsTrigger>
-          <TabsTrigger value="qna">Q&A</TabsTrigger>
-          <TabsTrigger value="popular" asChild className="data-[state=active]:bg-yellow-100 dark:data-[state=active]:bg-yellow-700/50 data-[state=active]:text-yellow-700 dark:data-[state=active]:text-yellow-300">
+        <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 bg-card border-border">
+          <TabsTrigger value="all" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">전체 글</TabsTrigger>
+          <TabsTrigger value="notices" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">공지</TabsTrigger>
+          <TabsTrigger value="qna" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">Q&A</TabsTrigger>
+          <TabsTrigger value="popular" asChild className="data-[state=active]:bg-accent data-[state=active]:text-accent-foreground">
             <div className="flex items-center gap-1 cursor-pointer">
               인기 글
               <DropdownMenu>
@@ -203,13 +200,13 @@ export default function TavernPage() {
                   <Button
                     variant="ghost"
                     size="xs" 
-                    className="p-1 h-auto"
+                    className="p-1 h-auto hover:bg-accent/20"
                     onClick={(e) => { e.stopPropagation(); }} 
                   >
                     <Filter className="h-3 w-3" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent>
+                <DropdownMenuContent className="bg-popover border-border text-popover-foreground">
                   <DropdownMenuItem onSelect={() => {setPopularFilter('weekly'); setCurrentPage(1);}}>1주일</DropdownMenuItem>
                   <DropdownMenuItem onSelect={() => {setPopularFilter('monthly'); setCurrentPage(1);}}>1개월</DropdownMenuItem>
                   <DropdownMenuItem onSelect={() => {setPopularFilter('yearly'); setCurrentPage(1);}}>1년</DropdownMenuItem>
@@ -221,7 +218,7 @@ export default function TavernPage() {
       </Tabs>
       
       {currentPostsToDisplay.length > 0 ? (
-        <div className="space-y-3"> {/* Reduced space between posts slightly */}
+        <div className="space-y-3"> 
           {currentPostsToDisplay.map((post) => (
             <PostItem key={post.id} post={post} isAdmin={isAdmin} isPopularPost={activeTab === 'popular'} />
           ))}
@@ -242,6 +239,7 @@ export default function TavernPage() {
                     size="sm" 
                     onClick={handlePrevTenPages}
                     disabled={Math.ceil(currentPage / 10) <= 1}
+                    className="text-muted-foreground border-border hover:bg-muted/50 hover:border-accent/50"
                 >
                     <ChevronsLeft className="h-4 w-4 mr-1"/> 이전 10
                 </Button>
@@ -250,6 +248,7 @@ export default function TavernPage() {
                     size="sm" 
                     onClick={() => paginate(currentPage - 1)} 
                     disabled={currentPage === 1}
+                    className="text-muted-foreground border-border hover:bg-muted/50 hover:border-accent/50"
                 >
                     <ChevronLeft className="h-4 w-4 mr-1"/> 이전
                 </Button>
@@ -261,6 +260,7 @@ export default function TavernPage() {
                     size="sm" 
                     onClick={() => paginate(currentPage + 1)} 
                     disabled={currentPage === totalPages}
+                    className="text-muted-foreground border-border hover:bg-muted/50 hover:border-accent/50"
                 >
                     다음 <ChevronRight className="h-4 w-4 ml-1"/>
                 </Button>
@@ -269,6 +269,7 @@ export default function TavernPage() {
                     size="sm" 
                     onClick={handleNextTenPages}
                     disabled={Math.ceil(currentPage / 10) >= Math.ceil(totalPages / 10)}
+                    className="text-muted-foreground border-border hover:bg-muted/50 hover:border-accent/50"
                 >
                     다음 10 <ChevronsRight className="h-4 w-4 ml-1"/>
                 </Button>
