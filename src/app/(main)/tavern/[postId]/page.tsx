@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { ArrowLeft, MessageSquare, ThumbsUp, Eye, Pin } from 'lucide-react'; 
 import { cn } from '@/lib/utils';
+import MiniPostList from '@/components/shared/MiniPostList';
 
 export async function generateStaticParams() {
   return mockPosts.map((post) => ({
@@ -35,11 +36,6 @@ export default function PostDetailPage({ params }: { params: { postId: string } 
   const postDate = new Date(post.createdAt);
   const formattedDate = `${postDate.getFullYear()}년 ${postDate.getMonth() + 1}월 ${postDate.getDate()}일 ${postDate.getHours()}시 ${postDate.getMinutes()}분`;
   const isNotice = post.type === 'Notice' || post.type === 'Announcement';
-
-  const otherPosts = mockPosts
-    .filter(p => p.id !== post.id) // Exclude current post
-    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()) // Sort by newest
-    .slice(0, 3); // Take top 3
 
   return (
     <div className="container mx-auto py-8 px-4 max-w-3xl">
@@ -110,25 +106,9 @@ export default function PostDetailPage({ params }: { params: { postId: string } 
       </Card>
 
       {/* Mini Post List Section */}
-      <section className="mt-12">
-        <h2 className="text-2xl font-semibold mb-6 font-headline">다른 게시글 보기</h2>
-        <div className="space-y-4">
-          {otherPosts.length > 0 ? otherPosts.map(op => (
-            <Link key={op.id} href={`/tavern/${op.id}`} className="block p-4 border rounded-lg shadow-sm hover:bg-muted/50 hover:shadow-md transition-all">
-              <h3 className="font-medium text-lg text-primary hover:underline">{op.title}</h3>
-              <div className="text-xs text-muted-foreground mt-1">
-                <span>{op.authorNickname}</span>
-                <span className="mx-1.5">·</span>
-                <span>{new Date(op.createdAt).toLocaleDateString()}</span>
-                <span className="mx-1.5">·</span>
-                <span className="capitalize">{op.type}</span>
-              </div>
-            </Link>
-          )) : (
-            <p className="text-muted-foreground">다른 게시글이 없습니다.</p>
-          )}
-        </div>
-      </section>
+      <MiniPostList allPosts={mockPosts} currentPostId={post.id} />
+      
     </div>
   );
 }
+
