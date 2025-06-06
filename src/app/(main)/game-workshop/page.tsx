@@ -45,7 +45,7 @@ export default function GameWorkshopPage() {
         style={{ backgroundImage: `url(${bannerImageUrl})` }}
         data-ai-hint="magical workshop tools"
       >
-        <div className="absolute inset-0 bg-black/60 rounded-xl z-0"></div>
+        <div className="absolute inset-0 bg-black/70 rounded-xl z-0"></div>
         <div className="relative z-10">
           <h1 className="text-4xl md:text-5xl font-bold font-headline text-primary-foreground drop-shadow-lg">게임 공방</h1>
           <p className="text-lg md:text-xl text-primary-foreground/90 mt-2 drop-shadow-sm">다양한 게임 엔진의 스타터 프로젝트를 탐색하고 개발을 시작하세요.</p>
@@ -112,7 +112,7 @@ export default function GameWorkshopPage() {
                 )}
               </CardContent>
               <CardFooter className="flex-col items-stretch gap-2">
-                <Button asChild className="w-full bg-gradient-to-r from-primary to-accent text-primary-foreground hover:opacity-90 shadow-md">
+                <Button asChild className="w-full bg-gradient-to-r from-secondary to-teal-600 text-primary-foreground hover:opacity-90 shadow-md">
                   <a href={project.downloadUrl} download>
                     <Download className="mr-2 h-4 w-4" /> 다운로드
                   </a>
