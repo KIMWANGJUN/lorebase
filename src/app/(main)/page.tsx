@@ -41,12 +41,12 @@ export default function HomePage() {
       {/* Features Section */}
       <section className="mb-16">
         <h2 className="text-3xl font-bold text-center mb-10 font-headline">주요 기능</h2>
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8"> {/* Adjusted grid to lg:grid-cols-3 */}
           {[
             { title: '게임 공방', description: '다양한 엔진별 스타터 프로젝트를 만나보세요.', icon: Code, href:"/game-workshop" },
             { title: '무료 에셋', description: '매주 업데이트되는 무료 에셋 정보를 확인하세요.', icon: Gift, href:"/free-assets" },
             { title: '선술집 (커뮤니티)', description: '개발자들과 소통하고 정보를 공유하세요.', icon: MessageSquare, href:"/tavern" },
-            { title: '랭킹 시스템', description: '활동하고 점수를 쌓아 순위를 올려보세요.', icon: Star, href:"/profile#ranking" },
+            // { title: '랭킹 시스템', description: '활동하고 점수를 쌓아 순위를 올려보세요.', icon: Star, href:"/profile#ranking" }, // Removed Ranking System
           ].map((feature) => (
             <Card key={feature.title} className="shadow-lg hover:shadow-xl transition-shadow duration-300">
               <CardHeader className="items-center">
