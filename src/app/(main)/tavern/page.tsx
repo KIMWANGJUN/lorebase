@@ -180,7 +180,7 @@ export default function TavernPage() {
   return (
     <div className="container mx-auto py-8 px-4">
       <section className="text-center py-12 mb-10 bg-gradient-to-r from-accent-orange via-accent-yellow to-black rounded-lg shadow-md">
-        <h1 className="text-4xl font-bold font-headline text-primary-foreground">선술집 (커뮤니티)</h1>
+        <h1 className="text-4xl font-bold font-headline bg-gradient-to-r from-yellow-200 via-orange-400 to-red-400 bg-clip-text text-transparent">선술집 (커뮤니티)</h1>
         <p className="text-lg text-primary-foreground/90 mt-2">개발자들과 자유롭게 소통하고 정보를 공유하세요.</p>
       </section>
 
@@ -293,3 +293,4 @@ export default function TavernPage() {
     </div>
   );
 }
+
