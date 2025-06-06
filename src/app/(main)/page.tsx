@@ -2,7 +2,7 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowRight, Code, Compass, Gift, MessageSquare, Users, Star } from 'lucide-react';
+import { ArrowRight, Code, Compass, Gift, MessageSquare, Users, Star, Wand2 } from 'lucide-react';
 import Image from 'next/image';
 import { mockPosts, mockRankings, mockUsers } from '@/lib/mockData';
 import { cn } from '@/lib/utils';
@@ -38,7 +38,10 @@ export default function HomePage() {
       >
         <div className="absolute inset-0 bg-black/70 rounded-xl z-0"></div> {/* Overlay for text readability */}
         <div className="container mx-auto px-4 relative z-10">
-          <h1 className="text-5xl md:text-6xl font-bold font-headline mb-6 text-primary-foreground drop-shadow-lg">인디 게임 개발의 모든 것</h1>
+           <h1 className="text-5xl md:text-6xl font-bold font-headline mb-6 text-primary-foreground drop-shadow-lg flex items-center justify-center">
+            <Wand2 className="h-12 w-12 mr-4 text-accent animate-pulse" />
+            인디 게임 개발의 모든 것
+          </h1>
           <p className="text-xl md:text-2xl mb-8 text-primary-foreground/90 drop-shadow-sm">
             스타터 프로젝트, 무료 에셋, 활발한 커뮤니티까지. 당신의 게임 개발 여정을 함께합니다.
           </p>
@@ -123,11 +126,11 @@ export default function HomePage() {
                     <span className={cn("font-bold text-lg w-6 text-center", getRankTextClass(ranker.rank))}>{ranker.rank}.</span>
                     <Image src={ranker.avatar || `https://placehold.co/40x40.png`} alt={ranker.nickname} width={40} height={40} className="rounded-full border-2 border-accent" data-ai-hint="fantasy character avatar" />
                     <div className={cn(
-                        "font-medium rounded-lg px-3 py-1 border", // Changed from rounded-full
+                        "font-medium rounded-lg px-3 py-1 border", 
                         getRankWrapperClass(ranker.rank)
                       )}
                     >
-                      <span className={getRankTextClass(ranker.rank)}>
+                      <span className={cn(getRankTextClass(ranker.rank), "font-semibold")}>
                         {ranker.nickname}
                       </span>
                     </div>

@@ -10,7 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Edit3, Mail, MessageSquare, ShieldAlert, UserCog, ShieldX, Star, CheckCircle, Clock, Users } from 'lucide-react';
+import { Edit3, Mail, MessageSquare, ShieldAlert, UserCog, ShieldX, Star, CheckCircle, Clock, Users, Wand2 } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import type { User } from '@/types';
 import { mockRankings, mockPosts, mockInquiries, mockUsers } from '@/lib/mockData'; 
@@ -66,6 +66,13 @@ export default function ProfilePage() {
         toast({ title: "오류", description: "닉네임은 비워둘 수 없습니다.", variant: "destructive"});
         return;
     }
+    // Simulate check for duplicate nickname (excluding current user)
+    const isDuplicate = mockUsers.some(u => u.id !== user.id && u.nickname.toLowerCase() === nickname.trim().toLowerCase());
+    if (isDuplicate) {
+        toast({ title: "오류", description: "이미 사용 중인 닉네임입니다.", variant: "destructive"});
+        return;
+    }
+
     updateUser({ nickname, nicknameLastChanged: new Date() });
     setIsEditingNickname(false);
     setNicknameChangeAllowed(false); 
@@ -98,9 +105,12 @@ export default function ProfilePage() {
         style={{ backgroundImage: `url(${bannerImageUrl})` }}
         data-ai-hint="personal coat_of_arms"
       >
-        <div className="absolute inset-0 bg-black/50 rounded-xl z-0"></div>
+        <div className="absolute inset-0 bg-black/60 rounded-xl z-0"></div>
         <div className="relative z-10 text-center">
-          <h1 className="text-4xl md:text-5xl font-bold font-headline text-primary-foreground drop-shadow-lg">내 프로필</h1>
+           <h1 className="text-4xl md:text-5xl font-bold font-headline text-primary-foreground drop-shadow-lg flex items-center justify-center">
+            <Wand2 className="h-10 w-10 mr-3 text-accent animate-pulse" />
+            내 프로필
+          </h1>
           <p className="text-lg md:text-xl text-primary-foreground/90 mt-2 drop-shadow-sm">계정 정보를 관리하고 활동 내역을 확인하세요.</p>
         </div>
       </section>
@@ -116,7 +126,7 @@ export default function ProfilePage() {
                 <p className="text-sm opacity-80">{user.email || "이메일 미등록"}</p>
                 <div className="mt-4 text-center">
                     <p className="text-2xl font-semibold">{user.score.toLocaleString()} 점</p>
-                     <p className={cn("text-lg", isAdmin ? "" : getRankTextClass(user.rank))}>
+                     <p className={cn("text-lg", isAdmin ? "text-admin" : getRankTextClass(user.rank))}>
                         {isAdmin ? "관리자" : user.rank > 0 ? `랭킹 ${user.rank}위` : "랭킹 정보 없음"}
                     </p>
                 </div>
@@ -221,11 +231,11 @@ export default function ProfilePage() {
                     </Avatar>
                     {ranker.rank > 0 && ranker.rank <= 3 ? (
                        <div className={cn(
-                          "font-medium rounded-lg px-3 py-1 border", // Changed from rounded-full
+                          "font-medium rounded-lg px-3 py-1 border", 
                           getRankWrapperClass(ranker.rank)
                         )}
                       >
-                        <span className={getRankTextClass(ranker.rank)}>
+                        <span className={cn(getRankTextClass(ranker.rank), "font-semibold")}>
                           {ranker.nickname}
                         </span>
                       </div>
