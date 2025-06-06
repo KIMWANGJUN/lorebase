@@ -8,7 +8,7 @@ body {
 
 @layer base {
   :root {
-    --background: 220 15% 15%; /* Deep Dark Blue/Gray */
+    --background: 220 15% 15%; /* Deep Dark Blue/Gray - 유지 또는 판타지 테마에 맞게 조정 */
     --foreground: 210 30% 85%; /* Light Cool Gray/Parchment */
 
     --card: 220 15% 20%; /* Slightly Lighter Dark Blue/Gray for Cards */
@@ -38,7 +38,7 @@ body {
     --input: 220 10% 25%; /* Dark input background */
     --ring: 260 70% 65%; /* Arcane Purple for ring */
 
-    --radius: 0.5rem; /* Slightly sharper corners */
+    --radius: 0.5rem; /* Slightly sharper corners for a more "fantasy" feel */
 
     --chart-1: 260 70% 65%; /* Arcane Purple */
     --chart-2: 180 50% 45%; /* Mystical Teal */
