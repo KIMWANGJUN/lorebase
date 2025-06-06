@@ -5,6 +5,7 @@ import { Gamepad2, Home, Users, Store, UserCircle, LogIn, LogOut, ShieldCheck, S
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import UserAvatarDropdown from '@/components/shared/UserAvatarDropdown';
+import { ThemeToggleButton } from '@/components/shared/ThemeToggleButton';
 import { cn } from '@/lib/utils';
 
 const navItems = [
@@ -41,6 +42,7 @@ export default function Header() {
         </nav>
 
         <div className="flex items-center gap-3">
+          <ThemeToggleButton />
           {user ? (
             <UserAvatarDropdown user={user} isAdmin={isAdmin} onLogout={logout} />
           ) : (
@@ -51,7 +53,6 @@ export default function Header() {
               </Link>
             </Button>
           )}
-          {/* TODO: Theme toggle button */}
         </div>
       </div>
     </header>
