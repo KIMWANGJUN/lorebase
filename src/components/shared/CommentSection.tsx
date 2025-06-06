@@ -8,34 +8,42 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { Card, CardContent, CardHeader } from '@/components/ui/card'; // Removed CardFooter
-import { MessageSquare, CornerDownRight, Send } from 'lucide-react';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { MessageSquare, CornerDownRight, Send, Edit3, Save, XCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 // Helper to generate unique IDs for new comments/replies
 const generateId = () => `comment_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+const MAX_REPLY_DEPTH = 3; // 0 (top-level), 1 (reply), 2 (reply to reply)
 
 interface CommentEntryProps {
   comment: CommentType;
   currentUser: User | null;
   onAddReply: (parentId: string, replyContent: string) => void;
+  onEditComment: (commentId: string, newContent: string) => void;
   depth?: number;
   activeReplyBoxId: string | null;
   setActiveReplyBoxId: (id: string | null) => void;
 }
 
-const CommentEntry = ({ comment, currentUser, onAddReply, depth = 0, activeReplyBoxId, setActiveReplyBoxId }: CommentEntryProps) => {
+const CommentEntry = ({ comment, currentUser, onAddReply, onEditComment, depth = 0, activeReplyBoxId, setActiveReplyBoxId }: CommentEntryProps) => {
   const [replyContent, setReplyContent] = useState('');
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedContent, setEditedContent] = useState(comment.content);
+  
   const author = mockUsers.find(u => u.id === comment.authorId);
+  const isAuthor = currentUser?.id === comment.authorId;
+  const canReply = depth < MAX_REPLY_DEPTH -1; // Allow reply if current depth is 0, 1. No reply button if depth is 2.
+
 
   const isReplyBoxOpen = activeReplyBoxId === comment.id;
 
   const handleToggleReplyInput = () => {
     if (isReplyBoxOpen) {
-      setActiveReplyBoxId(null); // Close if already open
+      setActiveReplyBoxId(null); 
     } else {
-      setActiveReplyBoxId(comment.id); // Open this one
-      setReplyContent(''); // Clear previous reply text
+      setActiveReplyBoxId(comment.id); 
+      setReplyContent(''); 
     }
   };
 
@@ -43,9 +51,27 @@ const CommentEntry = ({ comment, currentUser, onAddReply, depth = 0, activeReply
     if (replyContent.trim() && currentUser) {
       onAddReply(comment.id, replyContent.trim());
       setReplyContent('');
-      setActiveReplyBoxId(null); // Close reply box after submitting
+      setActiveReplyBoxId(null); 
     }
   };
+
+  const handleEditToggle = () => {
+    if (isEditing) { // If cancelling edit
+      setEditedContent(comment.content); // Reset to original content
+    }
+    setIsEditing(!isEditing);
+  };
+
+  const handleEditSave = () => {
+    if (editedContent.trim()) {
+      onEditComment(comment.id, editedContent.trim());
+      setIsEditing(false);
+    }
+  };
+  
+  const commentDate = comment.updatedAt ? new Date(comment.updatedAt) : new Date(comment.createdAt);
+  const formattedDate = `${commentDate.toLocaleDateString()} ${commentDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+
 
   return (
     <div className={cn("py-3", depth > 0 && "ml-4 pl-4 border-l md:ml-6 md:pl-6")}>
@@ -57,20 +83,44 @@ const CommentEntry = ({ comment, currentUser, onAddReply, depth = 0, activeReply
         <div className="flex-1">
           <div className="flex items-center justify-between">
             <p className={cn("text-sm font-medium", author?.username === 'WANGJUNLAND' && 'text-admin')}>{comment.authorNickname}</p>
-            <p className="text-xs text-muted-foreground">{new Date(comment.createdAt).toLocaleDateString()}</p>
+            <p className="text-xs text-muted-foreground">
+              {formattedDate}
+              {comment.isEdited && <span className="ml-1 text-muted-foreground/80">(수정함)</span>}
+            </p>
           </div>
-          <p className="text-sm mt-1 whitespace-pre-wrap">{comment.content}</p>
-          <div className="mt-1.5 flex items-center space-x-3">
-             {currentUser && (
-              <Button variant="ghost" size="xs" onClick={handleToggleReplyInput} className="text-xs text-muted-foreground">
-                <CornerDownRight className="h-3 w-3 mr-1" /> {isReplyBoxOpen ? '취소' : '답글'}
-              </Button>
-            )}
-            {/* Add upvote/downvote buttons here if needed */}
-          </div>
+          {isEditing ? (
+            <div className="mt-1 space-y-2">
+              <Textarea 
+                value={editedContent} 
+                onChange={(e) => setEditedContent(e.target.value)}
+                className="min-h-[60px] text-sm"
+                rows={2}
+              />
+              <div className="flex gap-2">
+                <Button size="xs" onClick={handleEditSave}><Save className="h-3 w-3 mr-1"/> 저장</Button>
+                <Button size="xs" variant="outline" onClick={handleEditToggle}><XCircle className="h-3 w-3 mr-1"/> 취소</Button>
+              </div>
+            </div>
+          ) : (
+            <p className="text-sm mt-1 whitespace-pre-wrap">{comment.content}</p>
+          )}
+          {!isEditing && (
+            <div className="mt-1.5 flex items-center space-x-3">
+              {currentUser && canReply && (
+                <Button variant="ghost" size="xs" onClick={handleToggleReplyInput} className="text-xs text-muted-foreground">
+                  <CornerDownRight className="h-3 w-3 mr-1" /> {isReplyBoxOpen ? '취소' : '답글'}
+                </Button>
+              )}
+              {isAuthor && (
+                <Button variant="ghost" size="xs" onClick={handleEditToggle} className="text-xs text-muted-foreground">
+                  <Edit3 className="h-3 w-3 mr-1" /> 수정
+                </Button>
+              )}
+            </div>
+          )}
         </div>
       </div>
-      {isReplyBoxOpen && currentUser && (
+      {isReplyBoxOpen && currentUser && canReply && (
         <div className={cn("mt-2", depth > 0 ? "ml-6" : "ml-10 md:ml-11")}>
           <Textarea
             placeholder={`${comment.authorNickname}에게 답글 작성...`}
@@ -92,6 +142,7 @@ const CommentEntry = ({ comment, currentUser, onAddReply, depth = 0, activeReply
               comment={reply}
               currentUser={currentUser}
               onAddReply={onAddReply}
+              onEditComment={onEditComment}
               depth={depth + 1}
               activeReplyBoxId={activeReplyBoxId}
               setActiveReplyBoxId={setActiveReplyBoxId}
@@ -104,6 +155,11 @@ const CommentEntry = ({ comment, currentUser, onAddReply, depth = 0, activeReply
 };
 
 
+interface CommentSectionProps {
+  postId: string;
+  initialComments: CommentType[];
+}
+
 export default function CommentSection({ postId, initialComments }: CommentSectionProps) {
   const { user: currentUser } = useAuth();
   const [comments, setComments] = useState<CommentType[]>([]);
@@ -111,13 +167,11 @@ export default function CommentSection({ postId, initialComments }: CommentSecti
   const [activeReplyBoxId, setActiveReplyBoxId] = useState<string | null>(null);
 
   useEffect(() => {
-    // Sort initial comments by date before setting them
     const sortedInitialComments = [...initialComments].sort((a,b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
     setComments(sortedInitialComments);
   }, [initialComments]);
 
-
-  const handleAddComment = (content: string, parentId?: string) => {
+  const handleAddCommentInternal = (content: string, parentId?: string) => {
     if (!currentUser) return; 
 
     const newComment: CommentType = {
@@ -131,6 +185,7 @@ export default function CommentSection({ postId, initialComments }: CommentSecti
       upvotes: 0,
       downvotes: 0,
       replies: [],
+      isEdited: false,
       ...(parentId && { parentId }),
     };
 
@@ -140,16 +195,10 @@ export default function CommentSection({ postId, initialComments }: CommentSecti
           return items.map(comment => {
             if (comment.id === parentId) {
               const updatedReplies = [...(comment.replies || []), newComment].sort((a,b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
-              return {
-                ...comment,
-                replies: updatedReplies,
-              };
+              return { ...comment, replies: updatedReplies };
             }
             if (comment.replies && comment.replies.length > 0) {
-              return {
-                ...comment,
-                replies: addReplyRecursive(comment.replies),
-              };
+              return { ...comment, replies: addReplyRecursive(comment.replies) };
             }
             return comment;
           });
@@ -157,20 +206,39 @@ export default function CommentSection({ postId, initialComments }: CommentSecti
         return addReplyRecursive(prevComments);
       });
     } else {
-      // Add as a top-level comment and sort all top-level comments by date (newest first)
       setComments(prevComments => [newComment, ...prevComments].sort((a,b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()));
     }
   };
 
   const handleTopLevelCommentSubmit = () => {
     if (newCommentContent.trim() && currentUser) {
-      handleAddComment(newCommentContent.trim());
+      handleAddCommentInternal(newCommentContent.trim());
       setNewCommentContent('');
     }
   };
   
   const handleAddReplyToComment = (targetCommentId: string, replyContent: string) => {
-    handleAddComment(replyContent, targetCommentId);
+    handleAddCommentInternal(replyContent, targetCommentId);
+  };
+
+  const handleEditCommentInternal = (commentId: string, newContent: string) => {
+    const editRecursive = (items: CommentType[]): CommentType[] => {
+      return items.map(comment => {
+        if (comment.id === commentId) {
+          return { 
+            ...comment, 
+            content: newContent, 
+            isEdited: true, 
+            updatedAt: new Date().toISOString() 
+          };
+        }
+        if (comment.replies && comment.replies.length > 0) {
+          return { ...comment, replies: editRecursive(comment.replies) };
+        }
+        return comment;
+      });
+    };
+    setComments(prevComments => editRecursive(prevComments));
   };
 
   const totalCommentCount = comments.reduce((acc, cv) => {
@@ -226,6 +294,7 @@ export default function CommentSection({ postId, initialComments }: CommentSecti
                 comment={comment}
                 currentUser={currentUser}
                 onAddReply={handleAddReplyToComment}
+                onEditComment={handleEditCommentInternal}
                 activeReplyBoxId={activeReplyBoxId}
                 setActiveReplyBoxId={setActiveReplyBoxId}
               />

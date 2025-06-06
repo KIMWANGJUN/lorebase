@@ -66,10 +66,12 @@ export interface Comment {
   authorAvatar?: string;
   content: string;
   createdAt: string; // ISO Date string
+  updatedAt?: string; // ISO Date string for edits
   upvotes: number;
   downvotes: number;
   parentId?: string; // ID of the comment this is a reply to
   replies?: Comment[]; // Nested replies for display
+  isEdited?: boolean;
 }
 
 export interface RankEntry {
