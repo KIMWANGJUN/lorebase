@@ -37,12 +37,12 @@ const PostItem = ({ post, isAdmin, isPopularPost }: { post: Post, isAdmin: boole
         isPopularPost && !isNotice && !post.isPinned && "border-2 border-yellow-400 dark:border-yellow-500"
       )}
     >
-      <CardHeader className="pb-3 pt-4 px-4">
+      <CardHeader className="pb-2 pt-3 px-3">
         <div className="flex justify-between items-start">
           <Link href={`#post-${post.id}`} className="hover:underline">
             <CardTitle className="font-headline text-lg mb-1 flex items-center">
               {post.isPinned && <Pin className="h-4 w-4 mr-2 text-primary" />} 
-              {isNotice && <MessageSquare className="h-4 w-4 mr-2 text-sky-600 dark:text-sky-400" />} {/* Or another icon for notice */}
+              {isNotice && <MessageSquare className="h-4 w-4 mr-2 text-sky-600 dark:text-sky-400" />}
               {post.title}
             </CardTitle>
           </Link>
@@ -69,7 +69,7 @@ const PostItem = ({ post, isAdmin, isPopularPost }: { post: Post, isAdmin: boole
           <span className="capitalize">{post.type}</span>
         </div>
       </CardHeader>
-      <CardContent className="py-2 px-4">
+      <CardContent className="py-1.5 px-3">
         <p className="text-sm text-foreground line-clamp-2">{post.content}</p>
         {post.tags && post.tags.length > 0 && (
           <div className="mt-2 flex flex-wrap gap-1">
@@ -79,7 +79,7 @@ const PostItem = ({ post, isAdmin, isPopularPost }: { post: Post, isAdmin: boole
           </div>
         )}
       </CardContent>
-      <CardFooter className="flex justify-between items-center text-sm text-muted-foreground p-3 pt-2">
+      <CardFooter className="flex justify-between items-center text-sm text-muted-foreground px-3 py-1.5">
         <div className="flex gap-3">
           <Button variant="ghost" size="sm" className="p-1 h-auto text-xs">
             <ThumbsUp className="h-3 w-3 mr-1" /> {post.upvotes}
@@ -207,16 +207,16 @@ export default function TavernPage() {
           <TabsTrigger value="all">전체 글</TabsTrigger>
           <TabsTrigger value="notices">공지</TabsTrigger>
           <TabsTrigger value="qna">Q&A</TabsTrigger>
-          <TabsTrigger value="popular" asChild className="flex items-center gap-1 cursor-pointer data-[state=active]:bg-yellow-100 dark:data-[state=active]:bg-yellow-700/50 data-[state=active]:text-yellow-700 dark:data-[state=active]:text-yellow-300">
-            <div>
+          <TabsTrigger value="popular" asChild className="data-[state=active]:bg-yellow-100 dark:data-[state=active]:bg-yellow-700/50 data-[state=active]:text-yellow-700 dark:data-[state=active]:text-yellow-300">
+            <div className="flex items-center gap-1 cursor-pointer">
               인기 글
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button
                     variant="ghost"
-                    size="xs" // Adjusted to "xs" if that's a defined size or use "sm"
+                    size="xs" 
                     className="p-1 h-auto"
-                    onClick={(e) => { e.stopPropagation(); }} // Prevent tab change
+                    onClick={(e) => { e.stopPropagation(); }} 
                   >
                     <Filter className="h-3 w-3" />
                   </Button>
@@ -233,7 +233,7 @@ export default function TavernPage() {
       </Tabs>
       
       {currentPostsToDisplay.length > 0 ? (
-        <div className="space-y-4"> {/* Reduced space-y from 6 to 4 */}
+        <div className="space-y-3">
           {currentPostsToDisplay.map((post) => (
             <PostItem key={post.id} post={post} isAdmin={isAdmin} isPopularPost={activeTab === 'popular'} />
           ))}
@@ -293,3 +293,4 @@ export default function TavernPage() {
     </div>
   );
 }
+
