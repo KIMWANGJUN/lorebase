@@ -10,8 +10,8 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        body: ['Inter', 'sans-serif'],
-        headline: ['Inter', 'sans-serif'],
+        body: ['Noto Sans KR', 'sans-serif'],
+        headline: ['Noto Sans KR', 'sans-serif'],
         code: ['monospace'],
       },
       colors: {
@@ -40,6 +40,8 @@ export default {
         accent: {
           DEFAULT: 'hsl(var(--accent))',
           foreground: 'hsl(var(--accent-foreground))',
+          orange: 'hsl(var(--accent-orange))',
+          yellow: 'hsl(var(--accent-yellow))',
         },
         destructive: {
           DEFAULT: 'hsl(var(--destructive))',

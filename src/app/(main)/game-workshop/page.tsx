@@ -1,0 +1,134 @@
+// src/app/(main)/game-workshop/page.tsx
+"use client";
+import { useState } from 'react';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { mockStarterProjects } from '@/lib/mockData';
+import type { StarterProject } from '@/types';
+import Image from 'next/image';
+import Link from 'next/link';
+import { Cube, AppWindow, PenTool, Search, Download, PlusCircle, Edit, Trash2 } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
+
+const engineIcons = {
+  Unity: <Cube className="h-5 w-5 mr-2 text-purple-500" />,
+  Unreal: <AppWindow className="h-5 w-5 mr-2 text-blue-500" />,
+  Godot: <PenTool className="h-5 w-5 mr-2 text-green-500" />,
+  Other: <Cube className="h-5 w-5 mr-2 text-gray-500" />,
+};
+
+const EngineIcon = ({ engine }: { engine: StarterProject['engine'] }) => {
+  return engineIcons[engine] || engineIcons['Other'];
+};
+
+
+export default function GameWorkshopPage() {
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedEngine, setSelectedEngine] = useState<string>('all');
+  const { isAdmin } = useAuth();
+
+  const filteredProjects = mockStarterProjects.filter(project => {
+    const matchesSearch = project.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                          project.description.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesEngine = selectedEngine === 'all' || project.engine.toLowerCase() === selectedEngine.toLowerCase();
+    return matchesSearch && matchesEngine;
+  });
+
+  return (
+    <div className="container mx-auto py-8 px-4">
+      <section className="text-center py-12 mb-10 bg-gradient-to-r from-primary to-accent rounded-lg shadow-md">
+        <h1 className="text-4xl font-bold font-headline text-primary-foreground">게임 공방</h1>
+        <p className="text-lg text-primary-foreground/90 mt-2">다양한 게임 엔진의 스타터 프로젝트를 탐색하고 개발을 시작하세요.</p>
+      </section>
+
+      <div className="mb-8 flex flex-col md:flex-row gap-4 items-center">
+        <div className="relative w-full md:flex-grow">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+          <Input
+            type="text"
+            placeholder="프로젝트 검색..."
+            className="pl-10 w-full"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
+        <Select value={selectedEngine} onValueChange={setSelectedEngine}>
+          <SelectTrigger className="w-full md:w-[180px]">
+            <SelectValue placeholder="모든 엔진" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">모든 엔진</SelectItem>
+            <SelectItem value="Unity"><Cube className="inline-block h-4 w-4 mr-2" /> Unity</SelectItem>
+            <SelectItem value="Unreal"><AppWindow className="inline-block h-4 w-4 mr-2" /> Unreal</SelectItem>
+            <SelectItem value="Godot"><PenTool className="inline-block h-4 w-4 mr-2" /> Godot</SelectItem>
+            <SelectItem value="Other"><Cube className="inline-block h-4 w-4 mr-2" /> Other</SelectItem>
+          </SelectContent>
+        </Select>
+        {isAdmin && (
+          <Button className="w-full md:w-auto bg-gradient-to-r from-green-500 to-teal-500 text-white">
+            <PlusCircle className="mr-2 h-5 w-5" /> 새 프로젝트 추가
+          </Button>
+        )}
+      </div>
+
+      {filteredProjects.length > 0 ? (
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {filteredProjects.map((project) => (
+            <Card key={project.id} className="flex flex-col overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 ease-in-out transform hover:-translate-y-1">
+              <Image 
+                src={project.imageUrl || `https://placehold.co/600x400.png?text=${project.engine}`} 
+                alt={project.name} 
+                width={600} 
+                height={300} 
+                className="w-full h-48 object-cover"
+                data-ai-hint={`${project.engine.toLowerCase()} game development`}
+              />
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="font-headline text-xl">{project.name}</CardTitle>
+                  <EngineIcon engine={project.engine} />
+                </div>
+                <CardDescription>v{project.version} - 최종 업데이트: {new Date(project.lastUpdatedAt).toLocaleDateString()}</CardDescription>
+              </CardHeader>
+              <CardContent className="flex-grow">
+                <p className="text-sm text-muted-foreground line-clamp-3">{project.description}</p>
+                {project.tags && project.tags.length > 0 && (
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {project.tags.map(tag => (
+                      <span key={tag} className="px-2 py-1 text-xs bg-secondary text-secondary-foreground rounded-full">{tag}</span>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+              <CardFooter className="flex-col items-stretch gap-2">
+                <Button asChild className="w-full bg-gradient-to-r from-primary to-accent text-primary-foreground">
+                  <a href={project.downloadUrl} download>
+                    <Download className="mr-2 h-4 w-4" /> 다운로드
+                  </a>
+                </Button>
+                {isAdmin && (
+                  <div className="flex gap-2 mt-2">
+                    <Button variant="outline" size="sm" className="flex-1">
+                      <Edit className="mr-2 h-4 w-4" /> 수정
+                    </Button>
+                    <Button variant="destructive" size="sm" className="flex-1">
+                      <Trash2 className="mr-2 h-4 w-4" /> 삭제
+                    </Button>
+                  </div>
+                )}
+              </CardFooter>
+            </Card>
+          ))}
+        </div>
+      ) : (
+        <div className="text-center py-12">
+          <Compass className="mx-auto h-16 w-16 text-muted-foreground mb-4" />
+          <p className="text-xl text-muted-foreground">일치하는 스타터 프로젝트가 없습니다.</p>
+          <p className="text-sm text-muted-foreground mt-1">검색어나 필터를 변경해보세요.</p>
+        </div>
+      )}
+    </div>
+  );
+}
