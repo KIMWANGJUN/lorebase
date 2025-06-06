@@ -37,10 +37,10 @@ const PostItem = ({ post, isAdmin, isPopularPost }: { post: Post, isAdmin: boole
         isPopularPost && !isNotice && !post.isPinned && "border-2 border-yellow-400 dark:border-yellow-500"
       )}
     >
-      <CardHeader className="pb-2 pt-3 px-3">
+      <CardHeader className="pb-1 pt-2 px-3">
         <div className="flex justify-between items-start">
           <Link href={`#post-${post.id}`} className="hover:underline">
-            <CardTitle className="font-headline text-lg mb-1 flex items-center">
+            <CardTitle className="font-headline text-md mb-0.5 flex items-center">
               {post.isPinned && <Pin className="h-4 w-4 mr-2 text-primary" />} 
               {isNotice && <MessageSquare className="h-4 w-4 mr-2 text-sky-600 dark:text-sky-400" />}
               {post.title}
@@ -48,49 +48,49 @@ const PostItem = ({ post, isAdmin, isPopularPost }: { post: Post, isAdmin: boole
           </Link>
           {isAdmin && (
             <div className="flex gap-1">
-              <Button variant="ghost" size="icon" className="h-7 w-7">
-                <Edit className="h-4 w-4" />
+              <Button variant="ghost" size="icon" className="h-6 w-6">
+                <Edit className="h-3 w-3" />
               </Button>
-              <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive">
-                <Trash2 className="h-4 w-4" />
+              <Button variant="ghost" size="icon" className="h-6 w-6 text-destructive">
+                <Trash2 className="h-3 w-3" />
               </Button>
             </div>
           )}
         </div>
-        <div className="flex items-center text-xs text-muted-foreground space-x-2">
-          <Avatar className="h-5 w-5">
+        <div className="flex items-center text-xs text-muted-foreground space-x-1.5">
+          <Avatar className="h-4 w-4">
             <AvatarImage src={authorAvatar} />
             <AvatarFallback>{getInitials(authorDisplayName)}</AvatarFallback>
           </Avatar>
-          <span className={cn(author?.username === 'WANGJUNLAND' && 'text-admin')}>{authorDisplayName}</span>
+          <span className={cn("text-xs", author?.username === 'WANGJUNLAND' && 'text-admin')}>{authorDisplayName}</span>
           <span>·</span>
-          <span>{formattedDate}</span>
+          <span className="text-xs">{formattedDate}</span>
           <span>·</span>
-          <span className="capitalize">{post.type}</span>
+          <span className="capitalize text-xs">{post.type}</span>
         </div>
       </CardHeader>
-      <CardContent className="py-1.5 px-3">
+      <CardContent className="py-1 px-3">
         <p className="text-sm text-foreground line-clamp-2">{post.content}</p>
         {post.tags && post.tags.length > 0 && (
-          <div className="mt-2 flex flex-wrap gap-1">
+          <div className="mt-1.5 flex flex-wrap gap-1">
             {post.tags.map(tag => (
-              <span key={tag} className="px-1.5 py-0.5 text-xs bg-secondary/80 text-secondary-foreground rounded-full">{tag}</span>
+              <span key={tag} className="px-1 py-0.5 text-[10px] bg-secondary/80 text-secondary-foreground rounded-full">{tag}</span>
             ))}
           </div>
         )}
       </CardContent>
-      <CardFooter className="flex justify-between items-center text-sm text-muted-foreground px-3 py-1.5">
-        <div className="flex gap-3">
-          <Button variant="ghost" size="sm" className="p-1 h-auto text-xs">
-            <ThumbsUp className="h-3 w-3 mr-1" /> {post.upvotes}
+      <CardFooter className="flex justify-between items-center text-xs text-muted-foreground px-3 py-1">
+        <div className="flex gap-2">
+          <Button variant="ghost" size="sm" className="p-0.5 h-auto text-[10px]">
+            <ThumbsUp className="h-2.5 w-2.5 mr-0.5" /> {post.upvotes}
           </Button>
-          <Button variant="ghost" size="sm" className="p-1 h-auto text-xs">
-            <ThumbsDown className="h-3 w-3 mr-1" /> {isAdmin ? post.downvotes : ""} {!isAdmin && "비추천"}
+          <Button variant="ghost" size="sm" className="p-0.5 h-auto text-[10px]">
+            <ThumbsDown className="h-2.5 w-2.5 mr-0.5" /> {isAdmin ? post.downvotes : ""} {!isAdmin && "비추천"}
           </Button>
-          <span className="flex items-center text-xs"><MessageSquare className="h-3 w-3 mr-1" /> {post.commentCount}</span>
-          <span className="flex items-center text-xs"><Eye className="h-3 w-3 mr-1" /> {post.views}</span>
+          <span className="flex items-center text-[10px]"><MessageSquare className="h-2.5 w-2.5 mr-0.5" /> {post.commentCount}</span>
+          <span className="flex items-center text-[10px]"><Eye className="h-2.5 w-2.5 mr-0.5" /> {post.views}</span>
         </div>
-        <Button variant="outline" size="sm" asChild className="text-xs">
+        <Button variant="outline" size="sm" asChild className="text-[10px] h-auto px-1.5 py-0.5">
           <Link href={`#post-${post.id}`}>자세히 보기</Link>
         </Button>
       </CardFooter>
@@ -179,7 +179,7 @@ export default function TavernPage() {
 
   return (
     <div className="container mx-auto py-8 px-4">
-      <section className="text-center py-12 mb-10 bg-gradient-to-r from-accent to-purple-700 rounded-lg shadow-md">
+      <section className="text-center py-12 mb-10 bg-gradient-to-r from-accent-orange via-accent-yellow to-black rounded-lg shadow-md">
         <h1 className="text-4xl font-bold font-headline text-primary-foreground">선술집 (커뮤니티)</h1>
         <p className="text-lg text-primary-foreground/90 mt-2">개발자들과 자유롭게 소통하고 정보를 공유하세요.</p>
       </section>
@@ -196,7 +196,7 @@ export default function TavernPage() {
           />
         </div>
         {user && (
-          <Button className="w-full md:w-auto bg-gradient-to-r from-primary to-accent text-primary-foreground">
+          <Button className="w-full md:w-auto bg-gradient-to-r from-accent-orange via-accent-yellow to-black text-primary-foreground">
             <PlusCircle className="mr-2 h-5 w-5" /> 새 글 작성
           </Button>
         )}
@@ -233,7 +233,7 @@ export default function TavernPage() {
       </Tabs>
       
       {currentPostsToDisplay.length > 0 ? (
-        <div className="space-y-3">
+        <div className="space-y-2">
           {currentPostsToDisplay.map((post) => (
             <PostItem key={post.id} post={post} isAdmin={isAdmin} isPopularPost={activeTab === 'popular'} />
           ))}
@@ -293,4 +293,3 @@ export default function TavernPage() {
     </div>
   );
 }
-
