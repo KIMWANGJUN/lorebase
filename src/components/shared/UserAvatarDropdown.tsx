@@ -33,7 +33,15 @@ export default function UserAvatarDropdown({ user, isAdmin, onLogout }: UserAvat
             <AvatarImage src={user.avatar} alt={user.nickname} data-ai-hint="user avatar icon"/>
             <AvatarFallback className="bg-muted text-muted-foreground">{getInitials(user.nickname)}</AvatarFallback>
           </Avatar>
-           <span className={cn("text-sm font-medium hidden sm:inline text-foreground", isAdmin && "text-admin")}>{user.nickname}</span>
+           {isAdmin ? (
+            <span className="admin-badge-bg admin-badge-border rounded-lg px-3 py-1 text-sm font-medium hidden sm:inline">
+              <span className="text-admin">{user.nickname}</span>
+            </span>
+           ) : (
+            <span className="text-sm font-medium hidden sm:inline text-foreground">
+              {user.nickname}
+            </span>
+           )}
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56 bg-popover border-border text-popover-foreground shadow-xl">
