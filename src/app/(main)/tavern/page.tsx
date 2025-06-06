@@ -20,7 +20,7 @@ const PostItem = ({ post, isAdmin, isPopularPost }: { post: Post, isAdmin: boole
   const author = mockUsers.find(u => u.id === post.authorId);
   const authorDisplayName = author?.nickname || post.authorNickname;
   const authorAvatar = author?.avatar;
-  const getInitials = (name: string) => name.substring(0, 1).toUpperCase();
+  const getInitials = (name: string) => name ? name.substring(0, 1).toUpperCase() : 'U';
   
   const postDate = new Date(post.createdAt);
   const formattedDate = `${postDate.getFullYear()}년 ${postDate.getMonth() + 1}월 ${postDate.getDate()}일 ${postDate.getHours()}시 ${postDate.getMinutes()}분`;
@@ -98,18 +98,22 @@ export default function TavernPage() {
     if (activeTab === 'notices') {
       posts = posts.filter(p => p.type === 'Notice' || p.type === 'Announcement');
     } else if (activeTab === 'popular') {
-      posts.sort((a,b) => b.views - a.views);
+      // For popular, sort by views first, then potentially by date if needed
+      // This example sorts primarily by views for the "popular" tab.
+      // You might adjust logic based on popularFilter (weekly, monthly, yearly) if you have date filters.
+      posts.sort((a,b) => b.views - a.views); 
     } else if (activeTab === 'qna') {
       posts = posts.filter(p => p.type === 'QnA');
     }
-    
+    // General search filter, applied after tab-specific filtering
     if (searchTerm) {
       posts = posts.filter(p => 
         p.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        // p.content.toLowerCase().includes(searchTerm.toLowerCase()) || // Content search removed as content is hidden
+        // p.content.toLowerCase().includes(searchTerm.toLowerCase()) || // Content search removed
         p.authorNickname.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
+    // Always sort pinned posts to top, then by creation date for remaining posts
     return posts.sort((a,b) => (b.isPinned ? 1 : 0) - (a.isPinned ? 1 : 0) || new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
   }, [activeTab, popularFilter, searchTerm]);
   
@@ -163,8 +167,8 @@ export default function TavernPage() {
 
   return (
     <div className="container mx-auto py-8 px-4">
-      <section className="text-center py-12 mb-10 bg-gradient-to-r from-accent-orange via-accent-yellow to-black rounded-lg shadow-md">
-        <h1 className="text-4xl font-bold font-headline bg-gradient-to-r from-yellow-200 via-orange-400 to-red-400 bg-clip-text text-transparent">선술집 (커뮤니티)</h1>
+      <section className="text-center py-12 mb-10 bg-gradient-to-r from-accent-orange to-accent rounded-lg shadow-md">
+        <h1 className="text-4xl font-bold font-headline bg-gradient-to-r from-yellow-300 via-orange-400 to-red-500 bg-clip-text text-transparent">선술집 (커뮤니티)</h1>
         <p className="text-lg text-primary-foreground/90 mt-2">개발자들과 자유롭게 소통하고 정보를 공유하세요.</p>
       </section>
 
@@ -180,7 +184,7 @@ export default function TavernPage() {
           />
         </div>
         {user && (
-          <Button className="w-full md:w-auto bg-gradient-to-r from-accent-orange via-accent-yellow to-black text-primary-foreground">
+          <Button className="w-full md:w-auto bg-gradient-to-r from-green-500 to-teal-500 text-primary-foreground">
             <PlusCircle className="mr-2 h-5 w-5" /> 새 글 작성
           </Button>
         )}
@@ -277,3 +281,4 @@ export default function TavernPage() {
     </div>
   );
 }
+
