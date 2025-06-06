@@ -1,6 +1,7 @@
 // src/app/(main)/profile/page.tsx
 "use client";
 import { useState, useEffect } from 'react';
+import Link from 'next/link'; // Added import
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
