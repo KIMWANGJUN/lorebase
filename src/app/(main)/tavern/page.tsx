@@ -142,19 +142,30 @@ export default function TavernPage() {
         <TabsList className="grid w-full grid-cols-2 md:grid-cols-4">
           <TabsTrigger value="all">전체 글</TabsTrigger>
           <TabsTrigger value="notices">공지</TabsTrigger>
-          <TabsTrigger value="qna">Q&A</TabsTrigger> {/* Add QnA tab */}
-          <TabsTrigger value="popular" className="flex items-center gap-1">
-            인기 글
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="xs" className="p-1 h-auto"><Filter className="h-3 w-3" /></Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent>
-                <DropdownMenuItem onSelect={() => setPopularFilter('weekly')}>1주일</DropdownMenuItem>
-                <DropdownMenuItem onSelect={() => setPopularFilter('monthly')}>1개월</DropdownMenuItem>
-                <DropdownMenuItem onSelect={() => setPopularFilter('yearly')}>1년</DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+          <TabsTrigger value="qna">Q&A</TabsTrigger>
+          <TabsTrigger value="popular" asChild className="flex items-center gap-1 cursor-pointer">
+            <div>
+              인기 글
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="xs"
+                    className="p-1 h-auto"
+                    onClick={(e) => {
+                      e.stopPropagation(); // Prevent tab change when clicking filter icon
+                    }}
+                  >
+                    <Filter className="h-3 w-3" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                  <DropdownMenuItem onSelect={() => setPopularFilter('weekly')}>1주일</DropdownMenuItem>
+                  <DropdownMenuItem onSelect={() => setPopularFilter('monthly')}>1개월</DropdownMenuItem>
+                  <DropdownMenuItem onSelect={() => setPopularFilter('yearly')}>1년</DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
           </TabsTrigger>
         </TabsList>
       </Tabs>
@@ -179,3 +190,4 @@ export default function TavernPage() {
     </div>
   );
 }
+
