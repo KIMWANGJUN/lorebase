@@ -1,7 +1,7 @@
 // src/app/(main)/profile/page.tsx
 "use client";
 import { useState, useEffect } from 'react';
-import Link from 'next/link'; // Added import
+import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -13,7 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Edit3, Mail, MessageSquare, ShieldAlert, UserCog, ShieldX, Star, CheckCircle, Clock } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import type { User } from '@/types';
-import { mockRankings, mockPosts, mockInquiries } from '@/lib/mockData'; // Assuming inquiries are related to user
+import { mockRankings, mockPosts, mockInquiries, mockUsers } from '@/lib/mockData'; // Assuming inquiries are related to user
 import { cn } from '@/lib/utils';
 
 const getRankClass = (rank: number) => {
