@@ -8,7 +8,6 @@ import { mockStarterProjects, mockAssetInfos, mockPosts, mockRankings } from '@/
 import { cn } from '@/lib/utils';
 
 export default function HomePage() {
-  const featuredProjects = mockStarterProjects.slice(0, 3);
   const latestAssets = mockAssetInfos.filter(asset => asset.isFree).slice(0, 3);
   const popularPosts = mockPosts.sort((a, b) => b.views - a.views).slice(0, 3);
   const topRankers = mockRankings.slice(0, 3);
@@ -41,12 +40,11 @@ export default function HomePage() {
       {/* Features Section */}
       <section className="mb-16">
         <h2 className="text-3xl font-bold text-center mb-10 font-headline">주요 기능</h2>
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8"> {/* Adjusted grid to lg:grid-cols-3 */}
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
           {[
             { title: '게임 공방', description: '다양한 엔진별 스타터 프로젝트를 만나보세요.', icon: Code, href:"/game-workshop" },
             { title: '무료 에셋', description: '매주 업데이트되는 무료 에셋 정보를 확인하세요.', icon: Gift, href:"/free-assets" },
             { title: '선술집 (커뮤니티)', description: '개발자들과 소통하고 정보를 공유하세요.', icon: MessageSquare, href:"/tavern" },
-            // { title: '랭킹 시스템', description: '활동하고 점수를 쌓아 순위를 올려보세요.', icon: Star, href:"/profile#ranking" }, // Removed Ranking System
           ].map((feature) => (
             <Card key={feature.title} className="shadow-lg hover:shadow-xl transition-shadow duration-300">
               <CardHeader className="items-center">
@@ -61,35 +59,6 @@ export default function HomePage() {
                   <Link href={feature.href}>
                     바로가기 <ArrowRight className="ml-2 h-4 w-4" />
                   </Link>
-                </Button>
-              </CardFooter>
-            </Card>
-          ))}
-        </div>
-      </section>
-
-      {/* Featured Starter Projects */}
-      <section className="mb-16">
-        <div className="flex justify-between items-center mb-8">
-          <h2 className="text-3xl font-bold font-headline">추천 스타터 프로젝트</h2>
-          <Button variant="outline" asChild>
-            <Link href="/game-workshop">모두 보기 <ArrowRight className="ml-2 h-4 w-4" /></Link>
-          </Button>
-        </div>
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {featuredProjects.map((project) => (
-            <Card key={project.id} className="overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300">
-              <Image src={project.imageUrl || "https://placehold.co/600x400.png"} alt={project.name} width={600} height={400} className="w-full h-48 object-cover" data-ai-hint="game development abstract" />
-              <CardHeader>
-                <CardTitle className="font-headline">{project.name}</CardTitle>
-                <CardDescription>{project.engine} - v{project.version}</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground line-clamp-2">{project.description}</p>
-              </CardContent>
-              <CardFooter>
-                <Button asChild className="w-full bg-gradient-to-r from-primary to-accent text-primary-foreground">
-                  <Link href={`/game-workshop/#${project.id}`}>자세히 보기</Link>
                 </Button>
               </CardFooter>
             </Card>
