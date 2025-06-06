@@ -4,19 +4,27 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { ArrowRight, Code, Compass, Gift, MessageSquare, Users, Star } from 'lucide-react';
 import Image from 'next/image';
-import { mockPosts, mockRankings } from '@/lib/mockData';
+import { mockPosts, mockRankings, mockUsers } from '@/lib/mockData';
 import { cn } from '@/lib/utils';
 
 export default function HomePage() {
   const popularPosts = mockPosts.sort((a, b) => b.views - a.views).slice(0, 3);
-  const topRankers = mockRankings.slice(0, 3);
+  const topRankers = mockRankings.filter(r => r.rank > 0).slice(0, 3); // Exclude admin (rank 0) and get top 3
 
-  const getRankClass = (rank: number) => {
+  const getRankTextClass = (rank: number) => {
     if (rank === 1) return 'rank-1';
     if (rank === 2) return 'rank-2';
     if (rank === 3) return 'rank-3';
     return '';
   };
+  
+  const getRankWrapperClass = (rank: number) => {
+    if (rank === 1) return 'rank-1-border rank-1-badge-bg';
+    if (rank === 2) return 'rank-2-border rank-2-badge-bg';
+    if (rank === 3) return 'rank-3-border rank-3-badge-bg';
+    return 'border-transparent';
+  };
+
 
   const heroImageUrl = "https://placehold.co/1920x1080.png"; 
 
@@ -109,12 +117,20 @@ export default function HomePage() {
               <CardTitle className="text-center font-headline text-foreground">주간 랭킹 TOP 3</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              {topRankers.map((ranker, index) => (
+              {topRankers.map((ranker) => (
                 <div key={ranker.userId} className="flex items-center justify-between p-3 bg-background/30 rounded-lg border border-border/50">
                   <div className="flex items-center gap-3">
-                    <span className={cn("font-bold text-lg w-6 text-center", getRankClass(ranker.rank))}>{ranker.rank}.</span>
+                    <span className={cn("font-bold text-lg w-6 text-center", getRankTextClass(ranker.rank))}>{ranker.rank}.</span>
                     <Image src={ranker.avatar || `https://placehold.co/40x40.png`} alt={ranker.nickname} width={40} height={40} className="rounded-full border-2 border-accent" data-ai-hint="fantasy character avatar" />
-                    <span className={cn("font-medium", getRankClass(ranker.rank), ranker.nickname === 'WANGJUNLAND' && 'text-admin')}>{ranker.nickname}</span>
+                    <div className={cn(
+                        "font-medium rounded-full px-3 py-1 border",
+                        getRankWrapperClass(ranker.rank)
+                      )}
+                    >
+                      <span className={getRankTextClass(ranker.rank)}>
+                        {ranker.nickname}
+                      </span>
+                    </div>
                   </div>
                   <span className="text-sm font-semibold text-accent">{ranker.score.toLocaleString()} 점</span>
                 </div>

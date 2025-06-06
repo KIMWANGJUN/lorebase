@@ -125,6 +125,17 @@ body {
 }
 
 
+/* Rank Text Colors */
 .rank-1 { @apply text-yellow-400 dark:text-yellow-300; } /* Gold */
 .rank-2 { @apply text-slate-400 dark:text-slate-300; } /* Silver */
 .rank-3 { @apply text-orange-400 dark:text-orange-500; } /* Bronze */
+
+/* Rank Border Colors */
+.rank-1-border { @apply border-yellow-500 dark:border-yellow-400; }
+.rank-2-border { @apply border-slate-500 dark:border-slate-400; }
+.rank-3-border { @apply border-orange-500 dark:border-orange-400; }
+
+/* Rank Badge Backgrounds (semi-transparent) */
+.rank-1-badge-bg { @apply bg-yellow-500/20; }
+.rank-2-badge-bg { @apply bg-slate-500/20; }
+.rank-3-badge-bg { @apply bg-orange-500/20; }

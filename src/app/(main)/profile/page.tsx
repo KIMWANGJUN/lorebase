@@ -15,13 +15,22 @@ import { useToast } from "@/hooks/use-toast";
 import type { User } from '@/types';
 import { mockRankings, mockPosts, mockInquiries, mockUsers } from '@/lib/mockData'; 
 import { cn } from '@/lib/utils';
+import Image from 'next/image';
 
-const getRankClass = (rank: number) => {
+const getRankTextClass = (rank: number) => {
   if (rank === 1) return 'rank-1';
   if (rank === 2) return 'rank-2';
   if (rank === 3) return 'rank-3';
   return '';
 };
+
+const getRankWrapperClass = (rank: number) => {
+  if (rank === 1) return 'rank-1-border rank-1-badge-bg';
+  if (rank === 2) return 'rank-2-border rank-2-badge-bg';
+  if (rank === 3) return 'rank-3-border rank-3-badge-bg';
+  return 'border-transparent';
+};
+
 
 export default function ProfilePage() {
   const { user, isAdmin, updateUser, loading: authLoading } = useAuth();
@@ -103,11 +112,11 @@ export default function ProfilePage() {
                     <AvatarImage src={user.avatar || `https://placehold.co/200x200.png?text=${user.nickname.substring(0,1)}`} alt={user.nickname} data-ai-hint="fantasy portrait" />
                     <AvatarFallback className="text-4xl bg-muted text-muted-foreground">{user.nickname.substring(0, 2).toUpperCase()}</AvatarFallback>
                 </Avatar>
-                <h1 className={cn("text-3xl font-bold font-headline", isAdmin && "text-gradient-gold-fire")}>{user.nickname}</h1>
+                <h1 className={cn("text-3xl font-bold font-headline", isAdmin && "text-admin")}>{user.nickname}</h1>
                 <p className="text-sm opacity-80">{user.email || "이메일 미등록"}</p>
                 <div className="mt-4 text-center">
                     <p className="text-2xl font-semibold">{user.score.toLocaleString()} 점</p>
-                    <p className={cn("text-lg", getRankClass(user.rank))}>
+                     <p className={cn("text-lg", isAdmin ? "" : getRankTextClass(user.rank))}>
                         {isAdmin ? "관리자" : user.rank > 0 ? `랭킹 ${user.rank}위` : "랭킹 정보 없음"}
                     </p>
                 </div>
@@ -200,17 +209,31 @@ export default function ProfilePage() {
           </CardHeader>
           <CardContent>
             <div className="space-y-3 max-h-[500px] overflow-y-auto p-1">
-              {mockRankings.filter(r => r.rank > 0 || r.userId === user.id).map((ranker) => ( 
+              {mockRankings.map((ranker) => ( 
                 <div key={ranker.userId} className={`flex items-center justify-between p-3 rounded-lg border ${ranker.userId === user.id ? 'bg-primary/10 border-primary shadow-md' : 'bg-background/30 border-border/50'}`}>
                   <div className="flex items-center gap-3">
-                    <span className={cn("font-bold text-lg w-8 text-center", getRankClass(ranker.rank))}>
+                    <span className={cn("font-bold text-lg w-8 text-center", ranker.rank > 0 ? getRankTextClass(ranker.rank) : "")}>
                         {ranker.rank > 0 ? `${ranker.rank}.` : <Star className="h-5 w-5 inline text-yellow-400" />}
                     </span>
                     <Avatar className="h-10 w-10 border-2 border-accent/50">
-                      <AvatarImage src={ranker.avatar || `https://placehold.co/40x40.png?text=${ranker.nickname.substring(0,1)}`} data-ai-hint="fantasy character icon" />
+                      <Image src={ranker.avatar || `https://placehold.co/40x40.png?text=${ranker.nickname.substring(0,1)}`} alt={ranker.nickname} width={40} height={40} className="rounded-full" data-ai-hint="fantasy character icon" />
                       <AvatarFallback className="bg-muted text-muted-foreground">{ranker.nickname.substring(0,1)}</AvatarFallback>
                     </Avatar>
-                    <span className={cn("font-medium text-foreground", getRankClass(ranker.rank), mockUsers.find(u => u.id === ranker.userId)?.username === 'WANGJUNLAND' && 'text-admin')}>{ranker.nickname}</span>
+                    {ranker.rank > 0 && ranker.rank <= 3 ? (
+                       <div className={cn(
+                          "font-medium rounded-full px-3 py-1 border",
+                          getRankWrapperClass(ranker.rank)
+                        )}
+                      >
+                        <span className={getRankTextClass(ranker.rank)}>
+                          {ranker.nickname}
+                        </span>
+                      </div>
+                    ) : (
+                      <span className={cn("font-medium text-foreground", mockUsers.find(u => u.id === ranker.userId)?.username === 'WANGJUNLAND' && 'text-admin')}>
+                        {ranker.nickname}
+                      </span>
+                    )}
                   </div>
                   <span className="text-sm font-semibold text-accent">{ranker.score.toLocaleString()} 점</span>
                 </div>
