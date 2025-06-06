@@ -29,7 +29,6 @@ const PostItem = ({ post, isAdmin, isPopularPost }: { post: Post, isAdmin: boole
 
   return (
     <Card 
-      id={`post-${post.id}`} 
       className={cn(
         "shadow-md hover:shadow-lg transition-shadow duration-300 ease-in-out",
         post.isPinned && "border-t-4 border-primary dark:border-primary/80",
@@ -37,63 +36,51 @@ const PostItem = ({ post, isAdmin, isPopularPost }: { post: Post, isAdmin: boole
         isPopularPost && !isNotice && !post.isPinned && "border-2 border-yellow-400 dark:border-yellow-500"
       )}
     >
-      <CardHeader className="pb-1 pt-2 px-3">
-        <div className="flex justify-between items-start">
-          <Link href={`#post-${post.id}`} className="hover:underline">
+      <Link href={`/tavern/${post.id}`} className="block hover:bg-muted/20 transition-colors rounded-lg">
+        <CardHeader className="pb-1 pt-2 px-3">
+          <div className="flex justify-between items-start">
             <CardTitle className="font-headline text-md mb-0.5 flex items-center">
               {post.isPinned && <Pin className="h-4 w-4 mr-2 text-primary" />} 
               {isNotice && <MessageSquare className="h-4 w-4 mr-2 text-sky-600 dark:text-sky-400" />}
               {post.title}
             </CardTitle>
-          </Link>
-          {isAdmin && (
-            <div className="flex gap-1">
-              <Button variant="ghost" size="icon" className="h-6 w-6">
-                <Edit className="h-3 w-3" />
-              </Button>
-              <Button variant="ghost" size="icon" className="h-6 w-6 text-destructive">
-                <Trash2 className="h-3 w-3" />
-              </Button>
-            </div>
-          )}
-        </div>
-        <div className="flex items-center text-xs text-muted-foreground space-x-1.5">
-          <Avatar className="h-4 w-4">
-            <AvatarImage src={authorAvatar} />
-            <AvatarFallback>{getInitials(authorDisplayName)}</AvatarFallback>
-          </Avatar>
-          <span className={cn("text-xs", author?.username === 'WANGJUNLAND' && 'text-admin')}>{authorDisplayName}</span>
-          <span>·</span>
-          <span className="text-xs">{formattedDate}</span>
-          <span>·</span>
-          <span className="capitalize text-xs">{post.type}</span>
-        </div>
-      </CardHeader>
-      <CardContent className="py-1 px-3">
-        <p className="text-sm text-foreground line-clamp-2">{post.content}</p>
-        {post.tags && post.tags.length > 0 && (
-          <div className="mt-1.5 flex flex-wrap gap-1">
-            {post.tags.map(tag => (
-              <span key={tag} className="px-1 py-0.5 text-[10px] bg-secondary/80 text-secondary-foreground rounded-full">{tag}</span>
-            ))}
+            {isAdmin && (
+              <div className="flex gap-1 absolute top-2 right-2"> {/* Position admin buttons absolutely */}
+                <Button variant="ghost" size="icon" className="h-6 w-6" onClick={(e) => {e.preventDefault(); alert('Edit clicked'); /* Implement edit action */ }}>
+                  <Edit className="h-3 w-3" />
+                </Button>
+                <Button variant="ghost" size="icon" className="h-6 w-6 text-destructive" onClick={(e) => {e.preventDefault(); alert('Delete clicked'); /* Implement delete action */ }}>
+                  <Trash2 className="h-3 w-3" />
+                </Button>
+              </div>
+            )}
           </div>
-        )}
-      </CardContent>
-      <CardFooter className="flex justify-between items-center text-xs text-muted-foreground px-3 py-1">
-        <div className="flex gap-2">
-          <Button variant="ghost" size="sm" className="p-0.5 h-auto text-[10px]">
-            <ThumbsUp className="h-2.5 w-2.5 mr-0.5" /> {post.upvotes}
-          </Button>
-          <Button variant="ghost" size="sm" className="p-0.5 h-auto text-[10px]">
-            <ThumbsDown className="h-2.5 w-2.5 mr-0.5" /> {isAdmin ? post.downvotes : ""} {!isAdmin && "비추천"}
-          </Button>
-          <span className="flex items-center text-[10px]"><MessageSquare className="h-2.5 w-2.5 mr-0.5" /> {post.commentCount}</span>
-          <span className="flex items-center text-[10px]"><Eye className="h-2.5 w-2.5 mr-0.5" /> {post.views}</span>
-        </div>
-        <Button variant="outline" size="sm" asChild className="text-[10px] h-auto px-1.5 py-0.5">
-          <Link href={`#post-${post.id}`}>자세히 보기</Link>
-        </Button>
-      </CardFooter>
+          <div className="flex items-center text-xs text-muted-foreground space-x-1.5">
+            <Avatar className="h-4 w-4">
+              <AvatarImage src={authorAvatar} />
+              <AvatarFallback>{getInitials(authorDisplayName)}</AvatarFallback>
+            </Avatar>
+            <span className={cn("text-xs", author?.username === 'WANGJUNLAND' && 'text-admin')}>{authorDisplayName}</span>
+            <span>·</span>
+            <span className="text-xs">{formattedDate}</span>
+            <span>·</span>
+            <span className="capitalize text-xs">{post.type}</span>
+          </div>
+        </CardHeader>
+        {/* Post content removed from list view */}
+        {/* <CardContent className="py-1 px-3">
+          <p className="text-sm text-foreground line-clamp-2">{post.content}</p>
+        </CardContent> */}
+        <CardFooter className="flex justify-start items-center text-xs text-muted-foreground px-3 py-1 mt-1">
+          <div className="flex gap-2 items-center">
+            <span className="flex items-center text-[10px]"><ThumbsUp className="h-2.5 w-2.5 mr-0.5" /> {post.upvotes}</span>
+            {isAdmin && <span className="flex items-center text-[10px]"><ThumbsDown className="h-2.5 w-2.5 mr-0.5" /> {post.downvotes}</span>}
+            <span className="flex items-center text-[10px]"><MessageSquare className="h-2.5 w-2.5 mr-0.5" /> {post.commentCount}</span>
+            <span className="flex items-center text-[10px]"><Eye className="h-2.5 w-2.5 mr-0.5" /> {post.views}</span>
+          </div>
+          {/* "자세히 보기" button can be removed if the whole card is a link, or kept for explicit action */}
+        </CardFooter>
+      </Link>
     </Card>
   );
 };
@@ -111,8 +98,6 @@ export default function TavernPage() {
     if (activeTab === 'notices') {
       posts = posts.filter(p => p.type === 'Notice' || p.type === 'Announcement');
     } else if (activeTab === 'popular') {
-      // Popular filter logic based on `popularFilter` state (e.g., views in last week/month/year)
-      // For mock, just sort by views for now
       posts.sort((a,b) => b.views - a.views);
     } else if (activeTab === 'qna') {
       posts = posts.filter(p => p.type === 'QnA');
@@ -121,11 +106,10 @@ export default function TavernPage() {
     if (searchTerm) {
       posts = posts.filter(p => 
         p.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        p.content.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        // p.content.toLowerCase().includes(searchTerm.toLowerCase()) || // Content search removed as content is hidden
         p.authorNickname.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
-    // Pinned posts always on top, then by creation date
     return posts.sort((a,b) => (b.isPinned ? 1 : 0) - (a.isPinned ? 1 : 0) || new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
   }, [activeTab, popularFilter, searchTerm]);
   
@@ -142,7 +126,7 @@ export default function TavernPage() {
 
   const renderPageNumbers = () => {
     const pageNumbers = [];
-    const maxPagesToShow = 10; // Number of page buttons to show in a block
+    const maxPagesToShow = 10; 
     
     const currentBlock = Math.ceil(currentPage / maxPagesToShow);
     let startPage = (currentBlock - 1) * maxPagesToShow + 1;
@@ -189,7 +173,7 @@ export default function TavernPage() {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
           <Input
             type="text"
-            placeholder="게시글 검색 (제목, 내용, 작성자)..."
+            placeholder="게시글 검색 (제목, 작성자)..."
             className="pl-10 w-full"
             value={searchTerm}
             onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1);}}
@@ -233,7 +217,7 @@ export default function TavernPage() {
       </Tabs>
       
       {currentPostsToDisplay.length > 0 ? (
-        <div className="space-y-2">
+        <div className="space-y-3"> {/* Reduced space between posts slightly */}
           {currentPostsToDisplay.map((post) => (
             <PostItem key={post.id} post={post} isAdmin={isAdmin} isPopularPost={activeTab === 'popular'} />
           ))}
@@ -293,4 +277,3 @@ export default function TavernPage() {
     </div>
   );
 }
-
