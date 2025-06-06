@@ -5,17 +5,10 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { ArrowLeft, MessageSquare, ThumbsUp, Eye, Pin, Edit, Trash2 } from 'lucide-react'; // Assuming useAuth is not directly needed here for view
+import { ArrowLeft, MessageSquare, ThumbsUp, Eye, Pin } from 'lucide-react'; 
 import { cn } from '@/lib/utils';
-// We cannot use useAuth hook directly in Server Components. 
-// For admin-specific actions like edit/delete on this page, it would typically involve:
-// 1. Making this a client component OR
-// 2. Passing admin status from a parent client component OR
-// 3. Server-side check if available (e.g. through session management, not applicable here)
-// For now, admin buttons will be shown statically for demonstration if needed, or omitted for simplicity.
 
 export async function generateStaticParams() {
-  // For SSG, generate paths for existing mock posts
   return mockPosts.map((post) => ({
     postId: post.id,
   }));
@@ -42,7 +35,11 @@ export default function PostDetailPage({ params }: { params: { postId: string } 
   const postDate = new Date(post.createdAt);
   const formattedDate = `${postDate.getFullYear()}년 ${postDate.getMonth() + 1}월 ${postDate.getDate()}일 ${postDate.getHours()}시 ${postDate.getMinutes()}분`;
   const isNotice = post.type === 'Notice' || post.type === 'Announcement';
-  // const isAdmin = false; // Placeholder for admin status logic if needed for edit/delete on this page
+
+  const otherPosts = mockPosts
+    .filter(p => p.id !== post.id) // Exclude current post
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()) // Sort by newest
+    .slice(0, 3); // Take top 3
 
   return (
     <div className="container mx-auto py-8 px-4 max-w-3xl">
@@ -66,15 +63,6 @@ export default function PostDetailPage({ params }: { params: { postId: string } 
               {isNotice && <MessageSquare className="h-6 w-6 mr-2 text-sky-600 dark:text-sky-400" />}
               {post.title}
             </CardTitle>
-            {/* 
-            // Admin buttons - would require client component logic or server session check
-            {isAdmin && ( 
-              <div className="flex gap-2">
-                <Button variant="outline" size="sm"><Edit className="mr-2 h-4 w-4"/> 수정</Button>
-                <Button variant="destructive" size="sm"><Trash2 className="mr-2 h-4 w-4"/> 삭제</Button>
-              </div>
-            )}
-            */}
           </div>
           <div className="flex items-center text-sm text-muted-foreground space-x-2 mt-2">
             <Avatar className="h-8 w-8">
@@ -92,7 +80,6 @@ export default function PostDetailPage({ params }: { params: { postId: string } 
           </div>
         </CardHeader>
         <CardContent className="prose dark:prose-invert max-w-none prose-sm sm:prose-base">
-          {/* Using whitespace-pre-wrap to respect newlines in mock data */}
           <p className="whitespace-pre-wrap">{post.content}</p> 
         </CardContent>
         <CardFooter className="flex justify-between items-center text-muted-foreground border-t pt-4 mt-4">
@@ -118,40 +105,30 @@ export default function PostDetailPage({ params }: { params: { postId: string } 
           <CardTitle>댓글 ({post.commentCount})</CardTitle>
         </CardHeader>
         <CardContent>
-          {/* TODO: Implement actual comments loading and display */}
           <p className="text-muted-foreground">댓글 기능은 현재 준비 중입니다.</p>
-          {/* 
-          Example structure for future comments:
-          <div className="space-y-4">
-            {mockComments.filter(c => c.postId === post.id).map(comment => (
-              <div key={comment.id} className="p-3 border rounded-md bg-muted/50">
-                <div className="flex items-center gap-2 mb-1">
-                  <Avatar className="h-6 w-6">
-                    <AvatarImage src={mockUsers.find(u=>u.id === comment.authorId)?.avatar} />
-                    <AvatarFallback>{getInitials(comment.authorNickname)}</AvatarFallback>
-                  </Avatar>
-                  <span className="font-semibold text-sm">{comment.authorNickname}</span>
-                  <span className="text-xs text-muted-foreground">{new Date(comment.createdAt).toLocaleString()}</span>
-                </div>
-                <p className="text-sm">{comment.content}</p>
-              </div>
-            ))}
-             <Textarea placeholder="댓글을 입력하세요..." className="mt-4" />
-            <Button className="mt-2">댓글 작성</Button>
-          </div> 
-          */}
         </CardContent>
       </Card>
 
-      {/* Back to List Button / Other Posts Section (Simplified) */}
-      <div className="text-center">
-        <Button asChild variant="default" size="lg">
-          <Link href="/tavern">
-            <ArrowLeft className="mr-2 h-5 w-5" />
-            커뮤니티 목록으로 돌아가기
-          </Link>
-        </Button>
-      </div>
+      {/* Mini Post List Section */}
+      <section className="mt-12">
+        <h2 className="text-2xl font-semibold mb-6 font-headline">다른 게시글 보기</h2>
+        <div className="space-y-4">
+          {otherPosts.length > 0 ? otherPosts.map(op => (
+            <Link key={op.id} href={`/tavern/${op.id}`} className="block p-4 border rounded-lg shadow-sm hover:bg-muted/50 hover:shadow-md transition-all">
+              <h3 className="font-medium text-lg text-primary hover:underline">{op.title}</h3>
+              <div className="text-xs text-muted-foreground mt-1">
+                <span>{op.authorNickname}</span>
+                <span className="mx-1.5">·</span>
+                <span>{new Date(op.createdAt).toLocaleDateString()}</span>
+                <span className="mx-1.5">·</span>
+                <span className="capitalize">{op.type}</span>
+              </div>
+            </Link>
+          )) : (
+            <p className="text-muted-foreground">다른 게시글이 없습니다.</p>
+          )}
+        </div>
+      </section>
     </div>
   );
 }
