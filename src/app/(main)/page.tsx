@@ -1,14 +1,32 @@
 // src/app/(main)/page.tsx
+"use client";
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowRight, Code, Compass, Gift, MessageSquare, Users, Star, Wand2 } from 'lucide-react';
+import { ArrowRight, Code, Compass, Gift, MessageSquare, Users, Star, Wand2, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
 import Image from 'next/image';
 import { mockPosts, mockRankings, mockUsers } from '@/lib/mockData';
 import { cn } from '@/lib/utils';
+import { useState } from 'react';
+
+const POSTS_PER_PAGE = 10;
+const MAX_PAGES = 10;
 
 export default function HomePage() {
-  const popularPosts = mockPosts.sort((a, b) => b.views - a.views).slice(0, 3);
+  const [currentPage, setCurrentPage] = useState(1);
+
+  // Sort all posts by newest first
+  const allSortedPosts = [...mockPosts].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
+  // Get up to MAX_PAGES * POSTS_PER_PAGE newest posts for pagination
+  const effectivePosts = allSortedPosts.slice(0, MAX_PAGES * POSTS_PER_PAGE);
+  
+  const totalPages = Math.ceil(effectivePosts.length / POSTS_PER_PAGE);
+
+  const indexOfLastPost = currentPage * POSTS_PER_PAGE;
+  const indexOfFirstPost = indexOfLastPost - POSTS_PER_PAGE;
+  const currentPostsToDisplay = effectivePosts.slice(indexOfFirstPost, indexOfLastPost);
+
   // Exclude admin (rank 0) and get top 3 actual ranked users
   const topRankers = mockRankings.filter(r => r.rank > 0 && r.rank <=3).slice(0, 3); 
 
@@ -18,6 +36,41 @@ export default function HomePage() {
     { title: '무료 에셋', description: '매주 업데이트되는 무료 에셋 정보를 확인하세요.', icon: Gift, href:"/free-assets" },
     { title: '선술집 (커뮤니티)', description: '개발자들과 소통하고 정보를 공유하세요.', icon: MessageSquare, href:"/tavern" },
   ];
+
+  const paginate = (pageNumber: number) => {
+    if (pageNumber > 0 && pageNumber <= totalPages) {
+      setCurrentPage(pageNumber);
+    }
+  };
+
+  const renderPageNumbers = () => {
+    const pageNumbers = [];
+    const maxPagesToShow = 5; 
+    
+    let startPage = Math.max(1, currentPage - Math.floor(maxPagesToShow / 2));
+    let endPage = Math.min(totalPages, startPage + maxPagesToShow - 1);
+
+    if (endPage - startPage + 1 < maxPagesToShow) {
+        startPage = Math.max(1, endPage - maxPagesToShow + 1);
+    }
+    
+    if (totalPages === 0) return null;
+
+    for (let i = startPage; i <= endPage; i++) {
+      pageNumbers.push(
+        <Button
+          key={i}
+          variant={currentPage === i ? 'default' : 'outline'}
+          size="sm"
+          onClick={() => paginate(i)}
+          className={cn("h-8 w-8 p-0", currentPage === i ? "bg-primary text-primary-foreground border-primary" : "text-muted-foreground border-border hover:bg-muted/50 hover:border-accent/50")}
+        >
+          {i}
+        </Button>
+      );
+    }
+    return pageNumbers;
+  };
 
   return (
     <div className="container mx-auto py-8 px-4">
@@ -68,31 +121,86 @@ export default function HomePage() {
       <section className="grid lg:grid-cols-3 gap-12 mb-16 mt-24">
         <div className="lg:col-span-2">
           <div className="flex justify-between items-center mb-8">
-            <h2 className="text-3xl font-bold font-headline text-primary">커뮤니티 인기글</h2>
+            <h2 className="text-3xl font-bold font-headline text-primary">커뮤니티 최신글</h2>
             <Button variant="outline" asChild className="border-primary/50 text-primary hover:bg-primary/10 hover:text-primary">
-              <Link href="/tavern">더 보기 <ArrowRight className="ml-2 h-4 w-4" /></Link>
+              <Link href="/tavern">모든 글 보기 <ArrowRight className="ml-2 h-4 w-4" /></Link>
             </Button>
           </div>
-          <div className="space-y-6">
-            {popularPosts.map((post) => (
-              <Card key={post.id} className="shadow-md hover:shadow-lg transition-shadow duration-300 bg-card border-border hover:border-secondary/50">
-                <CardHeader>
-                  <CardTitle className="font-headline text-lg text-foreground">{post.title}</CardTitle>
-                  <CardDescription className="text-muted-foreground">
-                    {post.authorNickname} · {new Date(post.createdAt).toLocaleDateString()} · 조회 {post.views}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-muted-foreground line-clamp-2">{post.content}</p>
-                </CardContent>
-                <CardFooter>
-                   <Button variant="ghost" asChild size="sm" className="text-secondary hover:bg-secondary/10 hover:text-secondary/90">
-                     <Link href={`/tavern/${post.id}`}>읽어보기</Link>
-                   </Button>
-                </CardFooter>
-              </Card>
-            ))}
-          </div>
+          {currentPostsToDisplay.length > 0 ? (
+            <>
+              <div className="space-y-4">
+                {currentPostsToDisplay.map((post) => (
+                  <Link href={`/tavern/${post.id}`} key={post.id} className="block no-underline hover:no-underline group">
+                    <Card className="shadow-md hover:shadow-lg transition-shadow duration-300 bg-card border-border group-hover:border-primary/50 cursor-pointer">
+                      <CardHeader>
+                        <CardTitle className="font-headline text-lg text-foreground group-hover:text-primary transition-colors">{post.title}</CardTitle>
+                        <CardDescription className="text-muted-foreground">
+                          {post.authorNickname} · {new Date(post.createdAt).toLocaleDateString()} · 조회 {post.views}
+                        </CardDescription>
+                      </CardHeader>
+                    </Card>
+                  </Link>
+                ))}
+              </div>
+              {totalPages > 1 && (
+                <div className="mt-8 flex flex-col items-center gap-4">
+                    <div className="flex items-center gap-1 sm:gap-2">
+                        <Button 
+                            variant="outline" 
+                            size="icon" 
+                            onClick={() => paginate(1)}
+                            disabled={currentPage === 1}
+                            className="text-muted-foreground border-border hover:bg-muted/50 hover:border-accent/50 h-8 w-8"
+                            aria-label="First page"
+                        >
+                            <ChevronsLeft className="h-4 w-4"/>
+                        </Button>
+                        <Button 
+                            variant="outline" 
+                            size="icon" 
+                            onClick={() => paginate(currentPage - 1)} 
+                            disabled={currentPage === 1}
+                            className="text-muted-foreground border-border hover:bg-muted/50 hover:border-accent/50 h-8 w-8"
+                            aria-label="Previous page"
+                        >
+                            <ChevronLeft className="h-4 w-4"/>
+                        </Button>
+
+                        {renderPageNumbers()}
+
+                        <Button 
+                            variant="outline" 
+                            size="icon" 
+                            onClick={() => paginate(currentPage + 1)} 
+                            disabled={currentPage === totalPages}
+                            className="text-muted-foreground border-border hover:bg-muted/50 hover:border-accent/50 h-8 w-8"
+                            aria-label="Next page"
+                        >
+                            <ChevronRight className="h-4 w-4"/>
+                        </Button>
+                        <Button 
+                            variant="outline" 
+                            size="icon" 
+                            onClick={() => paginate(totalPages)}
+                            disabled={currentPage === totalPages}
+                            className="text-muted-foreground border-border hover:bg-muted/50 hover:border-accent/50 h-8 w-8"
+                            aria-label="Last page"
+                        >
+                            <ChevronsRight className="h-4 w-4"/>
+                        </Button>
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                        총 {totalPages} 페이지 중 {currentPage} 페이지
+                    </p>
+                </div>
+              )}
+            </>
+          ) : (
+            <div className="text-center py-12">
+              <MessageSquare className="mx-auto h-16 w-16 text-muted-foreground mb-4" />
+              <p className="text-xl text-muted-foreground">표시할 게시글이 없습니다.</p>
+            </div>
+          )}
         </div>
 
         <div>
