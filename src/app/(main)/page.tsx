@@ -2,7 +2,7 @@
 "use client";
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'; // Removed CardFooter from here if not used elsewhere, but it's a general Card component part
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card'; // Added CardFooter here
 import { ArrowRight, Code, Compass, Gift, MessageSquare, Users, Star, Wand2, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, ThumbsUp } from 'lucide-react';
 import Image from 'next/image';
 import { mockPosts, mockRankings, mockUsers } from '@/lib/mockData';
@@ -132,7 +132,7 @@ export default function HomePage() {
                 {currentPostsToDisplay.map((post) => (
                   <Link href={`/tavern/${post.id}`} key={post.id} className="block no-underline hover:no-underline group">
                     <Card className="shadow-md hover:shadow-lg transition-shadow duration-300 bg-card border-border group-hover:border-primary/50 cursor-pointer">
-                      <CardHeader className="py-3 px-4"> {/* Adjusted padding for CardHeader */}
+                      <CardHeader className="py-3 px-4">
                         <CardTitle className="font-headline text-lg text-foreground group-hover:text-primary transition-colors line-clamp-1">
                           {post.title}
                         </CardTitle>
@@ -263,3 +263,4 @@ export default function HomePage() {
     </div>
   );
 }
+
