@@ -1,3 +1,4 @@
+
 // src/components/shared/CommentSection.tsx
 "use client";
 
@@ -374,4 +375,3 @@ export default function CommentSection({ postId, initialComments, postMainCatego
     </Card>
   );
 }
-```

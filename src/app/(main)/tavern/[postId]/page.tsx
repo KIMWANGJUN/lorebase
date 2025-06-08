@@ -1,3 +1,4 @@
+
 // src/app/(main)/tavern/[postId]/page.tsx
 "use client"; 
 
@@ -223,4 +224,3 @@ export default function PostDetailPage() {
     </div>
   );
 }
-```
