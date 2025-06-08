@@ -2,7 +2,7 @@
 "use client";
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'; // Removed CardFooter from here if not used elsewhere, but it's a general Card component part
 import { ArrowRight, Code, Compass, Gift, MessageSquare, Users, Star, Wand2, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, ThumbsUp } from 'lucide-react';
 import Image from 'next/image';
 import { mockPosts, mockRankings, mockUsers } from '@/lib/mockData';
@@ -132,24 +132,24 @@ export default function HomePage() {
                 {currentPostsToDisplay.map((post) => (
                   <Link href={`/tavern/${post.id}`} key={post.id} className="block no-underline hover:no-underline group">
                     <Card className="shadow-md hover:shadow-lg transition-shadow duration-300 bg-card border-border group-hover:border-primary/50 cursor-pointer">
-                      <CardHeader className="pb-3">
-                        <CardTitle className="font-headline text-lg text-foreground group-hover:text-primary transition-colors">
+                      <CardHeader className="py-3 px-4"> {/* Adjusted padding for CardHeader */}
+                        <CardTitle className="font-headline text-lg text-foreground group-hover:text-primary transition-colors line-clamp-1">
                           {post.title}
                         </CardTitle>
-                        <CardDescription className="text-muted-foreground text-xs mt-1">
-                          {new Date(post.createdAt).toLocaleDateString()} · {post.mainCategory} / {post.type}
-                        </CardDescription>
-                      </CardHeader>
-                      <CardFooter className="pt-1 pb-3 px-6 text-xs text-muted-foreground">
-                        <div className="flex items-center gap-4">
-                          <span className="flex items-center">
-                            <ThumbsUp className="mr-1 h-3.5 w-3.5" /> {post.upvotes}
+                        <div className="flex justify-between items-center text-xs text-muted-foreground mt-1">
+                          <span>
+                            {new Date(post.createdAt).toLocaleDateString()} · {post.mainCategory} / {post.type}
                           </span>
-                          <span className="flex items-center">
-                            <MessageSquare className="mr-1 h-3.5 w-3.5" /> {post.commentCount}
-                          </span>
+                          <div className="flex items-center gap-3">
+                            <span className="flex items-center">
+                              <ThumbsUp className="mr-1 h-3.5 w-3.5" /> {post.upvotes}
+                            </span>
+                            <span className="flex items-center">
+                              <MessageSquare className="mr-1 h-3.5 w-3.5" /> {post.commentCount}
+                            </span>
+                          </div>
                         </div>
-                      </CardFooter>
+                      </CardHeader>
                     </Card>
                   </Link>
                 ))}
