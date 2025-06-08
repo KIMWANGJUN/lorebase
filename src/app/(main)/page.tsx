@@ -133,9 +133,11 @@ export default function HomePage() {
                   <Link href={`/tavern/${post.id}`} key={post.id} className="block no-underline hover:no-underline group">
                     <Card className="shadow-md hover:shadow-lg transition-shadow duration-300 bg-card border-border group-hover:border-primary/50 cursor-pointer">
                       <CardHeader className="pb-3">
-                        <CardTitle className="font-headline text-lg text-foreground group-hover:text-primary transition-colors">{post.title}</CardTitle>
+                        <CardTitle className="font-headline text-lg text-foreground group-hover:text-primary transition-colors">
+                          {post.title}
+                        </CardTitle>
                         <CardDescription className="text-muted-foreground text-xs mt-1">
-                          {post.authorNickname} · {new Date(post.createdAt).toLocaleDateString()} · 조회 {post.views}
+                          {new Date(post.createdAt).toLocaleDateString()} · {post.mainCategory} / {post.type}
                         </CardDescription>
                       </CardHeader>
                       <CardFooter className="pt-1 pb-3 px-6 text-xs text-muted-foreground">
@@ -261,4 +263,3 @@ export default function HomePage() {
     </div>
   );
 }
-
