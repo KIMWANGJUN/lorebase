@@ -1,5 +1,4 @@
 
-
 // src/app/(main)/tavern/page.tsx
 "use client";
 import { useState, useMemo, type FC, type ElementType } from 'react';
@@ -13,13 +12,13 @@ import Link from 'next/link';
 import { 
   Search, PlusCircle, MessageSquare, ThumbsUp, ThumbsDown, Eye, Pin, Edit, Trash2, 
   ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, ScrollText,
-  Box, AppWindow, PenTool, ListChecks, HelpCircle, BookOpen, ClipboardList, Smile, LayoutGrid
+  Box, AppWindow, PenTool, ListChecks, HelpCircle, BookOpen, ClipboardList, Smile, LayoutGrid, Flame
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from '@/contexts/AuthContext';
 import { cn } from '@/lib/utils';
 
-const POSTS_PER_PAGE = 10; // Adjusted for potentially more views
+const POSTS_PER_PAGE = 10;
 
 const PostItem = ({ post, isAdmin }: { post: Post, isAdmin: boolean }) => {
   const author = mockUsers.find(u => u.id === post.authorId);
@@ -110,7 +109,7 @@ const PostItem = ({ post, isAdmin }: { post: Post, isAdmin: boolean }) => {
 };
 
 interface SubTabInfo {
-  value: PostType | 'all'; // 'all' for sub-categories could be an option if needed
+  value: PostType | 'popular' | 'all';
   label: string;
   icon?: ElementType;
 }
@@ -119,12 +118,14 @@ const engineSubTabs: SubTabInfo[] = [
   { value: 'QnA', label: 'Q&A', icon: HelpCircle },
   { value: 'Knowledge', label: '지식', icon: BookOpen },
   { value: 'DevLog', label: '개발 일지', icon: ClipboardList },
+  { value: 'popular', label: '인기 글', icon: Flame },
 ];
 
 const generalSubTabs: SubTabInfo[] = [
   { value: 'GeneralPost', label: '일반 글', icon: MessageSquare },
   { value: 'Humor', label: '유머 글', icon: Smile },
   { value: 'Notice', label: '공지', icon: ScrollText},
+  { value: 'popular', label: '인기 글', icon: Flame },
 ];
 
 interface SubTabsComponentProps {
@@ -159,7 +160,7 @@ const SubTabsComponent: FC<SubTabsComponentProps> = ({ activeSubTab, setActiveSu
 
 export default function TavernPage() {
   const [mainCategory, setMainCategory] = useState<PostMainCategory>('Unity');
-  const [subCategory, setSubCategory] = useState<PostType>('QnA');
+  const [subCategory, setSubCategory] = useState<PostType | 'popular'>('QnA');
   
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
@@ -167,17 +168,16 @@ export default function TavernPage() {
 
   const handleMainCategoryChange = (newMainCategory: PostMainCategory) => {
     setMainCategory(newMainCategory);
-    // Set default sub-category for the new main category
-    if (newMainCategory === 'General') {
-      setSubCategory('GeneralPost');
-    } else {
-      setSubCategory('QnA'); // Default for engine categories
+    const currentNewSubTabs = newMainCategory === 'General' ? generalSubTabs : engineSubTabs;
+    if (currentNewSubTabs.length > 0) {
+      const firstValue = currentNewSubTabs[0].value;
+      setSubCategory(firstValue as PostType | 'popular');
     }
     setCurrentPage(1);
   };
 
-  const handleSubCategoryChange = (newSubCategory: string) => {
-    setSubCategory(newSubCategory as PostType);
+  const handleSubCategoryChange = (newSubCategoryValue: string) => {
+    setSubCategory(newSubCategoryValue as PostType | 'popular');
     setCurrentPage(1);
   }
 
@@ -188,15 +188,19 @@ export default function TavernPage() {
   const filteredPosts = useMemo(() => {
     let posts = [...mockPosts].filter(p => p.mainCategory === mainCategory);
     
-    posts = posts.filter(p => p.type === subCategory);
-
     if (searchTerm) {
       posts = posts.filter(p => 
         p.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
         p.authorNickname.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
-    return posts.sort((a,b) => (b.isPinned ? 1 : 0) - (a.isPinned ? 1 : 0) || new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
+    if (subCategory === 'popular') {
+      return posts.sort((a,b) => (b.isPinned ? 1 : 0) - (a.isPinned ? 1 : 0) || b.views - a.views);
+    } else {
+      posts = posts.filter(p => p.type === subCategory);
+      return posts.sort((a,b) => (b.isPinned ? 1 : 0) - (a.isPinned ? 1 : 0) || new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    }
   }, [mainCategory, subCategory, searchTerm]);
   
   const totalPages = Math.ceil(filteredPosts.length / POSTS_PER_PAGE);
@@ -280,8 +284,6 @@ export default function TavernPage() {
           <TabsTrigger value="Godot" className="rounded-md px-4 py-1.5 flex items-center justify-center gap-1.5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"><PenTool className="h-4 w-4" />Godot</TabsTrigger>
           <TabsTrigger value="General" className="rounded-md px-4 py-1.5 flex items-center justify-center gap-1.5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"><LayoutGrid className="h-4 w-4" />일반</TabsTrigger>
         </TabsList>
-
-        {/* Content area for sub-tabs and posts will be handled below based on mainCategory and subCategory state */}
       </Tabs>
 
       <SubTabsComponent 
@@ -360,4 +362,3 @@ export default function TavernPage() {
     </div>
   );
 }
-
