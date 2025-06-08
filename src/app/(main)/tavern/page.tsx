@@ -274,10 +274,10 @@ export default function TavernPage() {
 
       <Tabs value={mainCategory} onValueChange={(value) => handleMainCategoryChange(value as PostMainCategory)} className="mb-8">
         <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 bg-card border-border p-1.5 rounded-lg shadow-inner">
-          <TabsTrigger value="Unity" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground py-2.5 flex items-center justify-center gap-1.5"><Box className="h-4 w-4" />Unity</TabsTrigger>
-          <TabsTrigger value="Unreal" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground py-2.5 flex items-center justify-center gap-1.5"><AppWindow className="h-4 w-4" />Unreal</TabsTrigger>
-          <TabsTrigger value="Godot" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground py-2.5 flex items-center justify-center gap-1.5"><PenTool className="h-4 w-4" />Godot</TabsTrigger>
-          <TabsTrigger value="General" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground py-2.5 flex items-center justify-center gap-1.5"><LayoutGrid className="h-4 w-4" />일반</TabsTrigger>
+          <TabsTrigger value="Unity" className="rounded-md px-4 py-2.5 flex items-center justify-center gap-1.5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"><Box className="h-4 w-4" />Unity</TabsTrigger>
+          <TabsTrigger value="Unreal" className="rounded-md px-4 py-2.5 flex items-center justify-center gap-1.5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"><AppWindow className="h-4 w-4" />Unreal</TabsTrigger>
+          <TabsTrigger value="Godot" className="rounded-md px-4 py-2.5 flex items-center justify-center gap-1.5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"><PenTool className="h-4 w-4" />Godot</TabsTrigger>
+          <TabsTrigger value="General" className="rounded-md px-4 py-2.5 flex items-center justify-center gap-1.5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"><LayoutGrid className="h-4 w-4" />일반</TabsTrigger>
         </TabsList>
 
         {/* Content area for sub-tabs and posts will be handled below based on mainCategory and subCategory state */}
@@ -359,5 +359,3 @@ export default function TavernPage() {
     </div>
   );
 }
-
-    
