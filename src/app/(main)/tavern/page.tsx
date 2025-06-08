@@ -9,16 +9,18 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { mockPosts, mockUsers } from '@/lib/mockData';
 import type { Post, PostMainCategory, PostType, User } from '@/types';
 import Link from 'next/link';
+import Image from 'next/image';
 import { 
   Search, PlusCircle, MessageSquare, ThumbsUp, ThumbsDown, Eye, Pin, Edit, Trash2, 
   ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, ScrollText,
-  Box, AppWindow, PenTool, ListChecks, HelpCircle, BookOpen, ClipboardList, Smile, LayoutGrid, Flame
+  Box, AppWindow, PenTool, ListChecks, HelpCircle, BookOpen, ClipboardList, Smile, LayoutGrid, Flame, Trophy
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from '@/contexts/AuthContext';
 import { cn } from '@/lib/utils';
 
 const POSTS_PER_PAGE = 10;
+const RANKERS_TO_SHOW_TAVERN = 5;
 
 const CategoryIcon: FC<{ category: PostMainCategory, className?: string }> = ({ category, className = "h-4 w-4" }) => {
   switch (category) {
@@ -44,7 +46,6 @@ const PostItem = ({ post, isAdmin }: { post: Post, isAdmin: boolean }) => {
   const isAuthorGlobalTopRanker = author && !isAuthorAdmin && author.rank > 0 && author.rank <= 3;
   const authorCategoryRank = author?.categoryStats?.[post.mainCategory]?.rank;
   const isAuthorCategoryTopRanker = authorCategoryRank && authorCategoryRank > 0 && authorCategoryRank <= 3;
-
 
   const NicknameDisplay = () => {
     if (!author) return <span className="text-xs">{authorDisplayName}</span>;
@@ -93,7 +94,6 @@ const PostItem = ({ post, isAdmin }: { post: Post, isAdmin: boolean }) => {
     }
     return <span className="text-xs">{authorDisplayName}</span>;
   };
-
 
   return (
     <Card 
@@ -193,6 +193,96 @@ const SubTabsComponent: FC<SubTabsComponentProps> = ({ activeSubTab, setActiveSu
         ))}
       </TabsList>
     </Tabs>
+  );
+};
+
+const CategoryRankingCard: FC<{ category: PostMainCategory, isAdmin: boolean }> = ({ category, isAdmin }) => {
+  const categoryRankers = useMemo(() => {
+    return mockUsers
+      .filter(u => u.username !== 'WANGJUNLAND' && u.categoryStats && u.categoryStats[category] && u.categoryStats[category]!.score > 0)
+      .sort((a, b) => (b.categoryStats![category]!.score || 0) - (a.categoryStats![category]!.score || 0))
+      .slice(0, RANKERS_TO_SHOW_TAVERN);
+  }, [category]);
+
+  if (categoryRankers.length === 0) {
+    return (
+      <Card className="shadow-lg bg-card border-border">
+        <CardHeader>
+          <CardTitle className="font-headline text-foreground text-lg flex items-center gap-2">
+            <CategoryIcon category={category} className="h-5 w-5" />
+            {category} 랭킹 TOP {RANKERS_TO_SHOW_TAVERN}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-muted-foreground text-center py-4">아직 랭커가 없습니다.</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <Card className="shadow-lg bg-card border-border">
+      <CardHeader>
+        <CardTitle className="font-headline text-foreground text-lg flex items-center gap-2">
+          <CategoryIcon category={category} className="h-5 w-5" />
+          {category} 랭킹 TOP {RANKERS_TO_SHOW_TAVERN}
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        {categoryRankers.map((ranker, index) => {
+          const displayRank = index + 1;
+          const categoryUserRank = ranker.categoryStats?.[category]?.rank;
+          const isCategoryTop3 = categoryUserRank && categoryUserRank <= 3;
+
+          return (
+            <div key={ranker.id} className="flex items-center justify-between p-2.5 bg-background/30 rounded-lg border border-border/50">
+              <div className="flex items-center gap-2.5">
+                <span className={cn(
+                  "font-bold text-md w-5 text-center",
+                  isCategoryTop3 && displayRank === 1 && (category === 'Unity' ? 'text-unity-rank' : category === 'Unreal' ? 'text-unreal-rank' : category === 'Godot' ? 'text-godot-rank' : 'text-general-rank'),
+                  isCategoryTop3 && displayRank === 2 && (category === 'Unity' ? 'text-unity-rank opacity-80' : category === 'Unreal' ? 'text-unreal-rank opacity-80' : category === 'Godot' ? 'text-godot-rank opacity-80' : 'text-general-rank opacity-80'),
+                  isCategoryTop3 && displayRank === 3 && (category === 'Unity' ? 'text-unity-rank opacity-70' : category === 'Unreal' ? 'text-unreal-rank opacity-70' : category === 'Godot' ? 'text-godot-rank opacity-70' : 'text-general-rank opacity-70'),
+                  !isCategoryTop3 && "text-muted-foreground"
+                )}>{displayRank}.</span>
+                <Avatar className="h-8 w-8 border-2 border-accent/70">
+                  <Image src={ranker.avatar || `https://placehold.co/40x40.png?text=${ranker.nickname.substring(0,1)}`} alt={ranker.nickname} width={32} height={32} className="rounded-full" />
+                  <AvatarFallback className="text-xs bg-muted text-muted-foreground">{ranker.nickname.substring(0,1)}</AvatarFallback>
+                </Avatar>
+                <div className={cn("font-medium rounded-md px-2 py-0.5 text-sm flex items-center gap-1",
+                    isCategoryTop3 && {
+                      'category-rank-unity': category === 'Unity',
+                      'category-rank-unreal': category === 'Unreal',
+                      'category-rank-godot': category === 'Godot',
+                      'category-rank-general': category === 'General',
+                    }
+                  )}
+                >
+                  {isCategoryTop3 && <CategoryIcon category={category} className="h-3.5 w-3.5" />}
+                  <span className={cn(
+                      "font-semibold",
+                      isCategoryTop3 && {
+                        'text-unity-rank': category === 'Unity',
+                        'text-unreal-rank': category === 'Unreal',
+                        'text-godot-rank': category === 'Godot',
+                        'text-general-rank': category === 'General',
+                      },
+                      !isCategoryTop3 && "text-foreground"
+                    )}
+                  >
+                    {ranker.nickname}
+                  </span>
+                </div>
+              </div>
+              {isAdmin && (
+                <span className="text-xs font-semibold text-accent">
+                  {(ranker.categoryStats?.[category]?.score || 0).toLocaleString()} 점
+                </span>
+              )}
+            </div>
+          );
+        })}
+      </CardContent>
+    </Card>
   );
 };
 
@@ -326,79 +416,46 @@ export default function TavernPage() {
         </TabsList>
       </Tabs>
 
-      <SubTabsComponent 
-        activeSubTab={subCategory}
-        setActiveSubTab={handleSubCategoryChange}
-        subTabs={currentSubTabSet}
-        onSubTabChange={() => setCurrentPage(1)}
-      />
-      
-      {currentPostsToDisplay.length > 0 ? (
-        <div className="space-y-3"> 
-          {currentPostsToDisplay.map((post) => (
-            <PostItem key={post.id} post={post} isAdmin={!!isAdmin} />
-          ))}
-        </div>
-      ) : (
-        <div className="text-center py-12">
-          <MessageSquare className="mx-auto h-16 w-16 text-muted-foreground mb-4" />
-          <p className="text-xl text-muted-foreground">표시할 게시글이 없습니다.</p>
-          <p className="text-sm text-muted-foreground mt-1">선택한 카테고리 또는 검색어에 해당하는 글이 없습니다.</p>
-        </div>
-      )}
-      
-      {totalPages > 0 && (
-        <div className="mt-8 flex flex-col items-center gap-4">
-            <div className="flex items-center gap-1 sm:gap-2">
-                <Button 
-                    variant="outline" 
-                    size="icon" 
-                    onClick={() => paginate(1)}
-                    disabled={currentPage === 1}
-                    className="text-muted-foreground border-border hover:bg-muted/50 hover:border-accent/50 h-8 w-8"
-                    aria-label="First page"
-                >
-                    <ChevronsLeft className="h-4 w-4"/>
-                </Button>
-                <Button 
-                    variant="outline" 
-                    size="icon" 
-                    onClick={() => paginate(currentPage - 1)} 
-                    disabled={currentPage === 1}
-                    className="text-muted-foreground border-border hover:bg-muted/50 hover:border-accent/50 h-8 w-8"
-                    aria-label="Previous page"
-                >
-                    <ChevronLeft className="h-4 w-4"/>
-                </Button>
-
-                {renderPageNumbers()}
-
-                <Button 
-                    variant="outline" 
-                    size="icon" 
-                    onClick={() => paginate(currentPage + 1)} 
-                    disabled={currentPage === totalPages}
-                    className="text-muted-foreground border-border hover:bg-muted/50 hover:border-accent/50 h-8 w-8"
-                    aria-label="Next page"
-                >
-                    <ChevronRight className="h-4 w-4"/>
-                </Button>
-                <Button 
-                    variant="outline" 
-                    size="icon" 
-                    onClick={() => paginate(totalPages)}
-                    disabled={currentPage === totalPages}
-                    className="text-muted-foreground border-border hover:bg-muted/50 hover:border-accent/50 h-8 w-8"
-                    aria-label="Last page"
-                >
-                    <ChevronsRight className="h-4 w-4"/>
-                </Button>
+      <div className="grid lg:grid-cols-3 gap-8">
+        <div className="lg:col-span-2">
+          <SubTabsComponent 
+            activeSubTab={subCategory}
+            setActiveSubTab={handleSubCategoryChange}
+            subTabs={currentSubTabSet}
+            onSubTabChange={() => setCurrentPage(1)}
+          />
+          
+          {currentPostsToDisplay.length > 0 ? (
+            <div className="space-y-3"> 
+              {currentPostsToDisplay.map((post) => (
+                <PostItem key={post.id} post={post} isAdmin={!!isAdmin} />
+              ))}
             </div>
-            <p className="text-sm text-muted-foreground">
-                총 {totalPages} 페이지 중 {currentPage} 페이지
-            </p>
+          ) : (
+            <div className="text-center py-12">
+              <MessageSquare className="mx-auto h-16 w-16 text-muted-foreground mb-4" />
+              <p className="text-xl text-muted-foreground">표시할 게시글이 없습니다.</p>
+              <p className="text-sm text-muted-foreground mt-1">선택한 카테고리 또는 검색어에 해당하는 글이 없습니다.</p>
+            </div>
+          )}
+          
+          {totalPages > 0 && (
+            <div className="mt-8 flex flex-col items-center gap-4">
+                <div className="flex items-center gap-1 sm:gap-2">
+                    <Button variant="outline" size="icon" onClick={() => paginate(1)} disabled={currentPage === 1} className="text-muted-foreground border-border hover:bg-muted/50 hover:border-accent/50 h-8 w-8" aria-label="First page"><ChevronsLeft className="h-4 w-4"/></Button>
+                    <Button variant="outline" size="icon" onClick={() => paginate(currentPage - 1)} disabled={currentPage === 1} className="text-muted-foreground border-border hover:bg-muted/50 hover:border-accent/50 h-8 w-8" aria-label="Previous page"><ChevronLeft className="h-4 w-4"/></Button>
+                    {renderPageNumbers()}
+                    <Button variant="outline" size="icon" onClick={() => paginate(currentPage + 1)} disabled={currentPage === totalPages} className="text-muted-foreground border-border hover:bg-muted/50 hover:border-accent/50 h-8 w-8" aria-label="Next page"><ChevronRight className="h-4 w-4"/></Button>
+                    <Button variant="outline" size="icon" onClick={() => paginate(totalPages)} disabled={currentPage === totalPages} className="text-muted-foreground border-border hover:bg-muted/50 hover:border-accent/50 h-8 w-8" aria-label="Last page"><ChevronsRight className="h-4 w-4"/></Button>
+                </div>
+                <p className="text-sm text-muted-foreground">총 {totalPages} 페이지 중 {currentPage} 페이지</p>
+            </div>
+          )}
         </div>
-      )}
+        <aside className="lg:col-span-1 space-y-6 sticky top-20 self-start">
+           <CategoryRankingCard category={mainCategory} isAdmin={!!isAdmin} />
+        </aside>
+      </div>
     </div>
   );
 }

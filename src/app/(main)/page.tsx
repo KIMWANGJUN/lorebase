@@ -1,34 +1,47 @@
+
 // src/app/(main)/page.tsx
 "use client";
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card'; // Added CardFooter here
-import { ArrowRight, Code, Compass, Gift, MessageSquare, Users, Star, Wand2, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, ThumbsUp } from 'lucide-react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ArrowRight, Code, Compass, Gift, MessageSquare, Users, Star, Wand2, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, ThumbsUp, Trophy, Box, AppWindow, PenTool, LayoutGrid, Crown } from 'lucide-react';
 import Image from 'next/image';
 import { mockPosts, mockRankings, mockUsers } from '@/lib/mockData';
 import { cn } from '@/lib/utils';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
+import type { User, PostMainCategory } from '@/types';
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+
 
 const POSTS_PER_PAGE = 10;
 const MAX_PAGES = 10;
+const RANKERS_TO_SHOW = 5;
+
+const CategorySpecificIcon: React.FC<{ category: PostMainCategory, className?: string }> = ({ category, className }) => {
+  const defaultClassName = "h-4 w-4";
+  switch (category) {
+    case 'Unity': return <Box className={cn(defaultClassName, "text-purple-400", className)} />;
+    case 'Unreal': return <AppWindow className={cn(defaultClassName, "text-sky-400", className)} />;
+    case 'Godot': return <PenTool className={cn(defaultClassName, "text-emerald-400", className)} />;
+    case 'General': return <LayoutGrid className={cn(defaultClassName, "text-orange-400", className)} />;
+    default: return null;
+  }
+};
+
 
 export default function HomePage() {
+  const { isAdmin } = useAuth();
   const [currentPage, setCurrentPage] = useState(1);
+  const [activeRankingTab, setActiveRankingTab] = useState<PostMainCategory | 'Global'>('Global');
 
-  // Sort all posts by newest first
   const allSortedPosts = [...mockPosts].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-
-  // Get up to MAX_PAGES * POSTS_PER_PAGE newest posts for pagination
   const effectivePosts = allSortedPosts.slice(0, MAX_PAGES * POSTS_PER_PAGE);
-  
   const totalPages = Math.ceil(effectivePosts.length / POSTS_PER_PAGE);
-
   const indexOfLastPost = currentPage * POSTS_PER_PAGE;
   const indexOfFirstPost = indexOfLastPost - POSTS_PER_PAGE;
   const currentPostsToDisplay = effectivePosts.slice(indexOfFirstPost, indexOfLastPost);
-
-  // Exclude admin (rank 0) and get top 3 actual ranked users
-  const topRankers = mockRankings.filter(r => r.rank > 0 && r.rank <=3).slice(0, 3); 
 
   const heroImageUrl = "https://placehold.co/1920x1080.png"; 
   const features = [
@@ -46,16 +59,12 @@ export default function HomePage() {
   const renderPageNumbers = () => {
     const pageNumbers = [];
     const maxPagesToShow = 5; 
-    
     let startPage = Math.max(1, currentPage - Math.floor(maxPagesToShow / 2));
     let endPage = Math.min(totalPages, startPage + maxPagesToShow - 1);
-
     if (endPage - startPage + 1 < maxPagesToShow) {
         startPage = Math.max(1, endPage - maxPagesToShow + 1);
     }
-    
     if (totalPages === 0) return null;
-
     for (let i = startPage; i <= endPage; i++) {
       pageNumbers.push(
         <Button
@@ -72,15 +81,25 @@ export default function HomePage() {
     return pageNumbers;
   };
 
+  const rankedUsersToDisplay = useMemo(() => {
+    const users = mockUsers.filter(u => u.username !== 'WANGJUNLAND'); // Exclude admin
+    if (activeRankingTab === 'Global') {
+      return users.sort((a, b) => b.score - a.score).slice(0, RANKERS_TO_SHOW);
+    }
+    return users
+      .filter(u => u.categoryStats && u.categoryStats[activeRankingTab] && u.categoryStats[activeRankingTab]!.score > 0)
+      .sort((a, b) => (b.categoryStats![activeRankingTab]!.score || 0) - (a.categoryStats![activeRankingTab]!.score || 0))
+      .slice(0, RANKERS_TO_SHOW);
+  }, [activeRankingTab]);
+
   return (
     <div className="container mx-auto py-8 px-4">
-      {/* Hero Section */}
       <section 
         className="text-center py-20 md:py-32 rounded-xl shadow-xl mb-16 relative bg-cover bg-center"
         style={{ backgroundImage: `url(${heroImageUrl})` }}
         data-ai-hint="epic fantasy landscape"
       >
-        <div className="absolute inset-0 bg-black/70 rounded-xl z-0"></div> {/* Overlay for text readability */}
+        <div className="absolute inset-0 bg-black/70 rounded-xl z-0"></div>
         <div className="container mx-auto px-4 relative z-10">
            <h1 className="text-5xl md:text-6xl font-bold font-headline mb-6 text-primary-foreground drop-shadow-lg flex items-center justify-center">
             <Wand2 className="h-12 w-12 mr-4 text-accent animate-pulse" />
@@ -89,8 +108,6 @@ export default function HomePage() {
           <p className="text-xl md:text-2xl mb-10 text-primary-foreground/90 drop-shadow-sm">
             스타터 프로젝트, 무료 에셋, 활발한 커뮤니티까지. 당신의 게임 개발 여정을 함께합니다.
           </p>
-          
-          {/* Moved Features Section */}
           <div className="mt-12 md:mt-16">
             <h2 className="text-2xl md:text-3xl font-semibold text-center mb-8 text-primary-foreground/80 drop-shadow-sm">주요 기능</h2>
             <div className="grid md:grid-cols-1 lg:grid-cols-3 gap-6 max-w-4xl mx-auto">
@@ -117,7 +134,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Community Highlights & Ranking */}
       <section className="grid lg:grid-cols-3 gap-12 mb-16 mt-24">
         <div className="lg:col-span-2">
           <div className="flex justify-between items-center mb-8">
@@ -157,53 +173,13 @@ export default function HomePage() {
               {totalPages > 1 && (
                 <div className="mt-8 flex flex-col items-center gap-4">
                     <div className="flex items-center gap-1 sm:gap-2">
-                        <Button 
-                            variant="outline" 
-                            size="icon" 
-                            onClick={() => paginate(1)}
-                            disabled={currentPage === 1}
-                            className="text-muted-foreground border-border hover:bg-muted/50 hover:border-accent/50 h-8 w-8"
-                            aria-label="First page"
-                        >
-                            <ChevronsLeft className="h-4 w-4"/>
-                        </Button>
-                        <Button 
-                            variant="outline" 
-                            size="icon" 
-                            onClick={() => paginate(currentPage - 1)} 
-                            disabled={currentPage === 1}
-                            className="text-muted-foreground border-border hover:bg-muted/50 hover:border-accent/50 h-8 w-8"
-                            aria-label="Previous page"
-                        >
-                            <ChevronLeft className="h-4 w-4"/>
-                        </Button>
-
+                        <Button variant="outline" size="icon" onClick={() => paginate(1)} disabled={currentPage === 1} className="text-muted-foreground border-border hover:bg-muted/50 hover:border-accent/50 h-8 w-8" aria-label="First page"><ChevronsLeft className="h-4 w-4"/></Button>
+                        <Button variant="outline" size="icon" onClick={() => paginate(currentPage - 1)} disabled={currentPage === 1} className="text-muted-foreground border-border hover:bg-muted/50 hover:border-accent/50 h-8 w-8" aria-label="Previous page"><ChevronLeft className="h-4 w-4"/></Button>
                         {renderPageNumbers()}
-
-                        <Button 
-                            variant="outline" 
-                            size="icon" 
-                            onClick={() => paginate(currentPage + 1)} 
-                            disabled={currentPage === totalPages}
-                            className="text-muted-foreground border-border hover:bg-muted/50 hover:border-accent/50 h-8 w-8"
-                            aria-label="Next page"
-                        >
-                            <ChevronRight className="h-4 w-4"/>
-                        </Button>
-                        <Button 
-                            variant="outline" 
-                            size="icon" 
-                            onClick={() => paginate(totalPages)}
-                            disabled={currentPage === totalPages}
-                            className="text-muted-foreground border-border hover:bg-muted/50 hover:border-accent/50 h-8 w-8"
-                            aria-label="Last page"
-                        >
-                            <ChevronsRight className="h-4 w-4"/>
-                        </Button>
+                        <Button variant="outline" size="icon" onClick={() => paginate(currentPage + 1)} disabled={currentPage === totalPages} className="text-muted-foreground border-border hover:bg-muted/50 hover:border-accent/50 h-8 w-8" aria-label="Next page"><ChevronRight className="h-4 w-4"/></Button>
+                        <Button variant="outline" size="icon" onClick={() => paginate(totalPages)} disabled={currentPage === totalPages} className="text-muted-foreground border-border hover:bg-muted/50 hover:border-accent/50 h-8 w-8" aria-label="Last page"><ChevronsRight className="h-4 w-4"/></Button>
                     </div>
-                    <p className="text-sm text-muted-foreground">
-                        총 {totalPages} 페이지 중 {currentPage} 페이지
-                    </p>
+                    <p className="text-sm text-muted-foreground">총 {totalPages} 페이지 중 {currentPage} 페이지</p>
                 </div>
               )}
             </>
@@ -216,45 +192,96 @@ export default function HomePage() {
         </div>
 
         <div>
-          <h2 className="text-3xl font-bold text-center mb-8 font-headline text-primary">명예의 전당</h2>
           <Card className="shadow-xl bg-card border-border">
             <CardHeader>
-              <CardTitle className="text-center font-headline text-foreground">주간 랭킹 TOP 3</CardTitle>
+              <CardTitle className="text-center font-headline text-xl text-foreground">
+                <Trophy className="inline-block h-6 w-6 mr-2 text-accent" />
+                커뮤니티 랭킹
+              </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              {topRankers.map((ranker) => (
-                <div key={ranker.userId} className="flex items-center justify-between p-3 bg-background/30 rounded-lg border border-border/50">
-                  <div className="flex items-center gap-3">
-                    <span className={cn("font-bold text-lg w-6 text-center", 
-                        ranker.rank === 1 && 'rank-1-text',
-                        ranker.rank === 2 && 'rank-2-text',
-                        ranker.rank === 3 && 'rank-3-text'
-                    )}>{ranker.rank}.</span>
-                    <Image src={ranker.avatar || `https://placehold.co/40x40.png`} alt={ranker.nickname} width={40} height={40} className="rounded-full border-2 border-accent" data-ai-hint="fantasy character avatar" />
-                    <div className={cn(
-                        "font-medium rounded-lg px-3 py-1 border",
-                        ranker.rank === 1 && 'rank-1-badge',
-                        ranker.rank === 2 && 'rank-2-badge',
-                        ranker.rank === 3 && 'rank-3-badge'
-                      )}
-                    >
-                      <span className={cn(
-                        "font-semibold",
-                        ranker.rank === 1 && 'rank-1-text',
-                        ranker.rank === 2 && 'rank-2-text',
-                        ranker.rank === 3 && 'rank-3-text'
-                      )}>
-                        {ranker.nickname}
-                      </span>
-                    </div>
-                  </div>
-                  <span className="text-sm font-semibold text-accent">{ranker.score.toLocaleString()} 점</span>
-                </div>
-              ))}
+            <CardContent className="p-4">
+              <Tabs value={activeRankingTab} onValueChange={(value) => setActiveRankingTab(value as PostMainCategory | 'Global')} className="w-full">
+                <TabsList className="grid w-full grid-cols-3 sm:grid-cols-5 mb-4 bg-card border-border p-1 rounded-lg shadow-inner">
+                  <TabsTrigger value="Global" className="text-xs px-1 py-1.5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">종합</TabsTrigger>
+                  <TabsTrigger value="Unity" className="text-xs px-1 py-1.5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground flex items-center justify-center gap-1"><Box className="h-3.5 w-3.5"/>Unity</TabsTrigger>
+                  <TabsTrigger value="Unreal" className="text-xs px-1 py-1.5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground flex items-center justify-center gap-1"><AppWindow className="h-3.5 w-3.5"/>Unreal</TabsTrigger>
+                  <TabsTrigger value="Godot" className="text-xs px-1 py-1.5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground flex items-center justify-center gap-1"><PenTool className="h-3.5 w-3.5"/>Godot</TabsTrigger>
+                  <TabsTrigger value="General" className="text-xs px-1 py-1.5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground flex items-center justify-center gap-1"><LayoutGrid className="h-3.5 w-3.5"/>일반</TabsTrigger>
+                </TabsList>
+                
+                {(['Global', 'Unity', 'Unreal', 'Godot', 'General'] as (PostMainCategory | 'Global')[]).map(tabValue => (
+                  <TabsContent key={tabValue} value={tabValue}>
+                    {rankedUsersToDisplay.length > 0 ? (
+                      <div className="space-y-3">
+                        {rankedUsersToDisplay.map((ranker, index) => {
+                          const displayRank = index + 1;
+                          const isGlobalTop3 = activeRankingTab === 'Global' && displayRank <= 3;
+                          const categoryRank = activeRankingTab !== 'Global' ? ranker.categoryStats?.[activeRankingTab]?.rank : undefined;
+                          const isCategoryTop3 = categoryRank && categoryRank <= 3;
+
+                          return (
+                            <div key={ranker.id} className="flex items-center justify-between p-2.5 bg-background/30 rounded-lg border border-border/50">
+                              <div className="flex items-center gap-2.5">
+                                <span className={cn("font-bold text-md w-5 text-center", 
+                                    isGlobalTop3 && displayRank === 1 && 'rank-1-text',
+                                    isGlobalTop3 && displayRank === 2 && 'rank-2-text',
+                                    isGlobalTop3 && displayRank === 3 && 'rank-3-text',
+                                    !isGlobalTop3 && "text-muted-foreground"
+                                )}>{displayRank}.</span>
+                                <Avatar className="h-8 w-8 border-2 border-accent/70">
+                                  <AvatarImage src={ranker.avatar || `https://placehold.co/40x40.png?text=${ranker.nickname.substring(0,1)}`} alt={ranker.nickname} data-ai-hint="fantasy character avatar" />
+                                  <AvatarFallback className="text-xs bg-muted text-muted-foreground">{ranker.nickname.substring(0,1)}</AvatarFallback>
+                                </Avatar>
+                                <div className={cn("font-medium rounded-md px-2 py-0.5 text-sm flex items-center gap-1",
+                                    isGlobalTop3 && displayRank === 1 && 'rank-1-badge',
+                                    isGlobalTop3 && displayRank === 2 && 'rank-2-badge',
+                                    isGlobalTop3 && displayRank === 3 && 'rank-3-badge',
+                                    !isGlobalTop3 && isCategoryTop3 && activeRankingTab !== 'Global' && {
+                                      'category-rank-unity': activeRankingTab === 'Unity',
+                                      'category-rank-unreal': activeRankingTab === 'Unreal',
+                                      'category-rank-godot': activeRankingTab === 'Godot',
+                                      'category-rank-general': activeRankingTab === 'General',
+                                    }
+                                  )}
+                                >
+                                  {activeRankingTab !== 'Global' && isCategoryTop3 && <CategorySpecificIcon category={activeRankingTab} className="h-3.5 w-3.5" />}
+                                  <span className={cn(
+                                      "font-semibold",
+                                      isGlobalTop3 && displayRank === 1 && 'rank-1-text',
+                                      isGlobalTop3 && displayRank === 2 && 'rank-2-text',
+                                      isGlobalTop3 && displayRank === 3 && 'rank-3-text',
+                                      !isGlobalTop3 && isCategoryTop3 && activeRankingTab !== 'Global' && {
+                                        'text-unity-rank': activeRankingTab === 'Unity',
+                                        'text-unreal-rank': activeRankingTab === 'Unreal',
+                                        'text-godot-rank': activeRankingTab === 'Godot',
+                                        'text-general-rank': activeRankingTab === 'General',
+                                      },
+                                      !isGlobalTop3 && !isCategoryTop3 && "text-foreground"
+                                    )}
+                                  >
+                                    {ranker.nickname}
+                                  </span>
+                                </div>
+                              </div>
+                              {isAdmin && (
+                                <span className="text-xs font-semibold text-accent">
+                                  {activeRankingTab === 'Global' ? ranker.score.toLocaleString() : (ranker.categoryStats?.[activeRankingTab]?.score || 0).toLocaleString()} 점
+                                </span>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <p className="text-sm text-muted-foreground text-center py-4">해당 카테고리의 랭커 정보가 없습니다.</p>
+                    )}
+                  </TabsContent>
+                ))}
+              </Tabs>
             </CardContent>
-            <CardFooter className="justify-center">
+            <CardFooter className="justify-center pt-2">
               <Button variant="outline" asChild className="border-accent/50 text-accent hover:bg-accent/10 hover:text-accent/90">
-                <Link href="/profile#ranking">전체 랭킹 보기</Link>
+                <Link href="/profile#ranking">전체 순위표 보기</Link>
               </Button>
             </CardFooter>
           </Card>
@@ -263,4 +290,3 @@ export default function HomePage() {
     </div>
   );
 }
-

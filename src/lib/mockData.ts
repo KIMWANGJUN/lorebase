@@ -20,9 +20,9 @@ export const mockUsers: User[] = [
     nicknameLastChanged: new Date('2024-05-01'),
     categoryStats: {
       Unity: { score: 800, rank: 1 },
-      Unreal: { score: 300 },
+      Unreal: { score: 300, rank: 3 },
       Godot: { score: 100 },
-      General: { score: 50, rank: 3 },
+      General: { score: 50 },
     } 
   },
   { 
@@ -44,7 +44,7 @@ export const mockUsers: User[] = [
       Unity: { score: 100 },
       Unreal: { score: 50 },
       Godot: { score: 700, rank: 1 },
-      General: { score: 100 },
+      General: { score: 100, rank: 3 },
     }
   },
   { 
@@ -63,10 +63,43 @@ export const mockUsers: User[] = [
     score: 600, rank: 5, avatar: 'https://placehold.co/100x100.png?text=PA', 
     nicknameLastChanged: new Date('2024-07-05'),
     categoryStats: {
-      Unity: { score: 50 },
+      Unity: { score: 50, rank: 3 },
       Unreal: { score: 250, rank: 2 },
       Godot: { score: 200, rank: 2 },
       General: { score: 100 },
+    }
+  },
+   { 
+    id: 'user6', username: 'generalEnjoyer', nickname: '일반글애호가', 
+    score: 550, rank: 6, avatar: 'https://placehold.co/100x100.png?text=GE', 
+    nicknameLastChanged: new Date('2024-07-06'),
+    categoryStats: {
+      Unity: { score: 10 },
+      Unreal: { score: 20 },
+      Godot: { score: 30 },
+      General: { score: 490, rank: 1 }, // Test new rank 1 for general
+    }
+  },
+  { 
+    id: 'user7', username: 'unityNewbie', nickname: '유니티뉴비', 
+    score: 400, rank: 7, avatar: 'https://placehold.co/100x100.png?text=UN', 
+    nicknameLastChanged: new Date('2024-07-07'),
+    categoryStats: {
+      Unity: { score: 350 },
+      Unreal: { score: 0 },
+      Godot: { score: 0 },
+      General: { score: 50 },
+    }
+  },
+  { 
+    id: 'user8', username: 'unrealArtist', nickname: '언리얼아티스트', 
+    score: 300, rank: 8, avatar: 'https://placehold.co/100x100.png?text=UA', 
+    nicknameLastChanged: new Date('2024-07-08'),
+    categoryStats: {
+      Unity: { score: 0 },
+      Unreal: { score: 280 },
+      Godot: { score: 0 },
+      General: { score: 20 },
     }
   },
 ];
@@ -106,7 +139,41 @@ export const mockPosts: Post[] = [
   { id: 'post_general_post1', mainCategory: 'General', title: '인디 게임 개발자가 갖춰야 할 마인드셋', content: '성공적인 인디 게임 개발을 위해 어떤 마음가짐이 중요하다고 생각하시나요? 자유롭게 의견 나눠봐요.', authorId: 'user4', authorNickname: '인디드리머', createdAt: new Date(Date.now() - 86400000 * 6).toISOString(), updatedAt: new Date(Date.now() - 86400000 * 6).toISOString(), type: 'GeneralPost', upvotes: 40, downvotes: 1, views: 400, commentCount: 10, tags: ['IndieDev', 'Mindset'] },
   { id: 'post_general_humor1', mainCategory: 'General', title: '개발자 유머) 버그 없는 코드.jpg', content: '코딩하다 보면 항상 예상치 못한 버그가...', authorId: 'user5', authorNickname: '픽셀아티스트', createdAt: new Date(Date.now() - 86400000 * 0.2).toISOString(), updatedAt: new Date(Date.now() - 86400000 * 0.2).toISOString(), type: 'Humor', upvotes: 60, downvotes: 0, views: 600, commentCount: 15, tags: ['Humor', 'Programming'] },
   { id: 'post_general_humor2', mainCategory: 'General', title: '내 게임이 드디어 빌드 성공했을 때 내 모습', content: '(움짤 첨부) ...은 아니고 일단 기쁨의 커피 한잔', authorId: 'user1', authorNickname: '유니티장인', createdAt: new Date(Date.now() - 86400000 * 0.1).toISOString(), updatedAt: new Date(Date.now() - 86400000 * 0.1).toISOString(), type: 'Humor', upvotes: 55, downvotes: 0, views: 550, commentCount: 8, tags: ['Humor', 'Build', 'GameDevLife'] },
+  // Add more posts for pagination testing
+  ...Array.from({ length: 15 }, (_, i) => ({
+    id: `post_general_older_${i + 1}`,
+    mainCategory: 'General' as PostMainCategory,
+    title: `오래된 일반 게시글 ${i + 1}`,
+    content: `이것은 오래된 일반 게시글 내용입니다. (${i + 1})`,
+    authorId: mockUsers[(i + 1) % mockUsers.length].id,
+    authorNickname: mockUsers[(i + 1) % mockUsers.length].nickname,
+    createdAt: new Date(Date.now() - 86400000 * (7 + i)).toISOString(),
+    updatedAt: new Date(Date.now() - 86400000 * (7 + i)).toISOString(),
+    type: 'GeneralPost' as PostType,
+    upvotes: 5 + i,
+    downvotes: 0,
+    views: 50 + i * 5,
+    commentCount: i % 5,
+    tags: ['Old', 'General']
+  })),
+  ...Array.from({ length: 8 }, (_, i) => ({
+    id: `post_unity_older_${i + 1}`,
+    mainCategory: 'Unity' as PostMainCategory,
+    title: `오래된 Unity QnA ${i + 1}`,
+    content: `Unity 관련 오래된 질문입니다. (${i + 1})`,
+    authorId: mockUsers[(i + 2) % mockUsers.length].id,
+    authorNickname: mockUsers[(i + 2) % mockUsers.length].nickname,
+    createdAt: new Date(Date.now() - 86400000 * (10 + i)).toISOString(),
+    updatedAt: new Date(Date.now() - 86400000 * (10 + i)).toISOString(),
+    type: 'QnA' as PostType,
+    upvotes: 3 + i,
+    downvotes: 0,
+    views: 30 + i * 3,
+    commentCount: i % 3,
+    tags: ['Old', 'Unity', 'QnA']
+  })),
 ];
+
 
 export const mockComments: Comment[] = [
   { id: 'comment1', postId: 'post_unity_knowledge1', authorId: 'user2', authorNickname: '언리얼신', content: 'DOTS 정말 좋죠! 저도 작은 프로젝트에 적용해봤는데 확실히 퍼포먼스가 다르더라고요.', createdAt: new Date(Date.now() - 86400000 * 1.9).toISOString(), upvotes: 5, downvotes: 0, replies: [
