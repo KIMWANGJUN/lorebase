@@ -141,17 +141,17 @@ body {
 
 /* Rank Badge Container Styles (with gradient background and border) */
 .rank-1-badge { /* Gold */
-  @apply rounded-lg px-3 py-1 border border-amber-500 dark:border-amber-400 
-         bg-gradient-to-br from-amber-200 via-amber-300 to-amber-400 
-         dark:from-amber-500 dark:via-amber-600 dark:to-amber-700;
+  @apply rounded-lg px-3 py-1 border border-amber-500/80 dark:border-amber-400/80 
+         bg-gradient-to-br from-amber-200/80 via-amber-300/80 to-amber-400/80 
+         dark:from-amber-500/80 dark:via-amber-600/80 dark:to-amber-700/80;
 }
 .rank-2-badge { /* Silver */
-  @apply rounded-lg px-3 py-1 border border-slate-400 dark:border-slate-500
-         bg-gradient-to-br from-slate-200 via-slate-300 to-slate-300
-         dark:from-slate-500 dark:via-slate-600 dark:to-slate-700;
+  @apply rounded-lg px-3 py-1 border border-slate-400/80 dark:border-slate-500/80
+         bg-gradient-to-br from-slate-200/80 via-slate-300/80 to-slate-300/80
+         dark:from-slate-500/80 dark:via-slate-600/80 dark:to-slate-700/80;
 }
 .rank-3-badge { /* Bronze */
-  @apply rounded-lg px-3 py-1 border border-orange-500 dark:border-orange-600 
-         bg-gradient-to-br from-yellow-300 via-orange-300 to-orange-400 
-         dark:from-yellow-700 dark:via-orange-700 dark:to-orange-800;
+  @apply rounded-lg px-3 py-1 border border-orange-500/80 dark:border-orange-600/80 
+         bg-gradient-to-br from-yellow-300/80 via-orange-300/80 to-orange-400/80 
+         dark:from-yellow-700/80 dark:via-orange-700/80 dark:to-orange-800/80;
 }
