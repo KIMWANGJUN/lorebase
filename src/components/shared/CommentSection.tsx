@@ -1,24 +1,35 @@
 // src/components/shared/CommentSection.tsx
 "use client";
 
-import type { Comment as CommentType, User } from '@/types';
+import type { Comment as CommentType, User, PostMainCategory } from '@/types';
 import { mockUsers } from '@/lib/mockData'; 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, type FC } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import { MessageSquare, CornerDownRight, Send, Edit3, Save, XCircle } from 'lucide-react';
+import { MessageSquare, CornerDownRight, Send, Edit3, Save, XCircle, Box, AppWindow, PenTool, LayoutGrid } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 // Helper to generate unique IDs for new comments/replies
 const generateId = () => `comment_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
 const MAX_REPLY_DEPTH = 3; // 0 (top-level), 1 (reply), 2 (reply to reply)
 
+const CategoryIcon: FC<{ category: PostMainCategory, className?: string }> = ({ category, className = "h-3 w-3" }) => {
+  switch (category) {
+    case 'Unity': return <Box className={cn(className, "text-purple-500")} />;
+    case 'Unreal': return <AppWindow className={cn(className, "text-sky-500")} />;
+    case 'Godot': return <PenTool className={cn(className, "text-emerald-500")} />;
+    case 'General': return <LayoutGrid className={cn(className, "text-orange-500")} />;
+    default: return null;
+  }
+};
+
 interface CommentEntryProps {
   comment: CommentType;
   currentUser: User | null;
+  postMainCategory: PostMainCategory; // Added to determine category context for rank
   onAddReply: (parentId: string, replyContent: string) => void;
   onEditComment: (commentId: string, newContent: string) => void;
   depth?: number;
@@ -26,7 +37,7 @@ interface CommentEntryProps {
   setActiveReplyBoxId: (id: string | null) => void;
 }
 
-const CommentEntry = ({ comment, currentUser, onAddReply, onEditComment, depth = 0, activeReplyBoxId, setActiveReplyBoxId }: CommentEntryProps) => {
+const CommentEntry = ({ comment, currentUser, postMainCategory, onAddReply, onEditComment, depth = 0, activeReplyBoxId, setActiveReplyBoxId }: CommentEntryProps) => {
   const [replyContent, setReplyContent] = useState('');
   const [isEditing, setIsEditing] = useState(false);
   const [editedContent, setEditedContent] = useState(comment.content);
@@ -73,7 +84,57 @@ const CommentEntry = ({ comment, currentUser, onAddReply, onEditComment, depth =
   const formattedDate = `${commentDate.toLocaleDateString()} ${commentDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
 
   const isAuthorAdmin = author?.username === 'WANGJUNLAND';
-  const isAuthorTopRanker = author && !isAuthorAdmin && author.rank > 0 && author.rank <= 3;
+  const isAuthorGlobalTopRanker = author && !isAuthorAdmin && author.rank > 0 && author.rank <= 3;
+  const authorCategoryRank = author?.categoryStats?.[postMainCategory]?.rank;
+  const isAuthorCategoryTopRanker = authorCategoryRank && authorCategoryRank > 0 && authorCategoryRank <= 3;
+
+  const NicknameDisplay = () => {
+    if (!author) return <p className="text-sm font-medium text-foreground">{comment.authorNickname}</p>;
+
+    if (isAuthorAdmin) {
+      return (
+        <div className="admin-badge-bg admin-badge-border rounded-lg px-2 py-0.5 inline-flex items-center gap-1">
+          <p className="text-sm font-medium text-admin">{comment.authorNickname}</p>
+        </div>
+      );
+    }
+    if (isAuthorGlobalTopRanker) {
+       return (
+         <div className={cn(
+            "inline-flex items-center gap-1 rounded-lg px-2 py-0.5 text-sm",
+            author.rank === 1 && 'rank-1-badge',
+            author.rank === 2 && 'rank-2-badge',
+            author.rank === 3 && 'rank-3-badge'
+          )}
+        >
+          {isAuthorCategoryTopRanker && <CategoryIcon category={postMainCategory} className="h-3 w-3" />}
+          <p className={cn(
+            "text-sm font-semibold",
+            author.rank === 1 && 'rank-1-text',
+            author.rank === 2 && 'rank-2-text',
+            author.rank === 3 && 'rank-3-text'
+          )}>
+            {comment.authorNickname}
+          </p>
+        </div>
+      );
+    }
+    if (isAuthorCategoryTopRanker) {
+      return (
+        <span className={cn(
+          "category-rank-nickname text-sm",
+          postMainCategory === 'Unity' && 'category-rank-unity',
+          postMainCategory === 'Unreal' && 'category-rank-unreal',
+          postMainCategory === 'Godot' && 'category-rank-godot',
+          postMainCategory === 'General' && 'category-rank-general',
+        )}>
+          <CategoryIcon category={postMainCategory} className="h-3 w-3 mr-1" />
+          {comment.authorNickname}
+        </span>
+      );
+    }
+    return <p className="text-sm font-medium text-foreground">{comment.authorNickname}</p>;
+  };
 
 
   return (
@@ -85,30 +146,7 @@ const CommentEntry = ({ comment, currentUser, onAddReply, onEditComment, depth =
         </Avatar>
         <div className="flex-1">
           <div className="flex items-center justify-between">
-            {isAuthorAdmin && author ? (
-                <div className="admin-badge-bg admin-badge-border rounded-lg px-2 py-0.5 inline-block">
-                  <p className="text-sm font-medium text-admin">{comment.authorNickname}</p>
-                </div>
-              ) : isAuthorTopRanker && author ? (
-                 <div className={cn(
-                    "inline-block rounded-lg px-2 py-0.5 text-sm", // Adjusted padding & base styles
-                    author.rank === 1 && 'rank-1-badge',
-                    author.rank === 2 && 'rank-2-badge',
-                    author.rank === 3 && 'rank-3-badge'
-                  )}
-                >
-                  <p className={cn(
-                    "text-sm font-semibold", // Ensured font-semibold is applied
-                    author.rank === 1 && 'rank-1-text',
-                    author.rank === 2 && 'rank-2-text',
-                    author.rank === 3 && 'rank-3-text'
-                  )}>
-                    {comment.authorNickname}
-                  </p>
-                </div>
-              ) : (
-              <p className="text-sm font-medium text-foreground">{comment.authorNickname}</p>
-            )}
+            <NicknameDisplay />
             <p className="text-xs text-muted-foreground">
               {formattedDate}
               {comment.isEdited && <span className="ml-1 text-muted-foreground/80">(수정함)</span>}
@@ -167,6 +205,7 @@ const CommentEntry = ({ comment, currentUser, onAddReply, onEditComment, depth =
               key={reply.id}
               comment={reply}
               currentUser={currentUser}
+              postMainCategory={postMainCategory}
               onAddReply={onAddReply}
               onEditComment={onEditComment}
               depth={depth + 1}
@@ -184,9 +223,10 @@ const CommentEntry = ({ comment, currentUser, onAddReply, onEditComment, depth =
 interface CommentSectionProps {
   postId: string;
   initialComments: CommentType[];
+  postMainCategory: PostMainCategory; // Added prop
 }
 
-export default function CommentSection({ postId, initialComments }: CommentSectionProps) {
+export default function CommentSection({ postId, initialComments, postMainCategory }: CommentSectionProps) {
   const { user: currentUser } = useAuth();
   const [comments, setComments] = useState<CommentType[]>([]);
   const [newCommentContent, setNewCommentContent] = useState('');
@@ -319,6 +359,7 @@ export default function CommentSection({ postId, initialComments }: CommentSecti
                 key={comment.id}
                 comment={comment}
                 currentUser={currentUser}
+                postMainCategory={postMainCategory}
                 onAddReply={handleAddReplyToComment}
                 onEditComment={handleEditCommentInternal}
                 activeReplyBoxId={activeReplyBoxId}
@@ -333,3 +374,4 @@ export default function CommentSection({ postId, initialComments }: CommentSecti
     </Card>
   );
 }
+```

@@ -1,13 +1,74 @@
+
 // src/lib/mockData.ts
-import type { User, StarterProject, AssetInfo, Post, Comment, RankEntry, Inquiry } from '@/types';
+import type { User, StarterProject, AssetInfo, Post, Comment, RankEntry, Inquiry, PostMainCategory } from '@/types';
 
 export const mockUsers: User[] = [
-  { id: 'admin', username: 'WANGJUNLAND', nickname: 'WANGJUNLAND', email: 'admin@example.com', score: 99999, rank: 0, avatar: 'https://placehold.co/100x100.png?text=WJ', nicknameLastChanged: new Date('2023-01-01') },
-  { id: 'user1', username: 'unityMaster', nickname: '유니티장인', email: 'unity@example.com', score: 1250, rank: 1, avatar: 'https://placehold.co/100x100.png?text=U1', nicknameLastChanged: new Date('2024-05-01') },
-  { id: 'user2', username: 'unrealDev', nickname: '언리얼신', email: 'unreal@example.com', score: 1100, rank: 2, avatar: 'https://placehold.co/100x100.png?text=U2', nicknameLastChanged: new Date('2024-06-15') },
-  { id: 'user3', username: 'godotFan', nickname: '고도엔진팬', email: 'godot@example.com', score: 950, rank: 3, avatar: 'https://placehold.co/100x100.png?text=GF', nicknameLastChanged: new Date('2024-04-20') },
-  { id: 'user4', username: 'indieDreamer', nickname: '인디드리머', email: 'dreamer@example.com', score: 700, rank: 4, avatar: 'https://placehold.co/100x100.png?text=ID', nicknameLastChanged: new Date('2024-07-01') },
-  { id: 'user5', username: 'pixelArtist', nickname: '픽셀아티스트', email: 'pixel@example.com', score: 600, rank: 5, avatar: 'https://placehold.co/100x100.png?text=PA', nicknameLastChanged: new Date('2024-07-05') },
+  { 
+    id: 'admin', username: 'WANGJUNLAND', nickname: 'WANGJUNLAND', email: 'admin@example.com', 
+    score: 99999, rank: 0, avatar: 'https://placehold.co/100x100.png?text=WJ', 
+    nicknameLastChanged: new Date('2023-01-01'),
+    categoryStats: {
+      Unity: { score: 1000, rank: 1 },
+      Unreal: { score: 1000, rank: 1 },
+      Godot: { score: 1000, rank: 1 },
+      General: { score: 1000, rank: 1 },
+    }
+  },
+  { 
+    id: 'user1', username: 'unityMaster', nickname: '유니티장인', email: 'unity@example.com', 
+    score: 1250, rank: 1, avatar: 'https://placehold.co/100x100.png?text=U1', 
+    nicknameLastChanged: new Date('2024-05-01'),
+    categoryStats: {
+      Unity: { score: 800, rank: 1 },
+      Unreal: { score: 300 },
+      Godot: { score: 100 },
+      General: { score: 50, rank: 3 },
+    } 
+  },
+  { 
+    id: 'user2', username: 'unrealDev', nickname: '언리얼신', email: 'unreal@example.com', 
+    score: 1100, rank: 2, avatar: 'https://placehold.co/100x100.png?text=U2', 
+    nicknameLastChanged: new Date('2024-06-15'),
+    categoryStats: {
+      Unity: { score: 200 },
+      Unreal: { score: 750, rank: 1 },
+      Godot: { score: 50 },
+      General: { score: 100, rank: 2 },
+    }
+  },
+  { 
+    id: 'user3', username: 'godotFan', nickname: '고도엔진팬', email: 'godot@example.com', 
+    score: 950, rank: 3, avatar: 'https://placehold.co/100x100.png?text=GF', 
+    nicknameLastChanged: new Date('2024-04-20'),
+    categoryStats: {
+      Unity: { score: 100 },
+      Unreal: { score: 50 },
+      Godot: { score: 700, rank: 1 },
+      General: { score: 100 },
+    }
+  },
+  { 
+    id: 'user4', username: 'indieDreamer', nickname: '인디드리머', 
+    score: 700, rank: 4, avatar: 'https://placehold.co/100x100.png?text=ID', 
+    nicknameLastChanged: new Date('2024-07-01'),
+    categoryStats: {
+      Unity: { score: 300, rank: 2 },
+      Unreal: { score: 100 },
+      Godot: { score: 150, rank: 3 },
+      General: { score: 150, rank: 1 },
+    }
+  },
+  { 
+    id: 'user5', username: 'pixelArtist', nickname: '픽셀아티스트', 
+    score: 600, rank: 5, avatar: 'https://placehold.co/100x100.png?text=PA', 
+    nicknameLastChanged: new Date('2024-07-05'),
+    categoryStats: {
+      Unity: { score: 50 },
+      Unreal: { score: 250, rank: 2 },
+      Godot: { score: 200, rank: 2 },
+      General: { score: 100 },
+    }
+  },
 ];
 
 export const mockStarterProjects: StarterProject[] = [
@@ -60,7 +121,7 @@ export const mockComments: Comment[] = [
 
 
 export const mockRankings: RankEntry[] = mockUsers
-  .filter(u => u.username !== 'WANGJUNLAND') // Exclude admin from typical ranking display here
+  .filter(u => u.username !== 'WANGJUNLAND') 
   .sort((a, b) => b.score - a.score)
   .map((user, index) => ({
     userId: user.id,
@@ -69,13 +130,14 @@ export const mockRankings: RankEntry[] = mockUsers
     rank: index + 1,
     avatar: user.avatar,
   }));
-if (mockUsers.find(u => u.username === 'WANGJUNLAND')) {
-    const adminUser = mockUsers.find(u => u.username === 'WANGJUNLAND')!;
-    mockRankings.unshift({ // Add admin to top for specific display cases or if rules allow
+  
+const adminUser = mockUsers.find(u => u.username === 'WANGJUNLAND');
+if (adminUser) {
+    mockRankings.unshift({ 
         userId: adminUser.id,
         nickname: adminUser.nickname,
         score: adminUser.score,
-        rank: 0, // Special rank for admin
+        rank: 0, 
         avatar: adminUser.avatar,
     });
 }

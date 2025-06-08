@@ -2,17 +2,27 @@
 "use client"; 
 
 import { mockPosts, mockUsers, mockComments as globalMockComments } from '@/lib/mockData';
-import type { Post, Comment as CommentType } from '@/types';
+import type { Post, Comment as CommentType, User, PostMainCategory } from '@/types';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { ArrowLeft, MessageSquare, ThumbsUp, Eye, Pin } from 'lucide-react';
+import { ArrowLeft, MessageSquare, ThumbsUp, Eye, Pin, Box, AppWindow, PenTool, LayoutGrid } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import MiniPostList from '@/components/shared/MiniPostList';
 import CommentSection from '@/components/shared/CommentSection';
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, type FC } from 'react';
 import { useParams } from 'next/navigation';
+
+const CategoryIcon: FC<{ category: PostMainCategory, className?: string }> = ({ category, className = "h-5 w-5" }) => {
+  switch (category) {
+    case 'Unity': return <Box className={cn(className, "text-purple-500")} />;
+    case 'Unreal': return <AppWindow className={cn(className, "text-sky-500")} />;
+    case 'Godot': return <PenTool className={cn(className, "text-emerald-500")} />;
+    case 'General': return <LayoutGrid className={cn(className, "text-orange-500")} />;
+    default: return null;
+  }
+};
 
 export default function PostDetailPage() {
   const params = useParams();
@@ -23,31 +33,24 @@ export default function PostDetailPage() {
   const initialCommentsForPost = useMemo(() => {
     if (!postId) return [];
     const commentsForThisPost = globalMockComments.filter(c => c.postId === postId);
-    const commentMap: { [id: string]: CommentType & { replies: CommentType[] } } = {}; // Ensure replies is always an array
+    const commentMap: { [id: string]: CommentType & { replies: CommentType[] } } = {};
     const topLevelComments: CommentType[] = [];
 
     commentsForThisPost.forEach(c => {
-      commentMap[c.id] = { ...c, replies: c.replies || [] }; // Use existing replies or initialize
+      commentMap[c.id] = { ...c, replies: c.replies || [] }; 
     });
     
     commentsForThisPost.forEach(c => {
-      // If mockData already has replies nested, this might create duplicates or incorrect structures
-      // So, we first clear pre-existing parentId-based replies if mockData has them flat
-      // and then rebuild if needed, or trust mockData's structure.
-      // For simplicity, if mockData.replies exists, we assume it's correct.
-      // If flat, we build. Let's assume flat structure for robust rebuilding for now.
-      
-      // To ensure correct hierarchy, reset replies and build from parentId
       const currentCommentInMap = commentMap[c.id];
-      currentCommentInMap.replies = []; // Reset and rebuild based on parentId
+      currentCommentInMap.replies = []; 
 
       if (c.parentId && commentMap[c.parentId]) {
         commentMap[c.parentId].replies = commentMap[c.parentId].replies || [];
-        if (!commentMap[c.parentId].replies.find(r => r.id === c.id)) { // Avoid duplicates
+        if (!commentMap[c.parentId].replies.find(r => r.id === c.id)) { 
             commentMap[c.parentId].replies.push(currentCommentInMap);
         }
       } else if (!c.parentId) {
-        if (!topLevelComments.find(tlc => tlc.id === c.id)) { // Avoid duplicates
+        if (!topLevelComments.find(tlc => tlc.id === c.id)) { 
             topLevelComments.push(currentCommentInMap);
         }
       }
@@ -105,7 +108,58 @@ export default function PostDetailPage() {
   const isNotice = post.type === 'Notice' || post.type === 'Announcement';
 
   const isAuthorAdmin = author?.username === 'WANGJUNLAND';
-  const isAuthorTopRanker = author && !isAuthorAdmin && author.rank > 0 && author.rank <= 3;
+  const isAuthorGlobalTopRanker = author && !isAuthorAdmin && author.rank > 0 && author.rank <= 3;
+  const authorCategoryRank = author?.categoryStats?.[post.mainCategory]?.rank;
+  const isAuthorCategoryTopRanker = authorCategoryRank && authorCategoryRank > 0 && authorCategoryRank <= 3;
+
+  const NicknameDisplay = () => {
+    if (!author) return <span className="font-medium text-foreground">{authorDisplayName}</span>;
+
+    if (isAuthorAdmin) {
+      return (
+        <div className="admin-badge-bg admin-badge-border rounded-lg px-2 py-0.5 inline-flex items-center gap-1">
+          <span className="text-admin font-semibold">{authorDisplayName}</span>
+        </div>
+      );
+    }
+    if (isAuthorGlobalTopRanker) {
+      return (
+         <div className={cn(
+            "inline-flex items-center gap-1 rounded-lg px-2 py-0.5",
+            author.rank === 1 && 'rank-1-badge',
+            author.rank === 2 && 'rank-2-badge',
+            author.rank === 3 && 'rank-3-badge'
+          )}
+        >
+          {isAuthorCategoryTopRanker && <CategoryIcon category={post.mainCategory} className="h-3.5 w-3.5" />}
+          <span className={cn(
+            "font-semibold",
+            author.rank === 1 && 'rank-1-text',
+            author.rank === 2 && 'rank-2-text',
+            author.rank === 3 && 'rank-3-text'
+          )}>
+            {authorDisplayName}
+          </span>
+        </div>
+      );
+    }
+    if (isAuthorCategoryTopRanker) {
+      return (
+        <span className={cn(
+          "category-rank-nickname px-2 py-0.5",
+          post.mainCategory === 'Unity' && 'category-rank-unity',
+          post.mainCategory === 'Unreal' && 'category-rank-unreal',
+          post.mainCategory === 'Godot' && 'category-rank-godot',
+          post.mainCategory === 'General' && 'category-rank-general',
+        )}>
+          <CategoryIcon category={post.mainCategory} className="h-3.5 w-3.5 mr-1" />
+          {authorDisplayName}
+        </span>
+      );
+    }
+    return <span className="font-medium text-foreground">{authorDisplayName}</span>;
+  };
+
 
   return (
     <div className="container mx-auto py-8 px-4 max-w-3xl">
@@ -116,7 +170,6 @@ export default function PostDetailPage() {
         </Link>
       </Button>
 
-      {/* Post Content Section */}
       <Card className={cn(
         "mb-8 shadow-lg",
         post.isPinned && "border-t-4 border-primary",
@@ -136,29 +189,7 @@ export default function PostDetailPage() {
               <AvatarFallback>{getInitials(authorDisplayName)}</AvatarFallback>
             </Avatar>
             <div>
-              {isAuthorAdmin && author ? (
-                <div className="admin-badge-bg admin-badge-border rounded-lg px-2 py-0.5 inline-block">
-                  <span className="text-admin font-semibold">{authorDisplayName}</span>
-                </div>
-              ) : isAuthorTopRanker && author ? (
-                <div className={cn(
-                  'inline-block rounded-lg px-2 py-0.5',
-                  author.rank === 1 && 'rank-1-badge',
-                  author.rank === 2 && 'rank-2-badge',
-                  author.rank === 3 && 'rank-3-badge'
-                )}>
-                  <span className={cn(
-                    'font-semibold',
-                    author.rank === 1 && 'rank-1-text',
-                    author.rank === 2 && 'rank-2-text',
-                    author.rank === 3 && 'rank-3-text'
-                  )}>
-                    {authorDisplayName}
-                  </span>
-                </div>
-              ) : (
-                <span className="font-medium text-foreground">{authorDisplayName}</span>
-              )}
+              <NicknameDisplay />
               <div className="text-xs text-muted-foreground">
                 <span>{formattedDate}</span>
                 <span className="mx-1">·</span>
@@ -186,11 +217,10 @@ export default function PostDetailPage() {
         </CardFooter>
       </Card>
 
-      {/* Comments Section */}
-      <CommentSection postId={post.id} initialComments={initialCommentsForPost} />
+      <CommentSection postId={post.id} initialComments={initialCommentsForPost} postMainCategory={post.mainCategory} />
       
-      {/* Mini Post List Section */}
       <MiniPostList allPosts={mockPosts} currentPostId={post.id} />
     </div>
   );
 }
+```

@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { mockPosts, mockUsers } from '@/lib/mockData';
-import type { Post, PostMainCategory, PostType } from '@/types';
+import type { Post, PostMainCategory, PostType, User } from '@/types';
 import Link from 'next/link';
 import { 
   Search, PlusCircle, MessageSquare, ThumbsUp, ThumbsDown, Eye, Pin, Edit, Trash2, 
@@ -20,6 +20,16 @@ import { cn } from '@/lib/utils';
 
 const POSTS_PER_PAGE = 10;
 
+const CategoryIcon: FC<{ category: PostMainCategory, className?: string }> = ({ category, className = "h-4 w-4" }) => {
+  switch (category) {
+    case 'Unity': return <Box className={cn(className, "text-purple-500")} />;
+    case 'Unreal': return <AppWindow className={cn(className, "text-sky-500")} />;
+    case 'Godot': return <PenTool className={cn(className, "text-emerald-500")} />;
+    case 'General': return <LayoutGrid className={cn(className, "text-orange-500")} />;
+    default: return null;
+  }
+};
+
 const PostItem = ({ post, isAdmin }: { post: Post, isAdmin: boolean }) => {
   const author = mockUsers.find(u => u.id === post.authorId);
   const authorDisplayName = author?.nickname || post.authorNickname;
@@ -31,7 +41,59 @@ const PostItem = ({ post, isAdmin }: { post: Post, isAdmin: boolean }) => {
 
   const isNotice = post.type === 'Notice' || post.type === 'Announcement';
   const isAuthorAdmin = author?.username === 'WANGJUNLAND';
-  const isAuthorTopRanker = author && !isAuthorAdmin && author.rank > 0 && author.rank <= 3;
+  const isAuthorGlobalTopRanker = author && !isAuthorAdmin && author.rank > 0 && author.rank <= 3;
+  const authorCategoryRank = author?.categoryStats?.[post.mainCategory]?.rank;
+  const isAuthorCategoryTopRanker = authorCategoryRank && authorCategoryRank > 0 && authorCategoryRank <= 3;
+
+
+  const NicknameDisplay = () => {
+    if (!author) return <span className="text-xs">{authorDisplayName}</span>;
+
+    if (isAuthorAdmin) {
+      return (
+        <div className="admin-badge-bg admin-badge-border rounded-lg px-1.5 py-0.5 text-xs inline-flex items-center gap-1">
+          <span className="text-admin font-semibold">{authorDisplayName}</span>
+        </div>
+      );
+    }
+    if (isAuthorGlobalTopRanker) {
+      return (
+         <div className={cn(
+            "rounded-lg px-1.5 py-0.5 text-xs inline-flex items-center gap-1",
+            author.rank === 1 && 'rank-1-badge',
+            author.rank === 2 && 'rank-2-badge',
+            author.rank === 3 && 'rank-3-badge'
+          )}
+        >
+          {isAuthorCategoryTopRanker && <CategoryIcon category={post.mainCategory} className="h-3 w-3" />}
+          <span className={cn(
+            "font-semibold",
+            author.rank === 1 && 'rank-1-text',
+            author.rank === 2 && 'rank-2-text',
+            author.rank === 3 && 'rank-3-text'
+          )}>
+            {authorDisplayName}
+          </span>
+        </div>
+      );
+    }
+    if (isAuthorCategoryTopRanker) {
+      return (
+        <span className={cn(
+          "category-rank-nickname text-xs px-1.5 py-0.5",
+          post.mainCategory === 'Unity' && 'category-rank-unity',
+          post.mainCategory === 'Unreal' && 'category-rank-unreal',
+          post.mainCategory === 'Godot' && 'category-rank-godot',
+          post.mainCategory === 'General' && 'category-rank-general',
+        )}>
+          <CategoryIcon category={post.mainCategory} className="h-3 w-3 mr-1" />
+          {authorDisplayName}
+        </span>
+      );
+    }
+    return <span className="text-xs">{authorDisplayName}</span>;
+  };
+
 
   return (
     <Card 
@@ -65,30 +127,7 @@ const PostItem = ({ post, isAdmin }: { post: Post, isAdmin: boolean }) => {
               <AvatarImage src={authorAvatar} />
               <AvatarFallback>{getInitials(authorDisplayName)}</AvatarFallback>
             </Avatar>
-             {isAuthorAdmin && author ? (
-                <div className="admin-badge-bg admin-badge-border rounded-lg px-1.5 py-0.5 text-xs">
-                  <span className="text-admin font-semibold">{authorDisplayName}</span>
-                </div>
-              ) : isAuthorTopRanker && author ? (
-                 <div className={cn(
-                    "rounded-lg px-1.5 py-0.5 text-xs",
-                    author.rank === 1 && 'rank-1-badge',
-                    author.rank === 2 && 'rank-2-badge',
-                    author.rank === 3 && 'rank-3-badge'
-                  )}
-                >
-                  <span className={cn(
-                    "font-semibold",
-                    author.rank === 1 && 'rank-1-text',
-                    author.rank === 2 && 'rank-2-text',
-                    author.rank === 3 && 'rank-3-text'
-                  )}>
-                    {authorDisplayName}
-                  </span>
-                </div>
-              ) : (
-              <span className="text-xs">{authorDisplayName}</span>
-            )}
+            <NicknameDisplay />
             <span>·</span>
             <span className="text-xs">{formattedDate}</span>
             <span>·</span>
@@ -196,11 +235,12 @@ export default function TavernPage() {
     }
 
     if (subCategory === 'popular') {
-      return posts.sort((a,b) => (b.isPinned ? 1 : 0) - (a.isPinned ? 1 : 0) || b.views - a.views);
+      posts = posts.sort((a,b) => (b.isPinned ? 1 : 0) - (a.isPinned ? 1 : 0) || b.views - a.views);
     } else {
       posts = posts.filter(p => p.type === subCategory);
-      return posts.sort((a,b) => (b.isPinned ? 1 : 0) - (a.isPinned ? 1 : 0) || new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      posts = posts.sort((a,b) => (b.isPinned ? 1 : 0) - (a.isPinned ? 1 : 0) || new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
     }
+    return posts;
   }, [mainCategory, subCategory, searchTerm]);
   
   const totalPages = Math.ceil(filteredPosts.length / POSTS_PER_PAGE);

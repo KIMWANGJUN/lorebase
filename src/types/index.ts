@@ -1,11 +1,18 @@
+export type PostMainCategory = 'Unity' | 'Unreal' | 'Godot' | 'General';
+
+export interface UserCategoryStat {
+  score: number;
+  rank?: 1 | 2 | 3; // Only store if top 3 for simplicity in mock, or calculate dynamically
+}
+
 export interface User {
   id: string;
   username: string; // 아이디
   nickname: string; // 닉네임
   email?: string;
   avatar?: string;
-  score: number;
-  rank: number; // 0 for admin, 1 for 1st, etc.
+  score: number; // Global score
+  rank: number; // Global rank: 0 for admin, 1 for 1st, etc.
   socialProfiles?: {
     naver?: string;
     google?: string;
@@ -13,6 +20,9 @@ export interface User {
   };
   nicknameLastChanged?: Date;
   isBlocked?: boolean;
+  categoryStats?: { // Category-specific scores and ranks
+    [key in PostMainCategory]?: UserCategoryStat;
+  };
 }
 
 export interface StarterProject {
@@ -40,7 +50,6 @@ export interface AssetInfo {
   tags?: string[];
 }
 
-export type PostMainCategory = 'Unity' | 'Unreal' | 'Godot' | 'General';
 export type PostType = 'QnA' | 'Knowledge' | 'DevLog' | 'GeneralPost' | 'Humor' | 'Notice' | 'Announcement';
 
 export interface Post {
@@ -106,3 +115,4 @@ export interface DirectMessage {
   sentAt: string; // ISO Date string
   isRead: boolean;
 }
+```
