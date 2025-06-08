@@ -1,4 +1,5 @@
 
+
 // src/app/(main)/tavern/page.tsx
 "use client";
 import { useState, useMemo, type FC, type ElementType } from 'react';
@@ -139,7 +140,7 @@ const SubTabsComponent: FC<SubTabsComponentProps> = ({ activeSubTab, setActiveSu
         setActiveSubTab(value);
         if (onSubTabChange) onSubTabChange();
     }} className="mb-6">
-      <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-none lg:flex">
+      <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-none lg:flex items-center">
         {subTabs.map(tab => (
           <TabsTrigger 
             key={tab.value} 
@@ -273,7 +274,7 @@ export default function TavernPage() {
       </div>
 
       <Tabs value={mainCategory} onValueChange={(value) => handleMainCategoryChange(value as PostMainCategory)} className="mb-8">
-        <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 bg-card border-border p-1.5 rounded-lg shadow-inner">
+        <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 bg-card border-border p-1.5 rounded-lg shadow-inner items-center">
           <TabsTrigger value="Unity" className="rounded-md px-4 py-2.5 flex items-center justify-center gap-1.5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"><Box className="h-4 w-4" />Unity</TabsTrigger>
           <TabsTrigger value="Unreal" className="rounded-md px-4 py-2.5 flex items-center justify-center gap-1.5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"><AppWindow className="h-4 w-4" />Unreal</TabsTrigger>
           <TabsTrigger value="Godot" className="rounded-md px-4 py-2.5 flex items-center justify-center gap-1.5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"><PenTool className="h-4 w-4" />Godot</TabsTrigger>
@@ -359,3 +360,4 @@ export default function TavernPage() {
     </div>
   );
 }
+
