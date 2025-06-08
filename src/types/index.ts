@@ -40,6 +40,9 @@ export interface AssetInfo {
   tags?: string[];
 }
 
+export type PostMainCategory = 'Unity' | 'Unreal' | 'Godot' | 'General';
+export type PostType = 'QnA' | 'Knowledge' | 'DevLog' | 'GeneralPost' | 'Humor' | 'Notice' | 'Announcement';
+
 export interface Post {
   id: string;
   title: string;
@@ -49,13 +52,14 @@ export interface Post {
   authorAvatar?: string;
   createdAt: string; // ISO Date string
   updatedAt: string; // ISO Date string
-  type: 'Discussion' | 'QnA' | 'Promotion' | 'Announcement' | 'Notice';
+  mainCategory: PostMainCategory;
+  type: PostType;
   upvotes: number;
   downvotes: number; // Only visible to admin
   views: number;
   isPinned?: boolean;
   tags?: string[];
-  commentCount: number; // This will be the initial count, actual display might be dynamic
+  commentCount: number; 
 }
 
 export interface Comment {
