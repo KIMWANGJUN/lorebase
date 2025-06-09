@@ -68,7 +68,8 @@ export interface Post {
   views: number;
   isPinned?: boolean;
   tags?: string[];
-  commentCount: number; 
+  commentCount: number;
+  isEdited?: boolean;
 }
 
 export interface Comment {
@@ -115,4 +116,3 @@ export interface DirectMessage {
   sentAt: string; // ISO Date string
   isRead: boolean;
 }
-```

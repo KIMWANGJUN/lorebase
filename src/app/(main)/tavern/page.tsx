@@ -38,8 +38,8 @@ const PostItem = ({ post, isAdmin }: { post: Post, isAdmin: boolean }) => {
   const authorAvatar = author?.avatar;
   const getInitials = (name: string) => name ? name.substring(0, 1).toUpperCase() : 'U';
   
-  const postDate = new Date(post.createdAt);
-  const formattedDate = `${postDate.getFullYear()}년 ${postDate.getMonth() + 1}월 ${postDate.getDate()}일 ${postDate.getHours()}시 ${postDate.getMinutes()}분`;
+  const postDateToShow = post.isEdited && post.updatedAt ? new Date(post.updatedAt) : new Date(post.createdAt);
+  const formattedDate = `${postDateToShow.getFullYear()}년 ${postDateToShow.getMonth() + 1}월 ${postDateToShow.getDate()}일 ${postDateToShow.getHours()}시 ${postDateToShow.getMinutes()}분`;
 
   const isNotice = post.type === 'Notice' || post.type === 'Announcement';
   const isAuthorAdmin = author?.username === 'WANGJUNLAND';
@@ -112,10 +112,11 @@ const PostItem = ({ post, isAdmin }: { post: Post, isAdmin: boolean }) => {
               {post.isPinned && <Pin className="h-4 w-4 mr-2 text-accent" />} 
               {isNotice && <ScrollText className="h-4 w-4 mr-2 text-primary" />}
               {post.title}
+              {post.isEdited && <span className="ml-1.5 text-xs font-normal text-muted-foreground">(수정됨)</span>}
             </CardTitle>
             {isAdmin && (
               <div className="flex gap-1 absolute top-2 right-2">
-                <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-foreground" onClick={(e) => {e.preventDefault(); alert('Edit clicked'); }}>
+                <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-foreground" onClick={(e) => {e.preventDefault(); router.push(`/tavern/${post.id}/edit`); }}>
                   <Edit className="h-3 w-3" />
                 </Button>
                 <Button variant="ghost" size="icon" className="h-6 w-6 text-destructive/70 hover:text-destructive" onClick={(e) => {e.preventDefault(); alert('Delete clicked'); }}>
@@ -295,6 +296,7 @@ export default function TavernPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const { user, isAdmin } = useAuth();
+  const router = useRouter(); // Added for admin edit button
 
   const handleMainCategoryChange = (newMainCategory: PostMainCategory) => {
     setMainCategory(newMainCategory);

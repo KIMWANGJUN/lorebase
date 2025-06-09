@@ -8,12 +8,14 @@ import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/componen
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { ArrowLeft, MessageSquare, ThumbsUp, Eye, Pin, Box, AppWindow, PenTool, LayoutGrid } from 'lucide-react';
+import { ArrowLeft, MessageSquare, ThumbsUp, Eye, Pin, Edit3, Box, AppWindow, PenTool, LayoutGrid } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import MiniPostList from '@/components/shared/MiniPostList';
 import CommentSection from '@/components/shared/CommentSection';
 import { useEffect, useState, useMemo, type FC } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
+import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from "@/hooks/use-toast";
 
 const CategoryIcon: FC<{ category: PostMainCategory, className?: string }> = ({ category, className = "h-5 w-5" }) => {
   switch (category) {
@@ -27,6 +29,9 @@ const CategoryIcon: FC<{ category: PostMainCategory, className?: string }> = ({ 
 
 export default function PostDetailPage() {
   const params = useParams();
+  const router = useRouter();
+  const { user: currentUser, isAdmin } = useAuth();
+  const { toast } = useToast();
   const postId = typeof params.postId === 'string' ? params.postId : undefined;
   
   const [post, setPost] = useState<Post | null | undefined>(undefined); 
@@ -104,14 +109,18 @@ export default function PostDetailPage() {
   const authorDisplayName = author?.nickname || post.authorNickname;
   const authorAvatar = author?.avatar;
   const getInitials = (name: string) => name ? name.substring(0, 1).toUpperCase() : 'U';
-  const postDate = new Date(post.createdAt);
-  const formattedDate = `${postDate.getFullYear()}년 ${postDate.getMonth() + 1}월 ${postDate.getDate()}일 ${postDate.getHours()}시 ${postDate.getMinutes()}분`;
+  
+  const postDateToShow = post.isEdited && post.updatedAt ? new Date(post.updatedAt) : new Date(post.createdAt);
+  const formattedDate = `${postDateToShow.getFullYear()}년 ${postDateToShow.getMonth() + 1}월 ${postDateToShow.getDate()}일 ${postDateToShow.getHours()}시 ${postDateToShow.getMinutes()}분`;
+  
   const isNotice = post.type === 'Notice' || post.type === 'Announcement';
 
   const isAuthorAdmin = author?.username === 'WANGJUNLAND';
   const isAuthorGlobalTopRanker = author && !isAuthorAdmin && author.rank > 0 && author.rank <= 3;
   const authorCategoryRank = author?.categoryStats?.[post.mainCategory]?.rank;
   const isAuthorCategoryTopRanker = authorCategoryRank && authorCategoryRank > 0 && authorCategoryRank <= 3;
+
+  const canEdit = currentUser && (currentUser.id === post.authorId || isAdmin);
 
   const NicknameDisplay = () => {
     if (!author) return <span className="font-medium text-foreground">{authorDisplayName}</span>;
@@ -164,12 +173,23 @@ export default function PostDetailPage() {
 
   return (
     <div className="container mx-auto py-8 px-4 max-w-3xl">
-      <Button asChild variant="outline" className="mb-6">
-        <Link href="/tavern">
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          목록으로 돌아가기
-        </Link>
-      </Button>
+      <div className="flex justify-between items-center mb-6">
+        <Button asChild variant="outline">
+          <Link href="/tavern">
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            목록으로 돌아가기
+          </Link>
+        </Button>
+        {canEdit && (
+          <Button asChild variant="outline">
+            <Link href={`/tavern/${post.id}/edit`}>
+              <Edit3 className="mr-2 h-4 w-4" />
+              수정
+            </Link>
+          </Button>
+        )}
+      </div>
+      
 
       <Card className={cn(
         "mb-8 shadow-lg",
@@ -182,6 +202,7 @@ export default function PostDetailPage() {
               {post.isPinned && <Pin className="h-6 w-6 mr-2 text-primary" />}
               {isNotice && <MessageSquare className="h-6 w-6 mr-2 text-sky-600 dark:text-sky-400" />}
               {post.title}
+              {post.isEdited && <span className="ml-2 text-xs font-normal text-muted-foreground">(수정됨)</span>}
             </CardTitle>
           </div>
           <div className="flex items-center text-sm text-muted-foreground space-x-2 mt-2">
