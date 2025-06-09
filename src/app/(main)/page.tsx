@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowRight, Code, Compass, Gift, MessageSquare, Users, Star, Wand2, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, ThumbsUp, Trophy, Box, AppWindow, PenTool, LayoutGrid, Crown } from 'lucide-react';
+import { ArrowRight, Code, Compass, Gift, MessageSquare, Users, Star, Wand2, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, ThumbsUp, Trophy, Box, AppWindow, PenTool, LayoutGrid, Crown, Gamepad2 } from 'lucide-react';
 import Image from 'next/image';
 import { mockPosts, mockRankings, mockUsers } from '@/lib/mockData';
 import { cn } from '@/lib/utils';
@@ -17,7 +17,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 const POSTS_PER_PAGE = 10;
 const MAX_PAGES = 10;
-const RANKERS_TO_SHOW = 10; // Changed from 5 to 10
+const RANKERS_TO_SHOW = 10; 
 
 const CategorySpecificIcon: React.FC<{ category: PostMainCategory, className?: string }> = ({ category, className }) => {
   const defaultClassName = "h-4 w-4";
@@ -28,6 +28,23 @@ const CategorySpecificIcon: React.FC<{ category: PostMainCategory, className?: s
     case 'General': return <LayoutGrid className={cn(defaultClassName, "text-orange-400", className)} />;
     default: return null;
   }
+};
+
+const mockTetrisRankings = {
+  weekly: [
+    { id: 'trw1', nickname: 'TetrisGod', score: 150000 },
+    { id: 'trw2', nickname: 'BlockMaster', score: 125000 },
+    { id: 'trw3', nickname: 'LineClearer', score: 110000 },
+    { id: 'trw4', nickname: 'SpeedyPlayer', score: 95000 },
+    { id: 'trw5', nickname: 'RookieNo1', score: 80000 },
+  ],
+  monthly: [
+    { id: 'trm1', nickname: 'TetrisGod', score: 2500000 },
+    { id: 'trm2', nickname: 'ConsistentPlayer', score: 2200000 },
+    { id: 'trm3', nickname: 'BlockMaster', score: 1900000 },
+    { id: 'trm4', nickname: 'Marathoner', score: 1600000 },
+    { id: 'trm5', nickname: 'TopTier', score: 1400000 },
+  ]
 };
 
 
@@ -75,23 +92,118 @@ export default function HomePage() {
   };
 
   const rankedUsersToDisplay = useMemo(() => {
-    const users = mockUsers.filter(u => u.username !== 'WANGJUNLAND'); // Exclude admin
+    const users = mockUsers.filter(u => u.username !== 'WANGJUNLAND'); 
     if (activeRankingTab === 'Global') {
       return users.sort((a, b) => b.score - a.score).slice(0, RANKERS_TO_SHOW);
     }
-    // For category tabs
+    
     return users
-      .filter(u => u.categoryStats && u.categoryStats[activeRankingTab] && u.categoryStats[activeRankingTab]!.score > 0)
-      .sort((a, b) => (b.categoryStats![activeRankingTab]!.score || 0) - (a.categoryStats![activeRankingTab]!.score || 0))
+      .filter(u => {
+        const categoryStat = u.categoryStats?.[activeRankingTab as PostMainCategory];
+        return categoryStat && categoryStat.score > 0;
+      })
+      .sort((a, b) => {
+        const scoreA = a.categoryStats?.[activeRankingTab as PostMainCategory]?.score || 0;
+        const scoreB = b.categoryStats?.[activeRankingTab as PostMainCategory]?.score || 0;
+        return scoreB - scoreA;
+      })
       .slice(0, RANKERS_TO_SHOW);
   }, [activeRankingTab]);
 
   return (
     <div className="container mx-auto py-8 px-4">
-      <section className="grid lg:grid-cols-3 gap-12 mb-16 mt-8"> {/* Adjusted mt-8 for spacing after hero removal */}
+      <section className="grid lg:grid-cols-3 gap-8 mb-16 mt-8">
+        <div className="lg:col-span-2">
+          <Card className="shadow-xl bg-card border-border">
+            <CardHeader>
+              <CardTitle className="text-center font-headline text-2xl text-primary flex items-center justify-center">
+                <Gamepad2 className="inline-block h-7 w-7 mr-2 text-accent" />
+                플레이 테트리스
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="flex flex-col items-center justify-center p-4">
+              <Image 
+                src="https://placehold.co/600x400.png" 
+                alt="Tetris Game Placeholder" 
+                width={600} 
+                height={400} 
+                className="rounded-lg shadow-md border border-border"
+                data-ai-hint="tetris game screen"
+              />
+              <Button className="mt-6 bg-gradient-to-r from-green-500 to-teal-500 text-primary-foreground hover:opacity-90 shadow-lg text-lg px-8 py-3">
+                <Gamepad2 className="mr-2 h-5 w-5" /> 게임 시작
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+        <div className="lg:col-span-1">
+          <Card className="shadow-xl bg-card border-border">
+            <CardHeader>
+              <CardTitle className="text-center font-headline text-xl text-foreground flex items-center justify-center">
+                <Trophy className="inline-block h-6 w-6 mr-2 text-accent" />
+                테트리스 랭킹
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-4">
+              <Tabs defaultValue="weekly" className="w-full">
+                <TabsList className="grid w-full grid-cols-2 mb-4 bg-card border-border p-1 rounded-lg shadow-inner">
+                  <TabsTrigger value="weekly" className="text-xs px-1 py-1.5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">주간</TabsTrigger>
+                  <TabsTrigger value="monthly" className="text-xs px-1 py-1.5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">월간</TabsTrigger>
+                </TabsList>
+                <TabsContent value="weekly">
+                  <div className="space-y-2">
+                    {mockTetrisRankings.weekly.map((ranker, index) => (
+                      <div key={ranker.id} className="flex items-center justify-between p-2 bg-background/30 rounded-lg border border-border/50 text-sm">
+                        <div className="flex items-center gap-2">
+                          <span className={cn("font-bold w-5 text-center", 
+                            index < 3 ? (index === 0 ? 'rank-1-text' : index === 1 ? 'rank-2-text' : 'rank-3-text') : 'text-muted-foreground'
+                          )}>{index + 1}.</span>
+                          <Avatar className="h-6 w-6 border-2 border-accent/50">
+                             <AvatarImage src={`https://placehold.co/40x40.png?text=${ranker.nickname.substring(0,1)}`} alt={ranker.nickname} data-ai-hint="gamer avatar" />
+                             <AvatarFallback className="text-xs bg-muted text-muted-foreground">{ranker.nickname.substring(0,1)}</AvatarFallback>
+                          </Avatar>
+                          <span className="font-medium text-foreground">{ranker.nickname}</span>
+                        </div>
+                        <span className="text-xs font-semibold text-accent">{ranker.score.toLocaleString()} 점</span>
+                      </div>
+                    ))}
+                  </div>
+                </TabsContent>
+                <TabsContent value="monthly">
+                   <div className="space-y-2">
+                    {mockTetrisRankings.monthly.map((ranker, index) => (
+                       <div key={ranker.id} className="flex items-center justify-between p-2 bg-background/30 rounded-lg border border-border/50 text-sm">
+                        <div className="flex items-center gap-2">
+                          <span className={cn("font-bold w-5 text-center", 
+                            index < 3 ? (index === 0 ? 'rank-1-text' : index === 1 ? 'rank-2-text' : 'rank-3-text') : 'text-muted-foreground'
+                          )}>{index + 1}.</span>
+                           <Avatar className="h-6 w-6 border-2 border-accent/50">
+                             <AvatarImage src={`https://placehold.co/40x40.png?text=${ranker.nickname.substring(0,1)}`} alt={ranker.nickname} data-ai-hint="gamer avatar" />
+                             <AvatarFallback className="text-xs bg-muted text-muted-foreground">{ranker.nickname.substring(0,1)}</AvatarFallback>
+                          </Avatar>
+                          <span className="font-medium text-foreground">{ranker.nickname}</span>
+                        </div>
+                        <span className="text-xs font-semibold text-accent">{ranker.score.toLocaleString()} 점</span>
+                      </div>
+                    ))}
+                  </div>
+                </TabsContent>
+              </Tabs>
+            </CardContent>
+             <CardFooter className="justify-center pt-2">
+              <Button variant="outline" size="sm" className="border-accent/50 text-accent hover:bg-accent/10 hover:text-accent/90">
+                전체 테트리스 순위 보기
+              </Button>
+            </CardFooter>
+          </Card>
+        </div>
+      </section>
+
+
+      <section className="grid lg:grid-cols-3 gap-12 mb-16 mt-12">
         <div className="lg:col-span-2">
           <div className="flex justify-between items-center mb-8">
-            <h2 className="text-3xl font-bold font-headline text-primary">커뮤니티 최신글</h2>
+            <h2 className="text-3xl font-bold font-headline text-primary">최신 인기 글</h2>
             <Button variant="outline" asChild className="border-primary/50 text-primary hover:bg-primary/10 hover:text-primary">
               <Link href="/tavern">모든 글 보기 <ArrowRight className="ml-2 h-4 w-4" /></Link>
             </Button>
@@ -173,7 +285,8 @@ export default function HomePage() {
                         {rankedUsersToDisplay.map((ranker, index) => {
                           const displayRank = index + 1;
                           const isGlobalTop3 = activeRankingTab === 'Global' && displayRank <= 3;
-                          const isCategoryTop3 = activeRankingTab !== 'Global' && displayRank <= 3;
+                          const isCategoryTop3 = activeRankingTab !== 'Global' && displayRank <= 3 && (ranker.categoryStats?.[activeRankingTab as PostMainCategory]?.rank ?? 0) > 0;
+
 
                           return (
                             <div key={ranker.id} className="flex items-center justify-between p-2.5 bg-background/30 rounded-lg border border-border/50">
@@ -249,4 +362,3 @@ export default function HomePage() {
     </div>
   );
 }
-
