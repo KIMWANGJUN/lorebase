@@ -156,33 +156,35 @@ export default function ProfilePage() {
   const bannerImageUrl = "https://placehold.co/1920x600.png";
 
   let headerNicknameBaseClasses = "text-3xl font-headline";
-  let headerNicknameColorClass = "";
+  let determinedHeaderNicknameColorClass = "";
   let headerRankText = user.rank > 0 ? `종합 ${user.rank}위` : "랭킹 정보 없음";
   let headerRankTextBaseClasses = "text-lg";
-  let headerRankTextColorClass = "";
+  let determinedHeaderRankTextColorClass = "text-muted-foreground";
   let headerContainerClasses = ""; 
 
 
   if (isAdmin) {
-    headerNicknameColorClass = "text-admin"; // font-semibold is in text-admin
+    determinedHeaderNicknameColorClass = "text-admin"; 
     headerRankText = "관리자";
-    headerRankTextColorClass = "text-admin"; 
+    determinedHeaderRankTextColorClass = "text-admin"; 
     headerContainerClasses = "admin-badge-bg admin-badge-border";
   } else if (user.rank > 0 && user.rank <= 3) { 
     const gradientClass = user.rank === 1 ? "text-rank-gold" : user.rank === 2 ? "text-rank-silver" : "text-rank-bronze";
-    headerNicknameColorClass = gradientClass; // font-semibold is in gradientClass
+    determinedHeaderNicknameColorClass = gradientClass; 
     headerRankText = `종합 ${user.rank}위`;
-    headerRankTextColorClass = gradientClass;
+    determinedHeaderRankTextColorClass = gradientClass;
     headerContainerClasses = cn(
       user.rank === 1 && 'rank-1-badge',
       user.rank === 2 && 'rank-2-badge',
       user.rank === 3 && 'rank-3-badge'
     );
   } else {
-    headerNicknameColorClass = "text-foreground font-semibold"; // Default if not admin or top 3
-    headerRankTextColorClass = "text-muted-foreground";
+    determinedHeaderNicknameColorClass = "text-foreground font-semibold"; 
   }
  
+  const finalHeaderNicknameClasses = `${headerNicknameBaseClasses} ${determinedHeaderNicknameColorClass}`;
+  const finalHeaderRankTextClasses = `${headerRankTextBaseClasses} ${determinedHeaderRankTextColorClass}`;
+
 
   return (
     <div className="container mx-auto py-10 px-4">
@@ -209,12 +211,12 @@ export default function ProfilePage() {
                     <AvatarFallback className="text-4xl bg-muted text-muted-foreground">{user.nickname.substring(0, 2).toUpperCase()}</AvatarFallback>
                 </Avatar>
                 <div className={cn("rounded-lg px-3 py-1 text-center", headerContainerClasses)}>
-                  <h1 className={cn(headerNicknameBaseClasses, headerNicknameColorClass)}>{user.nickname}</h1>
+                  <h1 className={finalHeaderNicknameClasses}>{user.nickname}</h1>
                 </div>
                 <p className="text-sm opacity-80 mt-1">{user.email || "이메일 미등록"}</p>
                 <div className="mt-4 text-center">
                     <p className="text-2xl font-semibold">{user.score.toLocaleString()} 점</p>
-                     <p className={cn(headerRankTextBaseClasses, headerRankTextColorClass)}>
+                     <p className={finalHeaderRankTextClasses}>
                         {headerRankText}
                     </p>
                 </div>
@@ -348,19 +350,21 @@ export default function ProfilePage() {
               {mockUsers.filter(u => u.username !== 'WANGJUNLAND' && u.rank > 0).sort((a, b) => a.rank - b.rank).map((rankerUser) => { 
                 let finalItemContainerClasses = "default-rank-item-bg";
                 let rankNumberBaseClasses = "font-bold text-lg w-8 text-center";
-                let rankNumberColorClass = "text-muted-foreground";
-                let nicknameBaseClasses = "font-medium"; 
-                let nicknameColorClass = "text-foreground";
+                
+                let determinedRankNumberColorClass = "text-muted-foreground";
+                let determinedNicknameColorClass = "text-foreground";
                 
                 if (rankerUser.rank > 0 && rankerUser.rank <= 3) {
                   finalItemContainerClasses = cn(rankerUser.rank === 1 && 'rank-1-badge', rankerUser.rank === 2 && 'rank-2-badge', rankerUser.rank === 3 && 'rank-3-badge');
                   const gradientClass = rankerUser.rank === 1 ? 'text-rank-gold' : rankerUser.rank === 2 ? 'text-rank-silver' : 'text-rank-bronze';
-                  nicknameColorClass = gradientClass; 
-                  rankNumberColorClass = gradientClass;
+                  determinedNicknameColorClass = gradientClass; 
+                  determinedRankNumberColorClass = gradientClass;
+                } else {
+                  determinedNicknameColorClass = "text-foreground font-medium";
                 }
                 
-                const finalNicknameClasses = cn(nicknameBaseClasses, nicknameColorClass);
-                const finalRankNumberClasses = cn(rankNumberBaseClasses, rankNumberColorClass);
+                const finalNicknameClasses = `font-medium ${determinedNicknameColorClass}`;
+                const finalRankNumberClasses = `${rankNumberBaseClasses} ${determinedRankNumberColorClass}`;
 
                 return (
                   <div key={rankerUser.id} className={cn("flex items-center justify-between p-3 rounded-lg border", 
@@ -390,3 +394,5 @@ export default function ProfilePage() {
     </div>
   );
 }
+
+    

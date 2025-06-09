@@ -236,20 +236,20 @@ body {
 /* Class for text inside the general gradient highlight container */
 .text-content-inside-gradient { 
   color: hsl(var(--general-text-light-hsl)) !important; /* Ensure it's white in light mode */
-  @apply drop-shadow-[0_1px_1px_rgba(0,0,0,0.7)]; 
+  @apply font-semibold drop-shadow-[0_1px_1px_rgba(0,0,0,0.7)]; 
 }
 .dark .text-content-inside-gradient {
   color: hsl(var(--general-text-dark-hsl)) !important; /* Ensure it's white in dark mode */
-  @apply drop-shadow-[0_1px_1px_rgba(0,0,0,0.7)];
+  @apply font-semibold drop-shadow-[0_1px_1px_rgba(0,0,0,0.7)];
 }
 /* General theme solid text color if not inside gradient container */
 .text-general-themed { 
   color: hsl(var(--general-text-light-hsl)); 
-  @apply drop-shadow-[0_1px_1px_rgba(0,0,0,0.7)]; 
+  @apply font-semibold drop-shadow-[0_1px_1px_rgba(0,0,0,0.7)]; 
 }
 .dark .text-general-themed { 
   color: hsl(var(--general-text-dark-hsl)); 
-  @apply drop-shadow-[0_1px_1px_rgba(0,0,0,0.7)]; 
+  @apply font-semibold drop-shadow-[0_1px_1px_rgba(0,0,0,0.7)]; 
 }
 
 
@@ -276,5 +276,8 @@ body {
   @apply w-full text-center mb-0.5;
 }
 .title-text { 
- @apply text-[0.7rem] leading-tight font-semibold tracking-tight; /* font-semibold is part of gradient classes, so this is for consistency if not gradient */
+ /* font-semibold is part of gradient classes, or applied with text-content-inside-gradient or text-general-themed */
+ @apply text-[0.7rem] leading-tight tracking-tight;
 }
+
+    
