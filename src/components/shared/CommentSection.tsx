@@ -76,31 +76,27 @@ const NicknameDisplayForComment: FC<NicknameDisplayForCommentProps> = ({ author,
 
   let titleText: string | null = null;
   let titleColorClass = "";
-  let nicknameContainerClass = "inline-flex items-center gap-1 text-xs"; 
+  let itemContainerClass = "default-rank-item-bg"; 
   let nicknameTextClass = "text-foreground"; 
 
   if (isAdminUser) {
-    nicknameContainerClass = cn(nicknameContainerClass, "admin-badge-bg admin-badge-border px-1.5 py-0.5");
+    itemContainerClass = "admin-badge-bg admin-badge-border";
     nicknameTextClass = "text-admin";
   } else if (isGlobalTop3) {
-    if (author.rank === 1) { nicknameContainerClass = cn(nicknameContainerClass, 'rank-1-badge'); nicknameTextClass = 'text-rank-gold';}
-    else if (author.rank === 2) { nicknameContainerClass = cn(nicknameContainerClass, 'rank-2-badge'); nicknameTextClass = 'text-rank-silver';}
-    else if (author.rank === 3) { nicknameContainerClass = cn(nicknameContainerClass, 'rank-3-badge'); nicknameTextClass = 'text-rank-bronze';}
+    if (author.rank === 1) itemContainerClass = 'rank-1-badge';
+    else if (author.rank === 2) itemContainerClass = 'rank-2-badge';
+    else if (author.rank === 3) itemContainerClass = 'rank-3-badge';
+    nicknameTextClass = author.rank === 1 ? 'text-rank-gold' : author.rank === 2 ? 'text-rank-silver' : 'text-rank-bronze';
   } else if (isTetrisTop3) {
     titleText = tetrisTitles[tetrisRankIndex];
-    if (tetrisRankIndex === 0) titleColorClass = 'text-rank-gold';
-    else if (tetrisRankIndex === 1) titleColorClass = 'text-rank-silver';
-    else if (tetrisRankIndex === 2) titleColorClass = 'text-rank-bronze';
-    
-    nicknameTextClass = titleColorClass;
+    titleColorClass = tetrisRankIndex === 0 ? 'text-rank-gold' : tetrisRankIndex === 1 ? 'text-rank-silver' : 'text-rank-bronze';
+    nicknameTextClass = titleColorClass; 
 
-    if (authorRankInPostCategory !== null && authorRankInPostCategory <= 3) {
-        if (postMainCategory === 'Unity') nicknameContainerClass = cn(nicknameContainerClass, 'highlight-unity');
-        else if (postMainCategory === 'Unreal') nicknameContainerClass = cn(nicknameContainerClass, 'highlight-unreal');
-        else if (postMainCategory === 'Godot') nicknameContainerClass = cn(nicknameContainerClass, 'highlight-godot');
-        else if (postMainCategory === 'General') nicknameContainerClass = cn(nicknameContainerClass, 'highlight-general');
-    } else { 
-      nicknameContainerClass = cn(nicknameContainerClass, "px-1.5 py-0.5 default-rank-item-bg"); 
+    if (isCategoryTop3InPost) {
+        if (postMainCategory === 'Unity') itemContainerClass = 'highlight-unity';
+        else if (postMainCategory === 'Unreal') itemContainerClass = 'highlight-unreal';
+        else if (postMainCategory === 'Godot') itemContainerClass = 'highlight-godot';
+        else if (postMainCategory === 'General') itemContainerClass = 'highlight-general';
     }
   } else if (isCategoryTop3InPost) {
     titleText = postMainCategory === 'General' ? '일반 & 유머' : postMainCategory;
@@ -108,26 +104,32 @@ const NicknameDisplayForComment: FC<NicknameDisplayForCommentProps> = ({ author,
     else if (authorRankInPostCategory === 2) titleColorClass = 'text-rank-silver';
     else if (authorRankInPostCategory === 3) titleColorClass = 'text-rank-bronze';
 
-    if (postMainCategory === 'Unity') nicknameContainerClass = cn(nicknameContainerClass, 'highlight-unity');
-    else if (postMainCategory === 'Unreal') nicknameContainerClass = cn(nicknameContainerClass, 'highlight-unreal');
-    else if (postMainCategory === 'Godot') nicknameContainerClass = cn(nicknameContainerClass, 'highlight-godot');
-    else if (postMainCategory === 'General') nicknameContainerClass = cn(nicknameContainerClass, 'highlight-general');
+    if (postMainCategory === 'Unity') itemContainerClass = 'highlight-unity';
+    else if (postMainCategory === 'Unreal') itemContainerClass = 'highlight-unreal';
+    else if (postMainCategory === 'Godot') itemContainerClass = 'highlight-godot';
+    else if (postMainCategory === 'General') itemContainerClass = 'highlight-general';
     
-    nicknameTextClass = `nickname-text-rank-${authorRankInPostCategory}`; 
-     if(postMainCategory === 'General') nicknameTextClass = cn(nicknameTextClass, 'text-white drop-shadow-[0_1px_1px_rgba(0,0,0,0.7)]');
+    nicknameTextClass = cn(`nickname-text-rank-${authorRankInPostCategory}`, 
+      postMainCategory === 'General' ? 'text-general-text-strong' :
+      postMainCategory === 'Unity' ? 'text-unity-text-strong' :
+      postMainCategory === 'Unreal' ? 'text-unreal-text-strong' :
+      'text-godot-text-strong'
+    );
   } else if (isCategoryTop10InPost) {
-    nicknameContainerClass = cn(nicknameContainerClass, "px-1.5 py-0.5 default-rank-item-bg");
-    if (postMainCategory === 'Unity') nicknameTextClass = 'text-unity-text-base';
-    else if (postMainCategory === 'Unreal') nicknameTextClass = 'text-unreal-text-base';
-    else if (postMainCategory === 'Godot') nicknameTextClass = 'text-godot-text-base';
-    else if (postMainCategory === 'General') nicknameTextClass = 'text-general-text-base';
-    nicknameTextClass = cn(nicknameTextClass, `nickname-text-rank-${authorRankInPostCategory}`);
-  } else {
-     nicknameContainerClass = cn(nicknameContainerClass, "px-1.5 py-0.5 default-rank-item-bg");
+     nicknameTextClass = cn(`nickname-text-rank-${authorRankInPostCategory}`,
+      postMainCategory === 'General' ? 'text-general-text-base' :
+      postMainCategory === 'Unity' ? 'text-unity-text-base' :
+      postMainCategory === 'Unreal' ? 'text-unreal-text-base' :
+      'text-godot-text-base'
+    );
   }
   
-  const NicknameWrapper = postMainCategory === 'General' && (isCategoryTop3InPost || (isTetrisTop3 && authorRankInPostCategory !== null && authorRankInPostCategory <=3)) && !isGlobalTop3 && !isAdminUser ? 'div' : React.Fragment;
-  const wrapperProps = postMainCategory === 'General' && (isCategoryTop3InPost || (isTetrisTop3 && authorRankInPostCategory !== null && authorRankInPostCategory <=3)) && !isGlobalTop3 && !isAdminUser ? { className: 'highlight-general-inner p-0' } : {};
+  const NicknameWrapper = React.Fragment;
+  const wrapperProps = {};
+  if (postMainCategory === 'General' && itemContainerClass.includes('highlight-general') && !isAdminUser && !isGlobalTop3) {
+    // NicknameWrapper = 'div';
+    // wrapperProps = { className: 'highlight-general-inner p-0' };
+  }
 
 
   return (
@@ -138,8 +140,10 @@ const NicknameDisplayForComment: FC<NicknameDisplayForCommentProps> = ({ author,
         </p>
       )}
       <NicknameWrapper {...wrapperProps}>
-        <div className={cn(nicknameContainerClass, "flex items-center gap-1")}>
-            {authorHasCategoryPresence && !isAdminUser && !isGlobalTop3 && <CategoryIcon category={postMainCategory} className="h-3.5 w-3.5" />}
+        <div className={cn("inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md", itemContainerClass)}>
+            {authorHasCategoryPresence && !isAdminUser && !isGlobalTop3 && (
+              <CategoryIcon category={postMainCategory} className="h-3.5 w-3.5" />
+            )}
             <span className={cn("text-sm font-medium nickname-text", nicknameTextClass)}>{authorDisplayName}</span>
         </div>
       </NicknameWrapper>
@@ -443,5 +447,3 @@ export default function CommentSection({ postId, initialComments, postMainCatego
     </Card>
   );
 }
-
-    

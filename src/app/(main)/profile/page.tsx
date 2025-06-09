@@ -1,3 +1,4 @@
+
 // src/app/(main)/profile/page.tsx
 "use client";
 import { useState, useEffect, useMemo } from 'react';
@@ -149,9 +150,9 @@ export default function ProfilePage() {
                     user.rank === 3 && 'rank-3-badge'
                   )}>
                     <h1 className={cn("text-3xl font-bold font-headline",
-                      user.rank === 1 && 'rank-1-text',
-                      user.rank === 2 && 'rank-2-text',
-                      user.rank === 3 && 'rank-3-text'
+                      user.rank === 1 && 'text-rank-gold',
+                      user.rank === 2 && 'text-rank-silver',
+                      user.rank === 3 && 'text-rank-bronze'
                     )}>{user.nickname}</h1>
                   </div>
                 ) : (
@@ -162,9 +163,9 @@ export default function ProfilePage() {
                     <p className="text-2xl font-semibold">{user.score.toLocaleString()} 점</p>
                      <p className={cn("text-lg", 
                         isAdmin ? "text-admin" : 
-                        user.rank === 1 ? "rank-1-text" :
-                        user.rank === 2 ? "rank-2-text" :
-                        user.rank === 3 ? "rank-3-text" : ""
+                        user.rank === 1 ? "text-rank-gold" :
+                        user.rank === 2 ? "text-rank-silver" :
+                        user.rank === 3 ? "text-rank-bronze" : ""
                      )}>
                         {isAdmin ? "관리자" : user.rank > 0 ? `랭킹 ${user.rank}위` : "랭킹 정보 없음"}
                     </p>
@@ -263,54 +264,47 @@ export default function ProfilePage() {
           </CardHeader>
           <CardContent>
             <div className="space-y-3 max-h-[500px] overflow-y-auto p-1">
-              {mockRankings.map((ranker) => {
-                const rankerUser = mockUsers.find(u => u.id === ranker.userId);
+              {mockRankings.map((rankerData) => {
+                const rankerUser = mockUsers.find(u => u.id === rankerData.userId);
                 const isAdminRanker = rankerUser?.username === 'WANGJUNLAND';
-                const isTopRanker = !isAdminRanker && ranker.rank > 0 && ranker.rank <= 3;
+                const isTopGlobalRanker = !isAdminRanker && rankerData.rank > 0 && rankerData.rank <= 3;
+
+                let itemContainerClass = "default-rank-item-bg";
+                let nicknameTextClass = "text-foreground";
+
+                if (isAdminRanker) {
+                  itemContainerClass = "admin-badge-bg admin-badge-border";
+                  nicknameTextClass = "text-admin";
+                } else if (isTopGlobalRanker) {
+                  if (rankerData.rank === 1) itemContainerClass = 'rank-1-badge';
+                  else if (rankerData.rank === 2) itemContainerClass = 'rank-2-badge';
+                  else if (rankerData.rank === 3) itemContainerClass = 'rank-3-badge';
+                  
+                  nicknameTextClass = rankerData.rank === 1 ? 'text-rank-gold' : rankerData.rank === 2 ? 'text-rank-silver' : 'text-rank-bronze';
+                }
 
                 return (
-                  <div key={ranker.userId} className={`flex items-center justify-between p-3 rounded-lg border ${ranker.userId === user.id ? 'bg-primary/10 border-primary shadow-md' : 'bg-background/30 border-border/50'}`}>
+                  <div key={rankerData.userId} className={cn("flex items-center justify-between p-3 rounded-lg border", 
+                    itemContainerClass,
+                    rankerData.userId === user.id && !itemContainerClass.startsWith('rank-') && !isAdminRanker ? 'bg-primary/10 border-primary shadow-md' : ''
+                  )}>
                     <div className="flex items-center gap-3">
                       <span className={cn("font-bold text-lg w-8 text-center", 
-                          !isAdminRanker && ranker.rank === 1 && 'rank-1-text',
-                          !isAdminRanker && ranker.rank === 2 && 'rank-2-text',
-                          !isAdminRanker && ranker.rank === 3 && 'rank-3-text',
-                          isAdminRanker && 'text-admin' // Admin rank number style
+                          isAdminRanker && "text-primary",
+                          !isAdminRanker && isTopGlobalRanker && nicknameTextClass, // Rank number gets gradient for top global
+                          !isAdminRanker && !isTopGlobalRanker && "text-muted-foreground"
                       )}>
-                          {isAdminRanker ? <Star className="h-5 w-5 inline text-primary" /> : ranker.rank > 0 ? `${ranker.rank}.` : <Star className="h-5 w-5 inline text-yellow-400" />}
+                          {isAdminRanker ? <Star className="h-5 w-5 inline text-primary" /> : rankerData.rank > 0 ? `${rankerData.rank}.` : <Star className="h-5 w-5 inline text-yellow-400" />}
                       </span>
                       <Avatar className="h-10 w-10 border-2 border-accent/50">
-                        <Image src={ranker.avatar || `https://placehold.co/40x40.png?text=${ranker.nickname.substring(0,1)}`} alt={ranker.nickname} width={40} height={40} className="rounded-full" data-ai-hint="fantasy character icon" />
-                        <AvatarFallback className="bg-muted text-muted-foreground">{ranker.nickname.substring(0,1)}</AvatarFallback>
+                        <Image src={rankerData.avatar || `https://placehold.co/40x40.png?text=${rankerData.nickname.substring(0,1)}`} alt={rankerData.nickname} width={40} height={40} className="rounded-full" data-ai-hint="fantasy character icon" />
+                        <AvatarFallback className="bg-muted text-muted-foreground">{rankerData.nickname.substring(0,1)}</AvatarFallback>
                       </Avatar>
-                      {isAdminRanker ? (
-                        <div className="admin-badge-bg admin-badge-border rounded-lg px-3 py-1">
-                           <span className="text-admin">{ranker.nickname}</span>
-                        </div>
-                      ) : isTopRanker ? (
-                         <div className={cn(
-                            "rounded-lg px-3 py-1", 
-                            ranker.rank === 1 && 'rank-1-badge',
-                            ranker.rank === 2 && 'rank-2-badge',
-                            ranker.rank === 3 && 'rank-3-badge'
-                          )}
-                        >
-                          <span className={cn(
-                            "font-semibold", 
-                            ranker.rank === 1 && 'rank-1-text',
-                            ranker.rank === 2 && 'rank-2-text',
-                            ranker.rank === 3 && 'rank-3-text'
-                          )}>
-                            {ranker.nickname}
-                          </span>
-                        </div>
-                      ) : (
-                        <span className="font-medium text-foreground">
-                          {ranker.nickname}
-                        </span>
-                      )}
+                      <span className={cn("font-medium", nicknameTextClass)}>
+                        {rankerData.nickname}
+                      </span>
                     </div>
-                    <span className="text-sm font-semibold text-accent">{ranker.score.toLocaleString()} 점</span>
+                    <span className="text-sm font-semibold text-accent">{rankerData.score.toLocaleString()} 점</span>
                   </div>
                 );
               })}
