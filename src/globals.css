@@ -9,7 +9,7 @@ body {
 
 @layer base {
   :root {
-    /* Light Theme - Corrected Values */
+    /* Light Theme - Standard Values */
     --background: 0 0% 100%; /* white */
     --foreground: 222.2 84% 4.9%; /* near black */
 
@@ -74,7 +74,7 @@ body {
     --godot-border-light: 200 50% 75%;
 
     --general-icon-color-hsl: 30 80% 50%; 
-    --general-text-light-hsl: 0 0% 100%; 
+    --general-text-light-hsl: 0 0% 100%; /* For gradient background text */
   }
 
   .dark {
@@ -137,7 +137,7 @@ body {
     --godot-text-dark-hsl: 200 80% 75%;    
     --godot-border-dark: 200 50% 40%;
     
-    --general-text-dark-hsl: 0 0% 100%; 
+    --general-text-dark-hsl: 0 0% 100%; /* For gradient background text */
   }
 }
 
@@ -233,14 +233,16 @@ body {
    @apply px-1.5 py-0.5 rounded-[calc(var(--radius)-1px)] 
           bg-gradient-to-r from-violet-500 via-indigo-500 via-blue-500 via-green-500 via-yellow-500 via-orange-500 to-red-500;
 }
-.highlight-general-inner .text-content-inside-gradient { 
-  color: hsl(var(--general-text-light-hsl)) !important; 
+/* Class for text inside the general gradient highlight container */
+.text-content-inside-gradient { 
+  color: hsl(var(--general-text-light-hsl)) !important; /* Ensure it's white in light mode */
   @apply drop-shadow-[0_1px_1px_rgba(0,0,0,0.7)]; 
 }
-.dark .highlight-general-inner .text-content-inside-gradient {
-  color: hsl(var(--general-text-dark-hsl)) !important;
+.dark .text-content-inside-gradient {
+  color: hsl(var(--general-text-dark-hsl)) !important; /* Ensure it's white in dark mode */
   @apply drop-shadow-[0_1px_1px_rgba(0,0,0,0.7)];
 }
+/* General theme solid text color if not inside gradient container */
 .text-general-themed { 
   color: hsl(var(--general-text-light-hsl)); 
   @apply drop-shadow-[0_1px_1px_rgba(0,0,0,0.7)]; 
@@ -258,7 +260,7 @@ body {
 .text-general-icon { color: hsl(var(--general-icon-color-hsl)); }
 
 
-/* Nickname Text Styling (Font weight, Opacity) */
+/* Nickname Text Styling (Font weight, Opacity) - Applied with category themed colors */
 .nickname-text-rank-1 { @apply font-bold opacity-100; } 
 .nickname-text-rank-2 { @apply font-semibold opacity-95; }
 .nickname-text-rank-3 { @apply font-semibold opacity-90; }
@@ -274,6 +276,5 @@ body {
   @apply w-full text-center mb-0.5;
 }
 .title-text { 
- @apply text-[0.7rem] leading-tight font-semibold tracking-tight;
+ @apply text-[0.7rem] leading-tight font-semibold tracking-tight; /* font-semibold is part of gradient classes, so this is for consistency if not gradient */
 }
-

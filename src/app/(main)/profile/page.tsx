@@ -155,30 +155,32 @@ export default function ProfilePage() {
 
   const bannerImageUrl = "https://placehold.co/1920x600.png";
 
-  let headerNicknameTextClasses = "text-3xl font-headline";
+  let headerNicknameBaseClasses = "text-3xl font-headline";
+  let headerNicknameColorClass = "";
   let headerRankText = user.rank > 0 ? `종합 ${user.rank}위` : "랭킹 정보 없음";
-  let headerRankTextColorClasses = "text-lg";
+  let headerRankTextBaseClasses = "text-lg";
+  let headerRankTextColorClass = "";
   let headerContainerClasses = ""; 
 
 
   if (isAdmin) {
-    headerNicknameTextClasses += " text-admin"; // text-admin has font-semibold
+    headerNicknameColorClass = "text-admin"; // font-semibold is in text-admin
     headerRankText = "관리자";
-    headerRankTextColorClasses += " text-admin"; 
+    headerRankTextColorClass = "text-admin"; 
     headerContainerClasses = "admin-badge-bg admin-badge-border";
   } else if (user.rank > 0 && user.rank <= 3) { 
     const gradientClass = user.rank === 1 ? "text-rank-gold" : user.rank === 2 ? "text-rank-silver" : "text-rank-bronze";
-    headerNicknameTextClasses += ` ${gradientClass}`; // font-semibold is in gradientClass
+    headerNicknameColorClass = gradientClass; // font-semibold is in gradientClass
     headerRankText = `종합 ${user.rank}위`;
-    headerRankTextColorClasses += ` ${gradientClass}`;
+    headerRankTextColorClass = gradientClass;
     headerContainerClasses = cn(
       user.rank === 1 && 'rank-1-badge',
       user.rank === 2 && 'rank-2-badge',
       user.rank === 3 && 'rank-3-badge'
     );
   } else {
-    headerNicknameTextClasses += " text-foreground font-semibold"; // Default if not admin or top 3
-    headerRankTextColorClasses += " text-muted-foreground";
+    headerNicknameColorClass = "text-foreground font-semibold"; // Default if not admin or top 3
+    headerRankTextColorClass = "text-muted-foreground";
   }
  
 
@@ -207,12 +209,12 @@ export default function ProfilePage() {
                     <AvatarFallback className="text-4xl bg-muted text-muted-foreground">{user.nickname.substring(0, 2).toUpperCase()}</AvatarFallback>
                 </Avatar>
                 <div className={cn("rounded-lg px-3 py-1 text-center", headerContainerClasses)}>
-                  <h1 className={headerNicknameTextClasses}>{user.nickname}</h1>
+                  <h1 className={cn(headerNicknameBaseClasses, headerNicknameColorClass)}>{user.nickname}</h1>
                 </div>
                 <p className="text-sm opacity-80 mt-1">{user.email || "이메일 미등록"}</p>
                 <div className="mt-4 text-center">
                     <p className="text-2xl font-semibold">{user.score.toLocaleString()} 점</p>
-                     <p className={headerRankTextColorClasses}>
+                     <p className={cn(headerRankTextBaseClasses, headerRankTextColorClass)}>
                         {headerRankText}
                     </p>
                 </div>
@@ -345,26 +347,20 @@ export default function ProfilePage() {
             <div className="space-y-3 max-h-[500px] overflow-y-auto p-1">
               {mockUsers.filter(u => u.username !== 'WANGJUNLAND' && u.rank > 0).sort((a, b) => a.rank - b.rank).map((rankerUser) => { 
                 let finalItemContainerClasses = "default-rank-item-bg";
-                let rankNumberClasses = "font-bold text-lg w-8 text-center";
-                let nicknameSpanClasses = "font-medium"; 
+                let rankNumberBaseClasses = "font-bold text-lg w-8 text-center";
+                let rankNumberColorClass = "text-muted-foreground";
+                let nicknameBaseClasses = "font-medium"; 
+                let nicknameColorClass = "text-foreground";
                 
-                let determinedNicknameColorClass = "";
-                let determinedRankNumColorClass = "text-muted-foreground";
-
-
                 if (rankerUser.rank > 0 && rankerUser.rank <= 3) {
                   finalItemContainerClasses = cn(rankerUser.rank === 1 && 'rank-1-badge', rankerUser.rank === 2 && 'rank-2-badge', rankerUser.rank === 3 && 'rank-3-badge');
                   const gradientClass = rankerUser.rank === 1 ? 'text-rank-gold' : rankerUser.rank === 2 ? 'text-rank-silver' : 'text-rank-bronze';
-                  determinedNicknameColorClass = gradientClass; 
-                  determinedRankNumColorClass = gradientClass;
-                } else {
-                   determinedNicknameColorClass = "text-foreground"; // Default
-                   determinedRankNumColorClass = "text-muted-foreground";
+                  nicknameColorClass = gradientClass; 
+                  rankNumberColorClass = gradientClass;
                 }
                 
-                nicknameSpanClasses += ` ${determinedNicknameColorClass}`;
-                rankNumberClasses += ` ${determinedRankNumColorClass}`;
-
+                const finalNicknameClasses = cn(nicknameBaseClasses, nicknameColorClass);
+                const finalRankNumberClasses = cn(rankNumberBaseClasses, rankNumberColorClass);
 
                 return (
                   <div key={rankerUser.id} className={cn("flex items-center justify-between p-3 rounded-lg border", 
@@ -372,14 +368,14 @@ export default function ProfilePage() {
                     rankerUser.id === user.id && !finalItemContainerClasses.startsWith('rank-') ? 'bg-primary/10 border-primary shadow-md' : 'border-border'
                   )}>
                     <div className="flex items-center gap-3">
-                      <span className={rankNumberClasses}>
+                      <span className={finalRankNumberClasses}>
                           {rankerUser.rank > 0 ? `${rankerUser.rank}.` : <Star className="h-5 w-5 inline text-yellow-400" />}
                       </span>
                       <Avatar className="h-10 w-10 border-2 border-accent/50">
                         <Image src={rankerUser.avatar || `https://placehold.co/40x40.png?text=${rankerUser.nickname.substring(0,1)}`} alt={rankerUser.nickname} width={40} height={40} className="rounded-full" data-ai-hint="fantasy character icon" />
                         <AvatarFallback className="bg-muted text-muted-foreground">{rankerUser.nickname.substring(0,1)}</AvatarFallback>
                       </Avatar>
-                      <span className={nicknameSpanClasses}>
+                      <span className={finalNicknameClasses}>
                         {rankerUser.nickname}
                       </span>
                     </div>
