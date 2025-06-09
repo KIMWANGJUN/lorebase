@@ -2,8 +2,8 @@
 // src/components/shared/CommentSection.tsx
 "use client";
 
-import type { Comment as CommentType, User as UserType, PostMainCategory } from '@/types'; 
-import { mockUsers, mockTetrisRankings, tetrisTitles } from '@/lib/mockData'; 
+import type { Comment as CommentType, User as UserType, PostMainCategory, DisplayRankType } from '@/types'; 
+import { mockUsers, tetrisTitles, mockTetrisRankings } from '@/lib/mockData'; 
 import React, { useState, useEffect, type FC } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -16,25 +16,6 @@ import Link from 'next/link';
 
 const generateId = () => `comment_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
 const MAX_REPLY_DEPTH = 3; 
-
-const getAuthorRankInCategory = (authorId: string | undefined, category: PostMainCategory, allUsers: UserType[]): number => {
-  if (!authorId) return 0;
-  const author = allUsers.find(u => u.id === authorId);
-  if (!author || author.username === 'WANGJUNLAND' || !author.categoryStats || !author.categoryStats[category]) {
-    return 0;
-  }
-  const categoryScore = author.categoryStats[category]?.score;
-  if (typeof categoryScore !== 'number') {
-    return 0;
-  }
-
-  const usersInCategory = allUsers
-    .filter(u => u.username !== 'WANGJUNLAND' && u.categoryStats && u.categoryStats[category] && typeof u.categoryStats[category]?.score === 'number')
-    .sort((a, b) => (b.categoryStats![category]!.score || 0) - (a.categoryStats![category]!.score || 0));
-
-  const rank = usersInCategory.findIndex(u => u.id === author.id);
-  return rank !== -1 ? rank + 1 : 0;
-};
 
 const CategoryIcon: FC<{ category: PostMainCategory, className?: string }> = ({ category, className = "h-3.5 w-3.5 shrink-0" }) => {
    let iconColorClass = "";
@@ -55,94 +36,100 @@ const CategoryIcon: FC<{ category: PostMainCategory, className?: string }> = ({ 
 };
 
 interface NicknameDisplayForCommentProps {
-  authorId: string;
-  authorDisplayName: string;
-  postMainCategory: PostMainCategory; 
+  author: UserType; // Pass full user object
+  postMainCategory: PostMainCategory; // Contextual category for display
 }
 
-const NicknameDisplayForComment: FC<NicknameDisplayForCommentProps> = ({ authorId, authorDisplayName, postMainCategory }) => {
-  const author = mockUsers.find(u => u.id === authorId);
-  if (!author) return <p className="text-sm font-medium text-foreground">{authorDisplayName}</p>;
+const NicknameDisplayForComment: FC<NicknameDisplayForCommentProps> = ({ author, postMainCategory }) => {
+  if (!author) return <p className="text-sm font-medium text-foreground">Unknown User</p>;
   
-  const isAdminUser = author.username === 'WANGJUNLAND';
-  const isGlobalTop3 = !isAdminUser && author.rank > 0 && author.rank <= 3;
-
-  const tetrisUser = mockTetrisRankings.monthly.find(tr => tr.userId === author.id);
-  const tetrisRankIndex = tetrisUser ? mockTetrisRankings.monthly.findIndex(r => r.userId === author.id) : -1;
-  const isTetrisTop3 = !isAdminUser && tetrisUser && tetrisRankIndex !== -1 && tetrisRankIndex < 3;
-
-  const authorCatRank = getAuthorRankInCategory(authorId, postMainCategory, mockUsers);
-  const isCategoryTop3 = !isAdminUser && authorCatRank > 0 && authorCatRank <= 3;
-  const isCategoryTop10 = !isAdminUser && authorCatRank > 0 && authorCatRank <= 10;
-  
-  const titles: { text: string, colorClass: string }[] = [];
-  let itemContainerClass = "default-rank-item-bg"; 
+  let itemContainerClass = "default-rank-item-bg px-1.5 py-0.5"; 
   let nicknameTextClass = "text-foreground"; 
+  let titleText = "";
+  let titleColorClass = "";
+  let showCategoryIcon = false;
 
-  if (isAdminUser) {
-    itemContainerClass = "admin-badge-bg admin-badge-border";
-    nicknameTextClass = "text-admin";
-  } else if (isGlobalTop3) {
-    itemContainerClass = cn(
-        author.rank === 1 && 'rank-1-badge',
-        author.rank === 2 && 'rank-2-badge',
-        author.rank === 3 && 'rank-3-badge'
-    );
-    nicknameTextClass = cn(
-        author.rank === 1 && 'text-rank-gold',
-        author.rank === 2 && 'text-rank-silver',
-        author.rank === 3 && 'text-rank-bronze'
-    );
-  }
-  
-  if (isTetrisTop3) {
-      const tetrisTitleText = tetrisTitles[tetrisRankIndex];
-      let tetrisTitleColor = "";
-      if (tetrisRankIndex === 0) tetrisTitleColor = 'text-rank-gold';
-      else if (tetrisRankIndex === 1) tetrisTitleColor = 'text-rank-silver';
-      else if (tetrisRankIndex === 2) tetrisTitleColor = 'text-rank-bronze';
-      titles.push({ text: tetrisTitleText, colorClass: tetrisTitleColor });
-      if (!isGlobalTop3) nicknameTextClass = tetrisTitleColor;
-  }
+  const displayPreference = author.selectedDisplayRank || 'default';
+  let effectiveDisplayType: DisplayRankType = 'default';
+  const authorCategoryStats = author.categoryStats?.[postMainCategory];
 
-  if (isCategoryTop3) {
-    const categoryTitleText = postMainCategory === 'General' ? '일반 & 유머' : postMainCategory;
-    let categoryTitleColor = "";
-    if (authorCatRank === 1) categoryTitleColor = 'text-rank-gold';
-    else if (authorCatRank === 2) categoryTitleColor = 'text-rank-silver';
-    else if (authorCatRank === 3) categoryTitleColor = 'text-rank-bronze';
-    titles.push({ text: categoryTitleText, colorClass: categoryTitleColor });
 
-    if (!isGlobalTop3) { 
-      itemContainerClass = cn(`highlight-${postMainCategory.toLowerCase()}`);
-      if(!isTetrisTop3) {
-        nicknameTextClass = cn(`nickname-text-rank-${authorCatRank}`, `text-${postMainCategory.toLowerCase()}-text-strong`);
-      }
+  // Determine the highest priority rank the user qualifies for
+  if (author.username === 'WANGJUNLAND') effectiveDisplayType = 'default';
+  else if (author.rank > 0 && author.rank <= 3) effectiveDisplayType = 'global';
+  else if (author.tetrisRank && author.tetrisRank <= 3) effectiveDisplayType = 'tetris';
+  else if (authorCategoryStats?.rankInCate && authorCategoryStats.rankInCate <= 3) effectiveDisplayType = `category_${postMainCategory}`;
+  else if (authorCategoryStats?.rankInCate && authorCategoryStats.rankInCate <= 10) effectiveDisplayType = `category_${postMainCategory}`;
+
+
+  // Honor user preference if applicable and not overridden by a higher fixed priority
+  if (displayPreference !== 'default' && author.username !== 'WANGJUNLAND') {
+    if (displayPreference === 'global' && author.rank > 0 && author.rank <= 3) effectiveDisplayType = 'global';
+    else if (displayPreference === 'tetris' && author.tetrisRank && author.tetrisRank <= 3 && effectiveDisplayType !== 'global') effectiveDisplayType = 'tetris';
+    else if (displayPreference.startsWith('category_') && effectiveDisplayType !== 'global' && effectiveDisplayType !== 'tetris') {
+        const preferredCat = displayPreference.split('_')[1] as PostMainCategory;
+        const preferredCatStats = author.categoryStats?.[preferredCat];
+        if (preferredCatStats?.rankInCate && preferredCatStats.rankInCate <= 3) {
+           effectiveDisplayType = displayPreference; 
+        } else if (postMainCategory === preferredCat && authorCategoryStats?.rankInCate && authorCategoryStats.rankInCate <= 3) {
+            effectiveDisplayType = `category_${postMainCategory}`; 
+        } else if (preferredCatStats?.rankInCate && preferredCatStats.rankInCate <=10 ) {
+            effectiveDisplayType = displayPreference; 
+        }
     }
-  } else if (isCategoryTop10 && !isGlobalTop3 && !isTetrisTop3) {
-    nicknameTextClass = cn(`nickname-text-rank-${authorCatRank}`, `text-${postMainCategory.toLowerCase()}-text-base`);
   }
   
-  const NicknameWrapper = postMainCategory === 'General' && itemContainerClass.includes('highlight-general') && !isGlobalTop3 ? 'div' : React.Fragment;
-  const wrapperProps = NicknameWrapper === 'div' ? { className: 'highlight-general-inner p-0' } : {};
+  // Apply styles based on effectiveDisplayType
+  if (author.username === 'WANGJUNLAND') {
+    itemContainerClass = "admin-badge-bg admin-badge-border px-1.5 py-0.5";
+    nicknameTextClass = "text-admin";
+  } else if (effectiveDisplayType === 'global') {
+    itemContainerClass = cn(author.rank === 1 && 'rank-1-badge', author.rank === 2 && 'rank-2-badge', author.rank === 3 && 'rank-3-badge', "px-1.5 py-0.5");
+    nicknameTextClass = cn(author.rank === 1 && 'text-rank-gold', author.rank === 2 && 'text-rank-silver', author.rank === 3 && 'text-rank-bronze');
+  } else if (effectiveDisplayType === 'tetris') {
+    if (author.tetrisRank && author.tetrisRank <= 3) {
+        titleText = tetrisTitles[author.tetrisRank - 1];
+        if (author.tetrisRank === 1) { titleColorClass = 'text-rank-gold'; nicknameTextClass = 'text-rank-gold'; }
+        else if (author.tetrisRank === 2) { titleColorClass = 'text-rank-silver'; nicknameTextClass = 'text-rank-silver'; }
+        else { titleColorClass = 'text-rank-bronze'; nicknameTextClass = 'text-rank-bronze'; }
+    }
+    if (authorCategoryStats?.rankInCate && authorCategoryStats.rankInCate <= 3) { // If also Cat Top 3
+        itemContainerClass = cn(`highlight-${postMainCategory.toLowerCase()} px-1.5 py-0.5`);
+    } // else default-rank-item-bg is fine
+    showCategoryIcon = true;
+  } else if (effectiveDisplayType.startsWith('category_')) {
+    const displayCat = effectiveDisplayType.split('_')[1] as PostMainCategory; // This will be postMainCategory
+    const displayCatStats = author.categoryStats?.[displayCat];
+    const displayCatRank = displayCatStats?.rankInCate || 0;
 
-  if (itemContainerClass.includes('badge') || itemContainerClass.includes('highlight-')) {
-    itemContainerClass = cn(itemContainerClass, 'px-1.5 py-0.5');
+    if (displayCatRank > 0 && displayCatRank <= 3) {
+        titleText = displayCat === 'General' ? '일반 & 유머' : displayCat;
+        if (displayCatRank === 1) titleColorClass = 'text-rank-gold';
+        else if (displayCatRank === 2) titleColorClass = 'text-rank-silver';
+        else titleColorClass = 'text-rank-bronze';
+        itemContainerClass = cn(`highlight-${displayCat.toLowerCase()} px-1.5 py-0.5`);
+    } // For 4-10, itemContainerClass remains default-rank-item-bg
+    nicknameTextClass = cn(displayCatRank > 0 ? `nickname-text-rank-${displayCatRank}` : '');
+    showCategoryIcon = true;
   }
+  
+  const NicknameWrapper = itemContainerClass.includes('highlight-general') && !itemContainerClass.includes('highlight-general-inner') ? 'div' : React.Fragment;
+  const wrapperProps = NicknameWrapper === 'div' ? { className: 'highlight-general-inner' } : {};
+
 
   return (
-    <div className="flex flex-col items-start">
-      {titles.map((title, idx) => (
-        <p key={idx} className={cn("text-[0.7rem] leading-tight font-semibold tracking-tight", title.colorClass, idx > 0 && "mt-0.5")}>
-          {title.text}
-        </p>
-      ))}
+    <div className="flex flex-col items-start"> {/* Changed to items-start for title centering */}
+      {titleText && (
+        <div className="title-container">
+            <p className={cn("text-[0.7rem] leading-tight font-semibold tracking-tight", titleColorClass)}>
+            {titleText}
+            </p>
+        </div>
+      )}
       <NicknameWrapper {...wrapperProps}>
-        <div className={cn("inline-flex items-center gap-1", itemContainerClass, titles.length > 0 && "mt-0.5")}>
-            {!isAdminUser && author.categoryStats && author.categoryStats[postMainCategory] && (
-              <CategoryIcon category={postMainCategory} className="h-3.5 w-3.5" />
-            )}
-            <span className={cn("text-sm font-medium nickname-text", nicknameTextClass)}>{authorDisplayName}</span>
+        <div className={cn("inline-flex items-center gap-1", itemContainerClass, titleText && "mt-0.5")}>
+            {showCategoryIcon && <CategoryIcon category={postMainCategory} className="h-3.5 w-3.5" />}
+            <span className={cn("text-sm font-medium nickname-text", nicknameTextClass)}>{author.nickname}</span>
         </div>
       </NicknameWrapper>
     </div>
@@ -166,7 +153,7 @@ const CommentEntry = ({ comment, currentUser, postMainCategory, onAddReply, onEd
   const [isEditing, setIsEditing] = useState(false);
   const [editedContent, setEditedContent] = useState(comment.content);
   
-  const author = mockUsers.find(u => u.id === comment.authorId);
+  const author = mockUsers.find(u => u.id === comment.authorId); // Find full author object
   const isAuthor = currentUser?.id === comment.authorId;
   const canReply = depth < MAX_REPLY_DEPTH -1; 
 
@@ -183,7 +170,7 @@ const CommentEntry = ({ comment, currentUser, postMainCategory, onAddReply, onEd
   };
 
   const handleReplySubmit = () => {
-    if (replyContent.trim() && currentUser) {
+    if (replyContent.trim() && currentUser && author) { // Ensure author exists
       onAddReply(comment.id, replyContent.trim());
       setReplyContent('');
       setActiveReplyBoxId(null); 
@@ -216,7 +203,7 @@ const CommentEntry = ({ comment, currentUser, postMainCategory, onAddReply, onEd
         </Avatar>
         <div className="flex-1">
           <div className="flex items-center justify-between">
-            <NicknameDisplayForComment authorId={comment.authorId} authorDisplayName={comment.authorNickname} postMainCategory={postMainCategory} />
+            {author ? <NicknameDisplayForComment author={author} postMainCategory={postMainCategory} /> : <p className="text-sm font-medium text-foreground">{comment.authorNickname}</p>}
             <p className="text-xs text-muted-foreground">
               {formattedDate}
               {comment.isEdited && <span className="ml-1 text-muted-foreground/80">(수정함)</span>}
@@ -294,16 +281,17 @@ interface CommentSectionProps {
   postId: string;
   initialComments: CommentType[];
   postMainCategory: PostMainCategory;
+  authorFull: UserType; // Pass the full author object of the post
 }
 
-export default function CommentSection({ postId, initialComments, postMainCategory }: CommentSectionProps) {
+export default function CommentSection({ postId, initialComments, postMainCategory, authorFull }: CommentSectionProps) {
   const { user: currentUser } = useAuth();
   const [comments, setComments] = useState<CommentType[]>([]);
   const [newCommentContent, setNewCommentContent] = useState('');
   const [activeReplyBoxId, setActiveReplyBoxId] = useState<string | null>(null);
 
   useEffect(() => {
-    const sortedInitialComments = [...initialComments].sort((a,b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()); // Sort ascending for display
+    const sortedInitialComments = [...initialComments].sort((a,b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()); 
     setComments(sortedInitialComments);
   }, [initialComments]);
 
@@ -342,7 +330,6 @@ export default function CommentSection({ postId, initialComments, postMainCatego
         return addReplyRecursive(prevComments);
       });
     } else {
-      // Add to top of the list, then re-sort
       setComments(prevComments => [...prevComments, newComment].sort((a,b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()));
     }
   };
@@ -430,7 +417,7 @@ export default function CommentSection({ postId, initialComments, postMainCatego
                 key={comment.id}
                 comment={comment}
                 currentUser={currentUser}
-                postMainCategory={postMainCategory}
+                postMainCategory={postMainCategory} // Pass the post's main category for context
                 onAddReply={handleAddReplyToComment}
                 onEditComment={handleEditCommentInternal}
                 activeReplyBoxId={activeReplyBoxId}
@@ -448,3 +435,4 @@ export default function CommentSection({ postId, initialComments, postMainCatego
 
 
     
+```

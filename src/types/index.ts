@@ -3,8 +3,14 @@ export type PostMainCategory = 'Unity' | 'Unreal' | 'Godot' | 'General';
 
 export interface UserCategoryStat {
   score: number;
-  rankInCate?: number; // Rank within that specific category (1-based)
+  rankInCate?: number; // Rank within that specific category (1-based), calculated dynamically
 }
+
+export type DisplayRankType = 
+  | 'global' 
+  | 'tetris' 
+  | `category_${PostMainCategory}` 
+  | 'default';
 
 export interface User {
   id: string;
@@ -24,7 +30,9 @@ export interface User {
   categoryStats?: { 
     [key in PostMainCategory]?: UserCategoryStat;
   };
-  categoryRankInList?: number; // Temporary field for display components, rank in currently sorted list
+  // categoryRankInList?: number; // No longer needed, use rankInCate from categoryStats
+  selectedDisplayRank?: DisplayRankType; // User's preference for display
+  tetrisRank?: number; // Monthly Tetris rank, 1-based. 0 or undefined if not ranked.
 }
 
 export interface StarterProject {
@@ -90,7 +98,7 @@ export interface Comment {
   isEdited?: boolean;
 }
 
-export interface RankEntry {
+export interface RankEntry { // Used for global ranking list display
   userId: string;
   nickname: string;
   score: number;
@@ -111,7 +119,7 @@ export interface Inquiry {
 }
 
 export interface DirectMessage {
-  id: string;
+  id:string;
   fromUserId: string;
   toUserId: string;
   content: string;
@@ -119,5 +127,11 @@ export interface DirectMessage {
   isRead: boolean;
 }
 
-
+export interface TetrisRanker {
+  userId: string;
+  nickname: string;
+  score: number;
+  rank: number; // Calculated rank within Tetris monthly
+}
     
+```

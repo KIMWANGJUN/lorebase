@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { mockPosts, mockUsers, mockTetrisRankings, tetrisTitles } from '@/lib/mockData';
-import type { Post, PostMainCategory, PostType, User as UserType } from '@/types'; 
+import type { Post, PostMainCategory, PostType, User as UserType, DisplayRankType } from '@/types'; 
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation'; 
@@ -23,26 +23,6 @@ import { cn } from '@/lib/utils';
 
 const POSTS_PER_PAGE = 10;
 const RANKERS_TO_SHOW_TAVERN = 20; 
-
-const getAuthorRankInCategory = (authorId: string | undefined, category: PostMainCategory, allUsers: UserType[]): number => {
-  if (!authorId) return 0;
-  const author = allUsers.find(u => u.id === authorId);
-  if (!author || author.username === 'WANGJUNLAND' || !author.categoryStats || !author.categoryStats[category]) {
-    return 0;
-  }
-  const categoryScore = author.categoryStats[category]?.score;
-  if (typeof categoryScore !== 'number') {
-    return 0;
-  }
-
-  const usersInCategory = allUsers
-    .filter(u => u.username !== 'WANGJUNLAND' && u.categoryStats && u.categoryStats[category] && typeof u.categoryStats[category]?.score === 'number')
-    .sort((a, b) => (b.categoryStats![category]!.score || 0) - (a.categoryStats![category]!.score || 0));
-
-  const rank = usersInCategory.findIndex(u => u.id === author.id);
-  return rank !== -1 ? rank + 1 : 0;
-};
-
 
 const CategoryIcon: FC<{ category: PostMainCategory, className?: string }> = ({ category, className = "h-3.5 w-3.5 shrink-0" }) => {
   let iconColorClass = "";
@@ -64,95 +44,97 @@ const CategoryIcon: FC<{ category: PostMainCategory, className?: string }> = ({ 
 };
 
 interface NicknameDisplayProps {
-  authorId: string;
-  authorNickname: string;
+  author: UserType;
   postMainCategory: PostMainCategory;
 }
 
-const NicknameDisplay: FC<NicknameDisplayProps> = ({ authorId, authorNickname, postMainCategory }) => {
-  const author = mockUsers.find(u => u.id === authorId);
-  if (!author) return <span className="text-xs">{authorNickname}</span>;
+const NicknameDisplay: FC<NicknameDisplayProps> = ({ author, postMainCategory }) => {
+  if (!author) return <span className="text-xs">Unknown User</span>;
 
-  const isAdminUser = author.username === 'WANGJUNLAND';
-  
-  const isGlobalTop3 = !isAdminUser && author.rank > 0 && author.rank <= 3;
-  
-  const tetrisUser = mockTetrisRankings.monthly.find(tr => tr.userId === author.id);
-  const tetrisRankIndex = tetrisUser ? mockTetrisRankings.monthly.findIndex(r => r.userId === author.id) : -1; // Corrected index
-  const isTetrisTop3 = !isAdminUser && tetrisUser && tetrisRankIndex !== -1 && tetrisRankIndex < 3;
-  
-  const authorCatRank = getAuthorRankInCategory(authorId, postMainCategory, mockUsers);
-  const isCategoryTop3 = !isAdminUser && authorCatRank > 0 && authorCatRank <= 3;
-  const isCategoryTop10 = !isAdminUser && authorCatRank > 0 && authorCatRank <= 10;
-  
-  const titles: { text: string, colorClass: string }[] = [];
-  let nicknameContainerClass = "inline-flex items-center gap-1 text-xs px-1.5 py-0.5 default-rank-item-bg"; 
-  let nicknameTextClass = "text-foreground"; 
+  let itemContainerClass = "default-rank-item-bg";
+  let nicknameTextClass = "text-foreground";
+  let titleText = "";
+  let titleColorClass = "";
+  let showCategoryIcon = true; 
 
-  if (isAdminUser) {
-    nicknameContainerClass = cn(nicknameContainerClass, "admin-badge-bg admin-badge-border");
+  const isTopGlobalRanker = author.rank > 0 && author.rank <= 3 && author.username !== 'WANGJUNLAND';
+  const isTopTetrisRanker = author.tetrisRank && author.tetrisRank <= 3 && author.username !== 'WANGJUNLAND';
+  const categoryStats = author.categoryStats?.[postMainCategory];
+  const isTopCategoryRanker = categoryStats?.rankInCate && categoryStats.rankInCate <= 3 && author.username !== 'WANGJUNLAND';
+  const isTopTenCategoryRanker = categoryStats?.rankInCate && categoryStats.rankInCate <= 10 && author.username !== 'WANGJUNLAND';
+
+
+  if (author.username === 'WANGJUNLAND') {
+    itemContainerClass = "admin-badge-bg admin-badge-border px-1.5 py-0.5";
     nicknameTextClass = "text-admin";
-  } else if (isGlobalTop3) {
-    nicknameContainerClass = cn(
-        author.rank === 1 && 'rank-1-badge',
-        author.rank === 2 && 'rank-2-badge',
-        author.rank === 3 && 'rank-3-badge',
-        "px-1.5 py-0.5"
-    );
-    nicknameTextClass = cn(
-        author.rank === 1 && 'text-rank-gold',
-        author.rank === 2 && 'text-rank-silver',
-        author.rank === 3 && 'text-rank-bronze'
-    );
-  }
-
-  // Additive Titles - displayed if user qualifies
-  if (isTetrisTop3) {
-    const tetrisTitleText = tetrisTitles[tetrisRankIndex];
-    let tetrisTitleColor = "";
-    if (tetrisRankIndex === 0) tetrisTitleColor = 'text-rank-gold';
-    else if (tetrisRankIndex === 1) tetrisTitleColor = 'text-rank-silver';
-    else if (tetrisRankIndex === 2) tetrisTitleColor = 'text-rank-bronze';
-    titles.push({ text: tetrisTitleText, colorClass: tetrisTitleColor });
-    if (!isGlobalTop3) nicknameTextClass = tetrisTitleColor; // Tetris nickname color if not global top 3
-  }
-
-  if (isCategoryTop3) {
-    const categoryTitleText = postMainCategory === 'General' ? '일반 & 유머' : postMainCategory;
-    let categoryTitleColor = "";
-    if (authorCatRank === 1) categoryTitleColor = 'text-rank-gold';
-    else if (authorCatRank === 2) categoryTitleColor = 'text-rank-silver';
-    else if (authorCatRank === 3) categoryTitleColor = 'text-rank-bronze';
-    titles.push({ text: categoryTitleText, colorClass: categoryTitleColor });
-
-    if (!isGlobalTop3) { // Only apply category highlights if not global top 3
-      nicknameContainerClass = cn(`highlight-${postMainCategory.toLowerCase()} px-1.5 py-0.5`);
-      // If also Tetris Top 3, nicknameTextClass is already set by Tetris. Otherwise, set by category.
-      if(!isTetrisTop3) {
-        nicknameTextClass = cn(`nickname-text-rank-${authorCatRank}`, `text-${postMainCategory.toLowerCase()}-text-strong`);
-      }
+    showCategoryIcon = false;
+  } else if (isTopGlobalRanker) {
+    itemContainerClass = cn(author.rank === 1 && 'rank-1-badge', author.rank === 2 && 'rank-2-badge', author.rank === 3 && 'rank-3-badge', "px-1.5 py-0.5");
+    nicknameTextClass = cn(author.rank === 1 && 'text-rank-gold', author.rank === 2 && 'text-rank-silver', author.rank === 3 && 'text-rank-bronze');
+    showCategoryIcon = false; 
+    // Global rankers might also have Tetris/Category titles, but their primary badge is global.
+    if (isTopTetrisRanker) {
+        titleText = tetrisTitles[author.tetrisRank! - 1];
+        if (author.tetrisRank === 1) titleColorClass = 'text-rank-gold';
+        else if (author.tetrisRank === 2) titleColorClass = 'text-rank-silver';
+        else titleColorClass = 'text-rank-bronze';
+    } else if (isTopCategoryRanker) {
+        titleText = postMainCategory === 'General' ? '일반 & 유머' : postMainCategory;
+        if (categoryStats.rankInCate === 1) titleColorClass = 'text-rank-gold';
+        else if (categoryStats.rankInCate === 2) titleColorClass = 'text-rank-silver';
+        else titleColorClass = 'text-rank-bronze';
     }
-  } else if (isCategoryTop10 && !isGlobalTop3 && !isTetrisTop3) {
-    // Category 4-10: Default container, category-themed text
-    nicknameTextClass = cn(`nickname-text-rank-${authorCatRank}`, `text-${postMainCategory.toLowerCase()}-text-base`);
+
+  } else if (isTopTetrisRanker) {
+    titleText = tetrisTitles[author.tetrisRank! - 1];
+    if (author.tetrisRank === 1) { titleColorClass = 'text-rank-gold'; nicknameTextClass = 'text-rank-gold'; }
+    else if (author.tetrisRank === 2) { titleColorClass = 'text-rank-silver'; nicknameTextClass = 'text-rank-silver'; }
+    else { titleColorClass = 'text-rank-bronze'; nicknameTextClass = 'text-rank-bronze'; }
+    
+    if (isTopCategoryRanker) { // If also top in category, use category background
+        itemContainerClass = cn(`highlight-${postMainCategory.toLowerCase()} px-1.5 py-0.5`);
+    } else {
+        itemContainerClass = "default-rank-item-bg px-1.5 py-0.5";
+    }
+     showCategoryIcon = true;
+
+  } else if (isTopCategoryRanker) {
+    titleText = postMainCategory === 'General' ? '일반 & 유머' : postMainCategory;
+    if (categoryStats.rankInCate === 1) titleColorClass = 'text-rank-gold';
+    else if (categoryStats.rankInCate === 2) titleColorClass = 'text-rank-silver';
+    else titleColorClass = 'text-rank-bronze';
+    
+    itemContainerClass = cn(`highlight-${postMainCategory.toLowerCase()} px-1.5 py-0.5`);
+    nicknameTextClass = cn(`text-category-${postMainCategory.toLowerCase()}`, `nickname-text-rank-${categoryStats.rankInCate}`);
+    showCategoryIcon = true;
+
+  } else if (isTopTenCategoryRanker) {
+    itemContainerClass = "default-rank-item-bg px-1.5 py-0.5";
+    nicknameTextClass = cn(`text-category-${postMainCategory.toLowerCase()}`, `nickname-text-rank-${categoryStats!.rankInCate}`);
+    showCategoryIcon = true;
+  } else {
+    itemContainerClass = "default-rank-item-bg px-1.5 py-0.5";
+    nicknameTextClass = "text-foreground"; 
+    showCategoryIcon = true; 
   }
   
-  const NicknameWrapper = postMainCategory === 'General' && nicknameContainerClass.includes('highlight-general') && !isGlobalTop3 ? 'div' : React.Fragment;
-  const wrapperProps = NicknameWrapper === 'div' ? { className: 'highlight-general-inner p-0' } : {};
+  const NicknameWrapper = itemContainerClass.includes('highlight-general') && !itemContainerClass.includes('highlight-general-inner') ? 'div' : React.Fragment;
+  const wrapperProps = NicknameWrapper === 'div' ? { className: 'highlight-general-inner' } : {};
+
 
   return (
     <div className="flex flex-col items-center">
-      {titles.map((title, idx) => (
-        <p key={idx} className={cn("text-[0.65rem] leading-tight font-semibold tracking-tight", title.colorClass, idx > 0 && "mt-0.5")}>
-          {title.text}
-        </p>
-      ))}
+      {titleText && (
+        <div className="title-container">
+            <p className={cn("text-[0.65rem] leading-tight font-semibold tracking-tight", titleColorClass)}>
+            {titleText}
+            </p>
+        </div>
+      )}
       <NicknameWrapper {...wrapperProps}>
-        <div className={cn(nicknameContainerClass, "flex items-center gap-1", titles.length > 0 && "mt-0.5")}>
-            {!isAdminUser && author.categoryStats && author.categoryStats[postMainCategory] && (
-              <CategoryIcon category={postMainCategory} className="h-3 w-3" />
-            )}
-            <span className={cn("nickname-text text-xs", nicknameTextClass)}>{authorNickname}</span>
+        <div className={cn(itemContainerClass, "inline-flex items-center gap-1 text-xs", titleText && "mt-0.5")}>
+            {showCategoryIcon && <CategoryIcon category={postMainCategory} className="h-3 w-3" />}
+            <span className={cn("nickname-text text-xs", nicknameTextClass)}>{author.nickname}</span>
         </div>
       </NicknameWrapper>
     </div>
@@ -162,13 +144,12 @@ const NicknameDisplay: FC<NicknameDisplayProps> = ({ authorId, authorNickname, p
 
 const PostItem = ({ post, currentUser, router }: { post: Post, currentUser: UserType | null, router: AppRouterInstance }) => {
   const author = mockUsers.find(u => u.id === post.authorId);
-  const authorDisplayName = author?.nickname || post.authorNickname;
   
   const postDateToShow = post.isEdited && post.updatedAt ? new Date(post.updatedAt) : new Date(post.createdAt);
   const formattedDate = `${postDateToShow.getFullYear()}년 ${postDateToShow.getMonth() + 1}월 ${postDateToShow.getDate()}일 ${postDateToShow.getHours()}시 ${postDateToShow.getMinutes()}분`;
 
   const isNotice = post.type === 'Notice' || post.type === 'Announcement';
-  const isAdminPost = currentUser?.username === 'WANGJUNLAND';
+  const isAdminPost = author?.username === 'WANGJUNLAND';
 
   return (
     <Card 
@@ -187,7 +168,7 @@ const PostItem = ({ post, currentUser, router }: { post: Post, currentUser: User
               {post.title}
               {post.isEdited && <span className="ml-1.5 text-xs font-normal text-muted-foreground">(수정됨)</span>}
             </CardTitle>
-            {isAdminPost && ( // Admin actions for their own posts or all posts depending on policy
+            {currentUser?.id === post.authorId && isAdminPost && ( 
               <div className="flex gap-1 absolute top-2 right-2">
                 <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-foreground" onClick={(e) => {e.preventDefault(); router.push(`/tavern/${post.id}/edit`); }}>
                   <Edit className="h-3 w-3" />
@@ -201,9 +182,10 @@ const PostItem = ({ post, currentUser, router }: { post: Post, currentUser: User
           <div className="flex items-center text-xs text-muted-foreground space-x-1.5 mt-1">
             <Avatar className="h-4 w-4 border border-border shrink-0">
               <AvatarImage src={author?.avatar} />
-              <AvatarFallback className="text-[10px]">{authorDisplayName.substring(0, 1).toUpperCase()}</AvatarFallback>
+              <AvatarFallback className="text-[10px]">{author?.nickname.substring(0, 1).toUpperCase() || 'U'}</AvatarFallback>
             </Avatar>
-            <NicknameDisplay authorId={post.authorId} authorNickname={authorDisplayName} postMainCategory={post.mainCategory} />
+            {author && <NicknameDisplay author={author} postMainCategory={post.mainCategory} />}
+            {!author && <span className="text-xs">{post.authorNickname}</span>}
             <span>·</span>
             <span className="text-xs">{formattedDate}</span>
             <span>·</span>
@@ -276,14 +258,17 @@ const CategoryRankingCard: FC<{ category: PostMainCategory, currentUser: UserTyp
   const categoryDisplayName = category === 'General' ? '일반 & 유머' : category;
 
   const getTopNUsersForCategoryCard = useCallback((users: UserType[], cat: PostMainCategory, count: number): UserType[] => {
-    const usersToRank = users.filter(u => u.username !== 'WANGJUNLAND'); // Exclude admin
-
-    const sortedUsers = [...usersToRank]
-        .filter(u => u.categoryStats && u.categoryStats[cat] && typeof u.categoryStats[cat]?.score === 'number')
-        .sort((a, b) => (b.categoryStats![cat]!.score || 0) - (a.categoryStats![cat]!.score || 0))
-        .map((u, index) => ({ ...u, categoryRankInList: index + 1 }));
-    
-    return sortedUsers.slice(0, count);
+    return users
+      .filter(u => u.username !== 'WANGJUNLAND' && u.categoryStats?.[cat]?.score && u.categoryStats[cat].score! > 0)
+      .sort((a, b) => (b.categoryStats![cat]!.score || 0) - (a.categoryStats![cat]!.score || 0))
+      .slice(0, count)
+      .map((u, index) => ({ 
+        ...u,
+        categoryStats: {
+          ...u.categoryStats,
+          [cat]: { ...(u.categoryStats?.[cat] || { score:0 }), rankInCate: index + 1 }
+        }
+      }));
   }, []);
   
   const categoryRankers = useMemo(() => {
@@ -316,93 +301,113 @@ const CategoryRankingCard: FC<{ category: PostMainCategory, currentUser: UserTyp
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
-        {categoryRankers.map((ranker) => {
-          const actualGlobalRank = ranker.rank;
-          const categoryRank = ranker.categoryRankInList || 0;
-          
-          const isGlobalTop3 = actualGlobalRank > 0 && actualGlobalRank <= 3;
-          
-          const tetrisUser = mockTetrisRankings.monthly.find(tr => tr.userId === ranker.id);
-          const tetrisRankIndex = tetrisUser ? mockTetrisRankings.monthly.findIndex(r => r.userId === ranker.id) : -1;
-          const isTetrisTop3 = tetrisUser && tetrisRankIndex !== -1 && tetrisRankIndex < 3;
-          
-          const isCategoryTop3 = categoryRank > 0 && categoryRank <= 3;
-          const isCategoryTop10 = categoryRank > 0 && categoryRank <= 10;
-          
-          let itemContainerClass = "default-rank-item-bg p-2.5"; 
-          let nicknameTextClass = "text-foreground"; 
-          const titles: { text: string, colorClass: string }[] = [];
+        {categoryRankers.map((rankerUser) => {
+          let itemContainerClass = "default-rank-item-bg p-2.5";
+          let nicknameTextClass = "text-foreground";
+          let titleText = "";
+          let titleColorClass = "";
+          let showCategoryIconInRankItem = true;
 
-          if (isGlobalTop3) {
-            itemContainerClass = cn(
-              actualGlobalRank === 1 && 'rank-1-badge',
-              actualGlobalRank === 2 && 'rank-2-badge',
-              actualGlobalRank === 3 && 'rank-3-badge',
-              "p-2.5"
-            );
-            nicknameTextClass = cn(
-              actualGlobalRank === 1 && 'text-rank-gold',
-              actualGlobalRank === 2 && 'text-rank-silver',
-              actualGlobalRank === 3 && 'text-rank-bronze'
-            );
+          const isGlobalTop3 = rankerUser.rank > 0 && rankerUser.rank <= 3;
+          const isTetrisTop3 = rankerUser.tetrisRank && rankerUser.tetrisRank <= 3;
+          const categoryStats = rankerUser.categoryStats?.[category];
+          const isCategoryTop3 = categoryStats?.rankInCate && categoryStats.rankInCate <= 3;
+          const isCategoryTop10 = categoryStats?.rankInCate && categoryStats.rankInCate <= 10;
+
+          // 1. Admin
+          if (rankerUser.username === 'WANGJUNLAND') {
+            // This case should not happen as admins are filtered, but as a fallback:
+            itemContainerClass = "admin-badge-bg admin-badge-border p-2.5";
+            nicknameTextClass = "text-admin";
+            showCategoryIconInRankItem = false;
           }
-          
-          if (isTetrisTop3) {
-              const tetrisTitleText = tetrisTitles[tetrisRankIndex];
-              let tetrisTitleColor = "";
-              if (tetrisRankIndex === 0) tetrisTitleColor = 'text-rank-gold';
-              else if (tetrisRankIndex === 1) tetrisTitleColor = 'text-rank-silver';
-              else if (tetrisRankIndex === 2) tetrisTitleColor = 'text-rank-bronze';
-              titles.push({ text: tetrisTitleText, colorClass: tetrisTitleColor });
-              if (!isGlobalTop3) nicknameTextClass = tetrisTitleColor;
-          }
-
-          if (isCategoryTop3) {
-            const categoryTitleText = category === 'General' ? '일반 & 유머' : category;
-            let categoryTitleColor = "";
-            if (categoryRank === 1) categoryTitleColor = 'text-rank-gold';
-            else if (categoryRank === 2) categoryTitleColor = 'text-rank-silver';
-            else if (categoryRank === 3) categoryTitleColor = 'text-rank-bronze';
-            titles.push({ text: categoryTitleText, colorClass: categoryTitleColor });
-
-            if (!isGlobalTop3) {
-              itemContainerClass = cn(`highlight-${category.toLowerCase()} p-2.5`);
-              if(!isTetrisTop3) {
-                nicknameTextClass = cn(`nickname-text-rank-${categoryRank}`, `text-${category.toLowerCase()}-text-strong`);
-              }
+          // 2. Global Top 3
+          else if (isGlobalTop3) {
+            itemContainerClass = cn(rankerUser.rank === 1 && 'rank-1-badge', rankerUser.rank === 2 && 'rank-2-badge', rankerUser.rank === 3 && 'rank-3-badge', "p-2.5");
+            nicknameTextClass = cn(rankerUser.rank === 1 && 'text-rank-gold', rankerUser.rank === 2 && 'text-rank-silver', rankerUser.rank === 3 && 'text-rank-bronze');
+            showCategoryIconInRankItem = false; 
+            // Optional: Show Tetris/Category title if applicable
+            if (isTetrisTop3) {
+                titleText = tetrisTitles[rankerUser.tetrisRank! - 1];
+                if (rankerUser.tetrisRank === 1) titleColorClass = 'text-rank-gold';
+                else if (rankerUser.tetrisRank === 2) titleColorClass = 'text-rank-silver';
+                else titleColorClass = 'text-rank-bronze';
+            } else if (isCategoryTop3) {
+                titleText = category === 'General' ? '일반 & 유머' : category;
+                if (categoryStats.rankInCate === 1) titleColorClass = 'text-rank-gold';
+                else if (categoryStats.rankInCate === 2) titleColorClass = 'text-rank-silver';
+                else titleColorClass = 'text-rank-bronze';
             }
-          } else if (isCategoryTop10 && !isGlobalTop3 && !isTetrisTop3) {
-            nicknameTextClass = cn(`nickname-text-rank-${categoryRank}`, `text-${category.toLowerCase()}-text-base`);
+          }
+          // 3. Tetris Top 3 (and not Global Top 3)
+          else if (isTetrisTop3) {
+            titleText = tetrisTitles[rankerUser.tetrisRank! - 1];
+             if (rankerUser.tetrisRank === 1) { titleColorClass = 'text-rank-gold'; nicknameTextClass = 'text-rank-gold'; }
+             else if (rankerUser.tetrisRank === 2) { titleColorClass = 'text-rank-silver'; nicknameTextClass = 'text-rank-silver'; }
+             else { titleColorClass = 'text-rank-bronze'; nicknameTextClass = 'text-rank-bronze'; }
+
+            if (isCategoryTop3) { // If also top in category, use category background
+                itemContainerClass = cn(`highlight-${category.toLowerCase()} p-2.5`);
+            } else {
+                itemContainerClass = "default-rank-item-bg p-2.5";
+            }
+          }
+          // 4. Category Top 3 (and not Global/Tetris Top 3)
+          else if (isCategoryTop3) {
+            titleText = category === 'General' ? '일반 & 유머' : category;
+            if (categoryStats.rankInCate === 1) titleColorClass = 'text-rank-gold';
+            else if (categoryStats.rankInCate === 2) titleColorClass = 'text-rank-silver';
+            else titleColorClass = 'text-rank-bronze';
+            
+            itemContainerClass = cn(`highlight-${category.toLowerCase()} p-2.5`);
+            nicknameTextClass = cn(`text-category-${category.toLowerCase()}`, `nickname-text-rank-${categoryStats.rankInCate}`);
+          }
+          // 5. Category Top 4-10 (and not any of above)
+          else if (isCategoryTop10) {
+            itemContainerClass = "default-rank-item-bg p-2.5";
+            nicknameTextClass = cn(`text-category-${category.toLowerCase()}`, `nickname-text-rank-${categoryStats!.rankInCate}`);
+          }
+          // 6. Default
+          else {
+            itemContainerClass = "default-rank-item-bg p-2.5";
+            nicknameTextClass = "text-foreground";
           }
           
-          const NicknameWrapper = category === 'General' && itemContainerClass.includes('highlight-general') && !isGlobalTop3 ? 'div' : React.Fragment;
-          const wrapperProps = NicknameWrapper === 'div' ? { className: 'highlight-general-inner p-0' } : {};
+          const NicknameWrapper = itemContainerClass.includes('highlight-general') && !itemContainerClass.includes('highlight-general-inner') ? 'div' : React.Fragment;
+          const wrapperProps = NicknameWrapper === 'div' ? { className: 'highlight-general-inner' } : {};
           
+          const displayRankNumber = categoryStats?.rankInCate || 0;
+           let rankNumberColorClass = 'text-muted-foreground';
+            if (isGlobalTop3 && nicknameTextClass) rankNumberColorClass = nicknameTextClass;
+            else if (isTetrisTop3 && nicknameTextClass) rankNumberColorClass = nicknameTextClass;
+            else if (isCategoryTop3 && titleColorClass) rankNumberColorClass = titleColorClass;
+            else if (isCategoryTop10) rankNumberColorClass = `text-category-${category.toLowerCase()}`;
+
+
           return (
-            <div key={ranker.id} className={cn("flex items-center justify-between", itemContainerClass)}>
+            <div key={rankerUser.id} className={cn("flex items-center justify-between", itemContainerClass)}>
               <div className="flex items-center gap-2.5">
-                <span className={cn(
-                  "font-bold text-md w-5 text-center shrink-0",
-                  isGlobalTop3 && nicknameTextClass,
-                  !isGlobalTop3 && titles.length > 0 && titles[0].colorClass,
-                  !isGlobalTop3 && titles.length === 0 && "text-muted-foreground"
-                )}>{categoryRank > 0 ? `${categoryRank}.` : "-"}</span>
+                <span className={cn("font-bold text-md w-5 text-center shrink-0", rankNumberColorClass)}>
+                  {displayRankNumber > 0 ? `${displayRankNumber}.` : "-"}
+                </span>
                 <Avatar className="h-8 w-8 border-2 border-accent/70 shrink-0">
-                  <AvatarImage src={ranker.avatar || `https://placehold.co/40x40.png?text=${ranker.nickname.substring(0,1)}`} alt={ranker.nickname} data-ai-hint="user avatar"/>
-                  <AvatarFallback className="text-xs bg-muted text-muted-foreground">{ranker.nickname.substring(0,1)}</AvatarFallback>
+                  <AvatarImage src={rankerUser.avatar || `https://placehold.co/40x40.png?text=${rankerUser.nickname.substring(0,1)}`} alt={rankerUser.nickname} data-ai-hint="user avatar"/>
+                  <AvatarFallback className="text-xs bg-muted text-muted-foreground">{rankerUser.nickname.substring(0,1)}</AvatarFallback>
                 </Avatar>
                 
                 <div className="flex flex-col items-start text-left">
-                   {titles.map((title, idx) => (
-                    <p key={idx} className={cn("text-[0.7rem] leading-tight font-semibold tracking-tight", title.colorClass, idx > 0 && "mt-0.5")}>
-                      {title.text}
-                    </p>
-                  ))}
+                   {titleText && (
+                    <div className="title-container">
+                        <p className={cn("text-[0.7rem] leading-tight font-semibold tracking-tight", titleColorClass)}>
+                        {titleText}
+                        </p>
+                    </div>
+                  )}
                   <NicknameWrapper {...wrapperProps}>
-                    <div className={cn("flex items-center gap-1.5", NicknameWrapper === 'div' && "p-0", titles.length > 0 && "mt-0.5")}>
-                        {categoryRank > 0 && <CategoryIcon category={category} className="h-4 w-4" />}
-                        <span className={cn("text-sm", nicknameTextClass)}>
-                        {ranker.nickname}
+                    <div className={cn("flex items-center gap-1.5", NicknameWrapper === 'div' && "p-0", titleText && "mt-0.5")}>
+                        {showCategoryIconInRankItem && <CategoryIcon category={category} className="h-4 w-4" />}
+                        <span className={cn("text-sm nickname-text", nicknameTextClass)}>
+                        {rankerUser.nickname}
                         </span>
                     </div>
                   </NicknameWrapper>
@@ -410,7 +415,7 @@ const CategoryRankingCard: FC<{ category: PostMainCategory, currentUser: UserTyp
               </div>
               {currentUser?.username === 'WANGJUNLAND' && (
                 <span className="text-xs font-semibold text-accent shrink-0">
-                  {(ranker.categoryStats?.[category]?.score || 0).toLocaleString()} 점
+                  {(rankerUser.categoryStats?.[category]?.score || 0).toLocaleString()} 점
                 </span>
               )}
             </div>
@@ -428,7 +433,7 @@ export default function TavernPage() {
   
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
-  const { user, isAdmin } = useAuth(); // isAdmin is not used here, but user is.
+  const { user, isAdmin } = useAuth(); 
   const router = useRouter(); 
   
   useEffect(() => { 
@@ -457,7 +462,7 @@ export default function TavernPage() {
   }, [mainCategory]);
 
   const filteredPosts = useMemo(() => {
-    let posts = [...mockPosts].filter(p => p.mainCategory === mainCategory);
+    let posts = [...mockPosts].filter(p => p.mainCategory === mainCategory && p.authorId !== 'admin'); 
     
     if (searchTerm) {
       posts = posts.filter(p => 
@@ -474,7 +479,13 @@ export default function TavernPage() {
     } else { 
       posts = posts.sort((a,b) => (b.isPinned ? 1 : 0) - (a.isPinned ? 1 : 0) || new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
     }
-    return posts;
+    
+    const notices = mockPosts.filter(p => p.mainCategory === mainCategory && p.authorId === 'admin' && (p.type === 'Notice' || p.type === 'Announcement'));
+    const pinnedPosts = posts.filter(p => p.isPinned);
+    const otherPosts = posts.filter(p => !p.isPinned);
+
+    return [...notices.sort((a,b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()), ...pinnedPosts, ...otherPosts];
+
   }, [mainCategory, subCategory, searchTerm]);
   
   const totalPages = Math.ceil(filteredPosts.length / POSTS_PER_PAGE);
@@ -544,7 +555,7 @@ export default function TavernPage() {
             onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1);}}
           />
         </div>
-        {user && ( // Check if user exists before showing write button
+        {user && ( 
           <Button asChild className="w-full md:w-auto bg-gradient-to-r from-green-500 to-teal-500 text-primary-foreground hover:opacity-90 shadow-md">
             <Link href="/tavern/new">
               <PlusCircle className="mr-2 h-5 w-5" /> 새 글 작성
@@ -605,6 +616,4 @@ export default function TavernPage() {
     </div>
   );
 }
-
-
     
