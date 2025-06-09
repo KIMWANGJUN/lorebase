@@ -1,3 +1,4 @@
+
 // src/lib/mockData.ts
 import type { User, StarterProject, AssetInfo, Post, Comment, RankEntry, Inquiry, PostMainCategory } from '@/types';
 
@@ -9,7 +10,7 @@ export const mockUsers: User[] = [
   { 
     id: 'admin', username: 'WANGJUNLAND', nickname: 'WANGJUNLAND', email: 'admin@example.com', 
     score: 99999, rank: 0, avatar: 'https://placehold.co/100x100.png?text=WJ', 
-    nicknameLastChanged: new Date('2023-01-01'), // Admins can change anytime
+    nicknameLastChanged: new Date('2023-01-01'), 
     categoryStats: {
       Unity: { score: 1000, rank: 1 },
       Unreal: { score: 1000, rank: 1 },
@@ -20,7 +21,7 @@ export const mockUsers: User[] = [
   { 
     id: 'user1', username: 'unityMaster', nickname: '유니티장인', email: 'unity@example.com', 
     score: 1250, rank: 1, avatar: 'https://placehold.co/100x100.png?text=U1', 
-    nicknameLastChanged: fortyFiveDaysAgo, // Can change
+    nicknameLastChanged: fortyFiveDaysAgo, 
     categoryStats: {
       Unity: { score: 800, rank: 1 },
       Unreal: { score: 300, rank: 3 },
@@ -31,7 +32,7 @@ export const mockUsers: User[] = [
   { 
     id: 'user2', username: 'unrealDev', nickname: '언리얼신', email: 'unreal@example.com', 
     score: 1100, rank: 2, avatar: 'https://placehold.co/100x100.png?text=U2', 
-    nicknameLastChanged: fifteenDaysAgo, // Cannot change yet
+    nicknameLastChanged: fifteenDaysAgo, 
     categoryStats: {
       Unity: { score: 200 },
       Unreal: { score: 750, rank: 1 },
@@ -42,7 +43,6 @@ export const mockUsers: User[] = [
   { 
     id: 'user3', username: 'godotFan', nickname: '고도엔진팬', email: 'godot@example.com', 
     score: 950, rank: 3, avatar: 'https://placehold.co/100x100.png?text=GF', 
-    // nicknameLastChanged: undefined, // Can change (first time)
     categoryStats: {
       Unity: { score: 100 },
       Unreal: { score: 50 },
@@ -53,20 +53,20 @@ export const mockUsers: User[] = [
   { 
     id: 'user4', username: 'indieDreamer', nickname: '인디드리머', email: 'dreamer@example.com',
     score: 700, rank: 4, avatar: 'https://placehold.co/100x100.png?text=ID', 
-    nicknameLastChanged: new Date('2024-07-01'), // More than 30 days ago from a potential current date of ~Aug
+    nicknameLastChanged: new Date('2024-07-01'), 
     categoryStats: {
-      Unity: { score: 300, rank: 2 },
+      Unity: { score: 300, rank: 3 }, // Changed to rank 3 for testing title
       Unreal: { score: 100 },
       Godot: { score: 150, rank: 3 },
-      General: { score: 150, rank: 1 },
+      General: { score: 150, rank: 1 }, 
     }
   },
   { 
     id: 'user5', username: 'pixelArtist', nickname: '픽셀아티스트', 
     score: 600, rank: 5, avatar: 'https://placehold.co/100x100.png?text=PA', 
-    nicknameLastChanged: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000), // Less than 30 days ago
+    nicknameLastChanged: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000), 
     categoryStats: {
-      Unity: { score: 50, rank: 3 }, // Changed to rank 3 for testing title
+      Unity: { score: 50, rank: 6 }, // Updated rank based on previous interaction
       Unreal: { score: 250, rank: 2 },
       Godot: { score: 200, rank: 2 },
       General: { score: 100 },
@@ -77,7 +77,7 @@ export const mockUsers: User[] = [
     score: 550, rank: 6, avatar: 'https://placehold.co/100x100.png?text=GE', 
     nicknameLastChanged: new Date('2024-07-06'),
     categoryStats: {
-      Unity: { score: 10 },
+      Unity: { score: 10, rank: 7 }, // Added rank for testing
       Unreal: { score: 20 },
       Godot: { score: 30 },
       General: { score: 490, rank: 1 }, 
@@ -88,7 +88,7 @@ export const mockUsers: User[] = [
     score: 400, rank: 7, avatar: 'https://placehold.co/100x100.png?text=UN', 
     nicknameLastChanged: new Date('2024-07-07'),
     categoryStats: {
-      Unity: { score: 350, rank: 2 }, // Changed to rank 2 for testing title
+      Unity: { score: 350, rank: 2 }, 
       Unreal: { score: 0 },
       Godot: { score: 0 },
       General: { score: 50 },
@@ -100,24 +100,18 @@ export const mockUsers: User[] = [
     nicknameLastChanged: new Date('2024-07-08'),
     categoryStats: {
       Unity: { score: 0 },
-      Unreal: { score: 280 },
+      Unreal: { score: 280, rank: 4 }, // Added rank for testing
       Godot: { score: 0 },
       General: { score: 20 },
     }
   },
-  // Placeholder users for Tetris ranking if they don't map to existing users
-  // For this example, I'll assume some existing users are also Tetris rankers to simplify.
-  // If TetrisGod, ConsistentPlayer etc. were NEW users, they'd need full User entries.
 ];
 
-
-// Tetris Rankings (Game Specific)
 export const mockTetrisRankings = {
   monthly: [ 
-    // For simplicity, mapping to existing user IDs. In a real app, these might be different.
-    { userId: 'user1', nickname: 'TetrisGod', score: 2500000 }, // user1 is 유니티장인
-    { userId: 'user2', nickname: 'ConsistentPlayer', score: 2200000 }, // user2 is 언리얼신
-    { userId: 'user3', nickname: 'BlockMaster', score: 1900000 }, // user3 is 고도엔진팬
+    { userId: 'user1', nickname: 'TetrisGod', score: 2500000 }, 
+    { userId: 'user2', nickname: 'ConsistentPlayer', score: 2200000 }, 
+    { userId: 'user3', nickname: 'BlockMaster', score: 1900000 }, 
     { userId: 'user4', nickname: 'Marathoner', score: 1600000 },
     { userId: 'user5', nickname: 'TopTier', score: 1400000 },
     { userId: 'user6', nickname: 'StackerPro', score: 1350000 },
@@ -147,27 +141,22 @@ export const mockAssetInfos: AssetInfo[] = [
 ];
 
 export const mockPosts: Post[] = [
-  // Unity Posts
   { id: 'post_unity_qna1', mainCategory: 'Unity', title: 'Unity Rigidbody 관련 질문입니다.', content: 'Rigidbody.MovePosition과 transform.Translate의 정확한 차이점과 사용 사례가 궁금합니다.', authorId: 'user4', authorNickname: '인디드리머', createdAt: new Date(Date.now() - 86400000 * 3).toISOString(), updatedAt: new Date(Date.now() - 86400000 * 3).toISOString(), type: 'QnA', upvotes: 10, downvotes: 0, views: 120, commentCount: 2, tags: ['Unity', 'Physics', 'Rigidbody'] },
   { id: 'post_unity_knowledge1', mainCategory: 'Unity', title: 'Unity DOTS 사용 후기 공유합니다.', content: '최근에 Unity DOTS를 사용해서 프로젝트를 진행해봤는데, 성능 최적화에 정말 큰 도움이 되었습니다. 처음엔 학습 곡선이 좀 있지만 익숙해지니 좋네요. 다른 분들 경험은 어떠신가요?', authorId: 'user1', authorNickname: '유니티장인', createdAt: new Date(Date.now() - 86400000 * 2).toISOString(), updatedAt: new Date(Date.now() - 86400000 * 2).toISOString(), type: 'Knowledge', upvotes: 25, downvotes: 1, views: 150, commentCount: 7, isPinned: true, tags: ['Unity', 'DOTS', 'Performance'] },
   { id: 'post_unity_devlog1', mainCategory: 'Unity', title: '나만의 2D 플랫포머 개발 일지 #1 - 캐릭터 구현', content: 'Unity로 2D 플랫포머 게임을 만들고 있습니다. 오늘은 기본 캐릭터 움직임과 점프를 구현했습니다!', authorId: 'user5', authorNickname: '픽셀아티스트', createdAt: new Date(Date.now() - 86400000 * 1).toISOString(), updatedAt: new Date(Date.now() - 86400000 * 1).toISOString(), type: 'DevLog', upvotes: 15, downvotes: 0, views: 90, commentCount: 3, tags: ['Unity', '2D', 'Platformer', 'DevLog'] },
   
-  // Unreal Posts
   { id: 'post_unreal_qna1', mainCategory: 'Unreal', title: 'Unreal Engine 5에서 Lumen 사용할 때 팁 있나요?', content: 'Lumen으로 실시간 GI를 구현 중인데, 특정 환경에서 빛샘 현상이 발생하네요. 해결 방법이나 최적화 팁 아시는 분 계시면 공유 부탁드립니다!', authorId: 'user2', authorNickname: '언리얼신', createdAt: new Date(Date.now() - 86400000 * 1).toISOString(), updatedAt: new Date(Date.now() - 86400000 * 1).toISOString(), type: 'QnA', upvotes: 18, downvotes: 0, views: 220, commentCount: 3, tags: ['Unreal Engine 5', 'Lumen', 'Lighting'] },
   { id: 'post_unreal_knowledge1', mainCategory: 'Unreal', title: '언리얼 블루프린트 최적화 팁 몇가지', content: '블루프린트 사용 시 자주 발생하는 성능 저하를 피하기 위한 몇 가지 팁을 공유합니다. Nativization, Pure 함수 활용 등...', authorId: 'user2', authorNickname: '언리얼신', createdAt: new Date(Date.now() - 86400000 * 4).toISOString(), updatedAt: new Date(Date.now() - 86400000 * 4).toISOString(), type: 'Knowledge', upvotes: 30, downvotes: 0, views: 250, commentCount: 5, tags: ['Unreal Engine', 'Blueprint', 'Optimization'] },
   { id: 'post_unreal_devlog1', mainCategory: 'Unreal', title: 'UE5 오픈월드 프로젝트 시작합니다!', content: '사이버펑크 컨셉의 오픈월드 게임 개발을 시작했습니다. 현재 기본 환경 구성 중입니다. #UE5 #OpenWorld', authorId: 'user1', authorNickname: '유니티장인', createdAt: new Date(Date.now() - 86400000 * 0.5).toISOString(), updatedAt: new Date(Date.now() - 86400000 * 0.5).toISOString(), type: 'DevLog', upvotes: 22, downvotes: 0, views: 180, commentCount: 4, tags: ['Unreal Engine 5', 'Open World', 'Cyberpunk'] },
 
-  // Godot Posts
   { id: 'post_godot_qna1', mainCategory: 'Godot', title: 'Godot에서 GDScript와 C# 선택 기준이 뭘까요?', content: 'Godot 엔진을 처음 시작하는데, GDScript와 C# 중 어떤 언어를 사용하는 것이 좋을지 고민입니다. 각 언어의 장단점이나 추천 사용 사례가 있을까요?', authorId: 'user4', authorNickname: '인디드리머', createdAt: new Date(Date.now() - 86400000 * 2).toISOString(), updatedAt: new Date(Date.now() - 86400000 * 2).toISOString(), type: 'QnA', upvotes: 12, downvotes: 0, views: 100, commentCount: 4, tags: ['Godot', 'GDScript', 'C#'] },
   { id: 'post_godot_knowledge1', mainCategory: 'Godot', title: 'Godot 씬 관리 효율적으로 하는 법', content: '프로젝트가 커질수록 씬 관리가 복잡해지는데, Godot에서 씬을 효율적으로 구성하고 관리하는 노하우가 있다면 공유해주세요.', authorId: 'user3', authorNickname: '고도엔진팬', createdAt: new Date(Date.now() - 86400000 * 1.5).toISOString(), updatedAt: new Date(Date.now() - 86400000 * 1.5).toISOString(), type: 'Knowledge', upvotes: 20, downvotes: 0, views: 130, commentCount: 3, tags: ['Godot', 'Scene Management', 'Workflow'] },
   { id: 'post_godot_devlog1', mainCategory: 'Godot', title: '[홍보] 저희 팀이 만든 고도 엔진 게임입니다!', content: '안녕하세요! 저희 팀에서 Godot Engine으로 개발한 인디 게임 OOO가 스팀에 출시되었습니다! 많은 관심 부탁드립니다. 피드백도 환영합니다!', authorId: 'user3', authorNickname: '고도엔진팬', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(), type: 'DevLog', upvotes: 30, downvotes: 2, views: 300, commentCount: 1, tags: ['Godot', 'Game Release', 'Indie Game'] },
 
-  // General Posts
   { id: 'post_general_notice1', mainCategory: 'General', title: '[공지] 커뮤니티 이용 규칙 업데이트 안내', content: '커뮤니티 이용 규칙이 일부 개정되었습니다. 자세한 내용은 공지사항 게시판을 확인해주시기 바랍니다. 모든 회원분들의 적극적인 협조 부탁드립니다.', authorId: 'admin', authorNickname: 'WANGJUNLAND', createdAt: new Date(Date.now() - 86400000 * 5).toISOString(), updatedAt: new Date(Date.now() - 86400000 * 5).toISOString(), type: 'Notice', upvotes: 50, downvotes: 0, views: 500, commentCount: 0, isPinned: true, tags: ['Community', 'Rules'] },
   { id: 'post_general_post1', mainCategory: 'General', title: '인디 게임 개발자가 갖춰야 할 마인드셋', content: '성공적인 인디 게임 개발을 위해 어떤 마음가짐이 중요하다고 생각하시나요? 자유롭게 의견 나눠봐요.', authorId: 'user4', authorNickname: '인디드리머', createdAt: new Date(Date.now() - 86400000 * 6).toISOString(), updatedAt: new Date(Date.now() - 86400000 * 6).toISOString(), type: 'GeneralPost', upvotes: 40, downvotes: 1, views: 400, commentCount: 10, tags: ['IndieDev', 'Mindset'] },
   { id: 'post_general_humor1', mainCategory: 'General', title: '개발자 유머) 버그 없는 코드.jpg', content: '코딩하다 보면 항상 예상치 못한 버그가...', authorId: 'user5', authorNickname: '픽셀아티스트', createdAt: new Date(Date.now() - 86400000 * 0.2).toISOString(), updatedAt: new Date(Date.now() - 86400000 * 0.2).toISOString(), type: 'Humor', upvotes: 60, downvotes: 0, views: 600, commentCount: 15, tags: ['Humor', 'Programming'] },
   { id: 'post_general_humor2', mainCategory: 'General', title: '내 게임이 드디어 빌드 성공했을 때 내 모습', content: '(움짤 첨부) ...은 아니고 일단 기쁨의 커피 한잔', authorId: 'user1', authorNickname: '유니티장인', createdAt: new Date(Date.now() - 86400000 * 0.1).toISOString(), updatedAt: new Date(Date.now() - 86400000 * 0.1).toISOString(), type: 'Humor', upvotes: 55, downvotes: 0, views: 550, commentCount: 8, tags: ['Humor', 'Build', 'GameDevLife'] },
-  // Add more posts for pagination testing
   ...Array.from({ length: 15 }, (_, i) => ({
     id: `post_general_older_${i + 1}`,
     mainCategory: 'General' as PostMainCategory,
@@ -242,3 +231,5 @@ export const mockInquiries: Inquiry[] = [
   { id: 'inq1', userId: 'user4', userNickname: '인디드리머', title: '닉네임 변경 기간 문의', content: '닉네임 변경 후 1개월 제한이 정확히 어떻게 적용되는지 궁금합니다.', createdAt: new Date(Date.now() - 86400000 * 3).toISOString(), status: 'Answered', response: '닉네임 변경 시점으로부터 만 30일 이후에 다시 변경 가능합니다.', respondedAt: new Date(Date.now() - 86400000 * 2.5).toISOString() },
   { id: 'inq2', userId: 'user1', userNickname: '유니티장인', title: '게시글 오류 신고', content: '특정 게시글에서 이미지가 깨져 보입니다. 확인 부탁드립니다. (게시글 ID: postX)', createdAt: new Date(Date.now() - 86400000 * 1).toISOString(), status: 'Pending' },
 ];
+
+    

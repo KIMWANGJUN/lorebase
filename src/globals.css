@@ -1,0 +1,277 @@
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  font-family: 'Noto Sans KR', sans-serif;
+}
+
+@layer base {
+  :root {
+    --background: 220 15% 15%; 
+    --foreground: 210 30% 85%; 
+
+    --card: 220 15% 20%; 
+    --card-foreground: 210 30% 85%;
+    --popover: 220 15% 12%; 
+    --popover-foreground: 210 30% 85%;
+
+    --primary: 260 70% 65%; 
+    --primary-foreground: 0 0% 100%; 
+
+    --secondary: 180 50% 45%; 
+    --secondary-foreground: 220 15% 15%; 
+
+    --muted: 220 10% 30%; 
+    --muted-foreground: 210 20% 65%; 
+
+    --accent: 50 90% 60%; 
+    --accent-foreground: 220 15% 15%; 
+    
+    --accent-orange: 30 85% 58%; 
+    --accent-yellow: 50 95% 55%; 
+
+    --destructive: 0 65% 50%; 
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 220 10% 40%; 
+    --input: 220 10% 25%; 
+    --ring: 260 70% 65%; 
+
+    --radius: 0.5rem; 
+
+    --chart-1: 260 70% 65%;
+    --chart-2: 180 50% 45%;
+    --chart-3: 50 90% 60%; 
+    --chart-4: 30 85% 58%; 
+    --chart-5: 210 30% 70%;
+
+    --sidebar-background: 220 15% 12%;
+    --sidebar-foreground: 210 30% 80%;
+    --sidebar-primary: 260 70% 65%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 220 10% 25%;
+    --sidebar-accent-foreground: 210 30% 85%;
+    --sidebar-border: 220 10% 35%;
+    --sidebar-ring: 260 70% 65%;
+
+    /* Category Specific Icon/Base Colors (Used for icons, can be base for highlights) */
+    --unity-icon-color-hsl: 220 10% 70%; /* Light Gray */
+    --unreal-icon-color-hsl: 0 0% 90%; /* Almost White */
+    --godot-icon-color-hsl: 200 50% 60%; /* Sky Blue */
+    --general-icon-color-hsl: 30 80% 60%; /* Warm Orange */
+    
+    /* Category Highlight Theme Colors - Light Mode */
+    --unity-bg-light: 220 15% 92%;      /* Very Light Gray BG */
+    --unity-text-light: 220 15% 25%;   /* Dark Gray Text */
+    --unity-border-light: 220 15% 80%;
+    
+    --unreal-bg-light: 0 0% 98%;        /* Almost White BG */
+    --unreal-text-light: 0 0% 10%;      /* Black Text */
+    --unreal-border-light: 0 0% 85%;
+
+    --godot-bg-light: 200 100% 92%;     /* Very Light Sky Blue BG */
+    --godot-text-light: 200 60% 35%;    /* Darker Sky Blue Text */
+    --godot-border-light: 200 50% 75%;
+    
+    /* Dark Theme Category Colors */
+    --unity-bg-dark: 220 15% 28%;      /* Dark Gray BG */
+    --unity-text-dark: 220 15% 88%;   /* Light Gray Text */
+    --unity-border-dark: 220 15% 45%;
+
+    --unreal-bg-dark: 0 0% 15%;        /* Very Dark Gray BG */
+    --unreal-text-dark: 0 0% 90%;      /* Light Gray/White Text */
+    --unreal-border-dark: 0 0% 30%;
+
+    --godot-bg-dark: 200 60% 25%;      /* Dark Blue-Gray BG */
+    --godot-text-dark: 200 80% 75%;    /* Lighter Sky Blue Text */
+    --godot-border-dark: 200 50% 40%;
+  }
+
+  .dark {
+    --background: 220 15% 15%;
+    --foreground: 210 30% 85%;
+
+    --card: 220 15% 20%;
+    --card-foreground: 210 30% 85%;
+    --popover: 220 15% 12%;
+    --popover-foreground: 210 30% 85%;
+
+    --primary: 260 70% 70%; 
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 180 50% 50%; 
+    --secondary-foreground: 220 15% 15%;
+    
+    --muted: 220 10% 22%; 
+    --muted-foreground: 210 20% 55%;
+
+    --accent: 50 90% 65%; 
+    --accent-foreground: 220 15% 15%;
+    
+    --accent-orange: 30 85% 63%;
+    --accent-yellow: 50 95% 60%;
+
+    --destructive: 0 65% 55%; 
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 220 10% 35%;
+    --input: 220 10% 25%;
+    --ring: 260 70% 70%;
+
+    --sidebar-background: 220 15% 10%; 
+    --sidebar-foreground: 210 30% 80%;
+    --sidebar-primary: 260 70% 70%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 220 10% 20%;
+    --sidebar-accent-foreground: 210 30% 85%;
+    --sidebar-border: 220 10% 30%;
+    --sidebar-ring: 260 70% 70%;
+
+    /* Category Icon Colors - Dark Theme */
+    --unity-icon-color-hsl: 220 10% 60%; 
+    --unreal-icon-color-hsl: 0 0% 70%;
+    --godot-icon-color-hsl: 200 50% 50%;
+    --general-icon-color-hsl: 30 80% 55%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+/* Gradient text utility */
+.text-gradient-primary-accent {
+  @apply bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent;
+}
+.text-gradient-purple-indigo {
+  @apply bg-gradient-to-r from-purple-400 via-purple-500 to-indigo-500 bg-clip-text text-transparent;
+}
+.text-admin {
+  @apply text-gradient-purple-indigo font-semibold; 
+}
+.admin-badge-bg {
+  @apply bg-primary/20; 
+}
+.admin-badge-border {
+  @apply border border-primary; 
+}
+
+/* Gold, Silver, Bronze Gradients for Titles AND Nicknames */
+.text-rank-gold { @apply font-bold bg-gradient-to-r from-yellow-400 via-amber-500 to-yellow-300 bg-clip-text text-transparent; }
+.text-rank-silver { @apply font-bold bg-gradient-to-r from-slate-300 via-slate-400 to-slate-200 bg-clip-text text-transparent; }
+.text-rank-bronze { @apply font-bold bg-gradient-to-r from-orange-400 via-yellow-600 to-orange-300 bg-clip-text text-transparent; }
+
+
+/* Global Rank Badge Container Styles */
+.rank-1-badge { 
+  @apply rounded-md px-1.5 py-0.5 border border-amber-500/80 dark:border-amber-400/80 
+         bg-gradient-to-br from-yellow-200/30 via-amber-300/30 to-yellow-400/30 
+         dark:from-amber-600/40 dark:via-amber-700/40 dark:to-amber-800/40 shadow-sm;
+}
+.rank-2-badge { 
+  @apply rounded-md px-1.5 py-0.5 border border-slate-400/80 dark:border-slate-500/80
+         bg-gradient-to-br from-slate-200/30 via-slate-300/30 to-slate-300/30
+         dark:from-slate-600/40 dark:via-slate-700/40 dark:to-slate-800/40 shadow-sm;
+}
+.rank-3-badge { 
+  @apply rounded-md px-1.5 py-0.5 border border-orange-500/80 dark:border-orange-600/80 
+         bg-gradient-to-br from-yellow-300/30 via-orange-400/30 to-orange-500/30 
+         dark:from-yellow-700/40 dark:via-orange-700/40 dark:to-orange-800/40 shadow-sm;
+}
+
+/* Base style for category highlighted nickname containers */
+.highlight-base {
+  @apply rounded-md px-1.5 py-0.5 border shadow-sm;
+}
+
+/* Category Specific Background & Default Text Colors */
+.highlight-unity {
+  @apply highlight-base;
+  background-color: hsl(var(--unity-bg-light));
+  color: hsl(var(--unity-text-light)); /* Default text for Unity highlight */
+  border-color: hsl(var(--unity-border-light));
+}
+.dark .highlight-unity {
+  background-color: hsl(var(--unity-bg-dark));
+  color: hsl(var(--unity-text-dark));
+  border-color: hsl(var(--unity-border-dark));
+}
+
+.highlight-unreal {
+  @apply highlight-base;
+  background-color: hsl(var(--unreal-bg-light));
+  color: hsl(var(--unreal-text-light)); /* Default text for Unreal highlight */
+  border-color: hsl(var(--unreal-border-light));
+}
+.dark .highlight-unreal {
+  background-color: hsl(var(--unreal-bg-dark));
+  color: hsl(var(--unreal-text-dark));
+  border-color: hsl(var(--unreal-border-dark));
+}
+
+.highlight-godot {
+  @apply highlight-base;
+  background-color: hsl(var(--godot-bg-light));
+  color: hsl(var(--godot-text-light)); /* Default text for Godot highlight */
+  border-color: hsl(var(--godot-border-light));
+}
+.dark .highlight-godot {
+  background-color: hsl(var(--godot-bg-dark));
+  color: hsl(var(--godot-text-dark));
+  border-color: hsl(var(--godot-border-dark));
+}
+
+.highlight-general { /* Rainbow Gradient Background */
+  @apply highlight-base p-0; /* Remove padding for gradient to fill border */
+}
+.highlight-general > div { /* Inner div for actual content padding */
+   @apply px-1.5 py-0.5 rounded-[calc(var(--radius)-1px)] /* Slightly smaller radius for inner part */;
+   background-image: linear-gradient(to right, violet, indigo, blue, green, yellow, orange, red);
+}
+.highlight-general .nickname-text { /* Text within rainbow, ensure contrast */
+  @apply text-white drop-shadow-[0_1px_1px_rgba(0,0,0,0.5)]; /* White text with shadow */
+}
+
+
+/* Category Icon Colors (standalone icons) */
+.text-unity-icon { color: hsl(var(--unity-icon-color-hsl)); }
+.dark .text-unity-icon { color: hsl(var(--unity-icon-color-hsl)); } /* Often same for icons or slightly adjusted */
+
+.text-unreal-icon { color: hsl(var(--unreal-icon-color-hsl)); }
+.dark .text-unreal-icon { color: hsl(var(--unreal-icon-color-hsl)); }
+
+.text-godot-icon { color: hsl(var(--godot-icon-color-hsl)); }
+.dark .text-godot-icon { color: hsl(var(--godot-icon-color-hsl)); }
+
+.text-general-icon { color: hsl(var(--general-icon-color-hsl)); }
+.dark .text-general-icon { color: hsl(var(--general-icon-color-hsl)); }
+
+
+/* Nickname Text Styling (Font weight, Opacity) - To be applied to the span containing the nickname */
+/* The actual color will be inherited from the .highlight-[category] parent or default foreground */
+.nickname-text-rank-1 { @apply font-bold opacity-100; }
+.nickname-text-rank-2 { @apply font-semibold opacity-95; }
+.nickname-text-rank-3 { @apply font-semibold opacity-90; }
+.nickname-text-rank-4 { @apply font-medium opacity-85; }
+.nickname-text-rank-5 { @apply font-medium opacity-80; }
+.nickname-text-rank-6 { @apply font-medium opacity-75; }
+.nickname-text-rank-7 { @apply opacity-70; }
+.nickname-text-rank-8 { @apply opacity-65; }
+.nickname-text-rank-9 { @apply opacity-60; }
+.nickname-text-rank-10 { @apply opacity-55; }
+
+/* Default for items in ranking lists if no other highlight applies */
+.default-rank-item-bg {
+  @apply bg-background/30 rounded-lg border border-border/50;
+}
+
+    
