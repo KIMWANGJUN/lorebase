@@ -1,7 +1,7 @@
 
 // src/app/(main)/tavern/page.tsx
 "use client";
-import { useState, useMemo, type FC, type ElementType } from 'react';
+import { useState, useMemo, useEffect, type FC, type ElementType } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -255,11 +255,10 @@ const CategoryRankingCard: FC<{ category: PostMainCategory, isAdmin: boolean }> 
                   <AvatarFallback className="text-xs bg-muted text-muted-foreground">{ranker.nickname.substring(0,1)}</AvatarFallback>
                 </Avatar>
                 
-                <div className="flex items-center gap-1.5"> {/* Icon and Nickname container */}
+                <div className="flex items-center gap-1.5">
                   <CategoryIcon category={category} className="h-4 w-4" />
                   <div className={cn(
-                      "font-medium rounded-md px-1.5 py-0.5 text-sm", // Base style for nickname container
-                      // Category Rank Badge styling (icon is now separate)
+                      "font-medium rounded-md px-1.5 py-0.5 text-sm", 
                       isDisplayRankTop3 && { 
                         'category-rank-unity': category === 'Unity',
                         'category-rank-unreal': category === 'Unreal',
@@ -270,14 +269,12 @@ const CategoryRankingCard: FC<{ category: PostMainCategory, isAdmin: boolean }> 
                   >
                     <span className={cn(
                         "font-semibold",
-                        // Category Rank Text styling
                         isDisplayRankTop3 && { 
                           'text-unity-rank': category === 'Unity',
                           'text-unreal-rank': category === 'Unreal',
                           'text-godot-rank': category === 'Godot',
                           'text-general-rank': category === 'General',
                         },
-                        // Default text color
                         !isDisplayRankTop3 && "text-foreground"
                       )}
                     >
@@ -302,23 +299,14 @@ const CategoryRankingCard: FC<{ category: PostMainCategory, isAdmin: boolean }> 
 
 export default function TavernPage() {
   const [mainCategory, setMainCategory] = useState<PostMainCategory>('Unity');
-  const [subCategory, setSubCategory] = useState<PostType | 'popular' | 'all'>('QnA'); // Default to 'all' or first relevant sub-tab
+  const [subCategory, setSubCategory] = useState<PostType | 'popular' | 'all'>('QnA'); 
   
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const { user, isAdmin } = useAuth();
   const router = useRouter(); 
-
-  const handleMainCategoryChange = (newMainCategory: PostMainCategory) => {
-    setMainCategory(newMainCategory);
-    const currentNewSubTabs = newMainCategory === 'General' ? generalSubTabs : engineSubTabs;
-    // Set subCategory to 'all' or the first available type if not 'popular'
-    const firstSubTab = currentNewSubTabs.find(tab => tab.value !== 'popular');
-    setSubCategory(firstSubTab ? firstSubTab.value : (currentNewSubTabs[0]?.value || 'all'));
-    setCurrentPage(1);
-  };
   
-  useEffect(() => { // Ensure subCategory is valid when mainCategory changes
+  useEffect(() => { 
     const currentNewSubTabs = mainCategory === 'General' ? generalSubTabs : engineSubTabs;
     if (!currentNewSubTabs.find(tab => tab.value === subCategory)) {
        const firstSubTab = currentNewSubTabs.find(tab => tab.value !== 'popular');
@@ -326,6 +314,13 @@ export default function TavernPage() {
     }
   }, [mainCategory, subCategory]);
 
+  const handleMainCategoryChange = (newMainCategory: PostMainCategory) => {
+    setMainCategory(newMainCategory);
+    const currentNewSubTabs = newMainCategory === 'General' ? generalSubTabs : engineSubTabs;
+    const firstSubTab = currentNewSubTabs.find(tab => tab.value !== 'popular');
+    setSubCategory(firstSubTab ? firstSubTab.value : (currentNewSubTabs[0]?.value || 'all'));
+    setCurrentPage(1);
+  };
 
   const handleSubCategoryChange = (newSubCategoryValue: string) => {
     setSubCategory(newSubCategoryValue as PostType | 'popular'| 'all');
@@ -348,10 +343,10 @@ export default function TavernPage() {
 
     if (subCategory === 'popular') {
       posts = posts.sort((a,b) => (b.isPinned ? 1 : 0) - (a.isPinned ? 1 : 0) || b.views - a.views);
-    } else if (subCategory !== 'all') { // Add this condition
+    } else if (subCategory !== 'all') { 
       posts = posts.filter(p => p.type === subCategory);
       posts = posts.sort((a,b) => (b.isPinned ? 1 : 0) - (a.isPinned ? 1 : 0) || new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-    } else { // 'all' posts for the main category, sorted by pinned then date
+    } else { 
       posts = posts.sort((a,b) => (b.isPinned ? 1 : 0) - (a.isPinned ? 1 : 0) || new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
     }
     return posts;
@@ -485,3 +480,4 @@ export default function TavernPage() {
     </div>
   );
 }
+
