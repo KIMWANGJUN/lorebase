@@ -7,7 +7,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ChevronLeft, ChevronRight, ListFilter, LayoutGrid, Box, AppWindow, PenTool } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ListFilter, LayoutGrid, Box, AppWindow, PenTool, ThumbsUp, MessageSquare } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface MiniPostListProps {
@@ -93,12 +93,24 @@ export default function MiniPostList({ allPosts, currentPostId }: MiniPostListPr
               <Link href={`/tavern/${op.id}`} className="block p-3 hover:bg-muted/30 rounded-lg transition-colors">
                 <CardHeader className="p-0">
                   <CardTitle className="font-medium text-md text-foreground hover:text-primary transition-colors line-clamp-1">{op.title}</CardTitle>
-                  <CardDescription className="text-xs text-muted-foreground mt-1 flex items-center flex-wrap gap-x-1.5">
-                    <span>{op.authorNickname}</span>
-                    <span className="hidden sm:inline">·</span>
-                    <span>{new Date(op.createdAt).toLocaleDateString()}</span>
-                    <span className="hidden sm:inline">·</span>
-                    <span className="capitalize bg-secondary/20 px-1.5 py-0.5 rounded-sm text-secondary-foreground/80 text-[10px]">{op.mainCategory} / {op.type}</span>
+                  <CardDescription className="text-xs text-muted-foreground mt-1">
+                    <div className="flex justify-between items-center">
+                      <div className="flex items-center flex-wrap gap-x-1.5">
+                        <span>{op.authorNickname}</span>
+                        <span className="hidden sm:inline">·</span>
+                        <span>{new Date(op.createdAt).toLocaleDateString()}</span>
+                        <span className="hidden sm:inline">·</span>
+                        <span className="capitalize bg-secondary/20 px-1.5 py-0.5 rounded-sm text-secondary-foreground/80 text-[10px]">{op.mainCategory} / {op.type}</span>
+                      </div>
+                      <div className="flex items-center gap-3 text-xs">
+                        <span className="flex items-center">
+                          <ThumbsUp className="mr-1 h-3.5 w-3.5" /> {op.upvotes}
+                        </span>
+                        <span className="flex items-center">
+                          <MessageSquare className="mr-1 h-3.5 w-3.5" /> {op.commentCount}
+                        </span>
+                      </div>
+                    </div>
                   </CardDescription>
                 </CardHeader>
               </Link>
@@ -123,3 +135,4 @@ export default function MiniPostList({ allPosts, currentPostId }: MiniPostListPr
     </section>
   );
 }
+
