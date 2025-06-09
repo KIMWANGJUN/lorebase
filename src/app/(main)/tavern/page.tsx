@@ -45,17 +45,20 @@ const CategoryIcon: FC<{ category: PostMainCategory, className?: string }> = ({ 
 
 interface NicknameDisplayProps {
   author: UserType;
-  postMainCategory: PostMainCategory; // The main category of the post/context where nickname is displayed
+  postMainCategory: PostMainCategory; 
 }
 
 const NicknameDisplay: FC<NicknameDisplayProps> = ({ author, postMainCategory }) => {
-  if (!author) return <span className="text-xs">Unknown User</span>;
+  if (!author) return <span className="text-xs text-foreground">Unknown User</span>;
 
   let finalContainerClass = "default-rank-item-bg";
-  let finalNicknameTextClass = "text-xs"; // Base for nickname text size
-  let finalTitleTextClass = "title-text"; // Base for title text
+  let determinedNicknameColorClass = "text-foreground"; 
+  let determinedTitleColorClass = "";
   let titleElement = null;
   let showCategoryIconInNickname = true; 
+  let nicknameFontWeightClass = "font-normal"; 
+  let nicknameOpacityClass = "";
+
 
   const { 
     rank: globalRank, 
@@ -67,39 +70,42 @@ const NicknameDisplay: FC<NicknameDisplayProps> = ({ author, postMainCategory })
 
   const authorCategoryStats = categoryStats?.[postMainCategory];
   const rankInCurrentCategory = authorCategoryStats?.rankInCate || 0;
+  const displayPreference = selectedDisplayRank || 'default';
 
-  // Determine styling based on fixed priority
-  // This logic attempts to apply ONE primary style set (background, nickname color, title)
   if (username === 'WANGJUNLAND') {
     finalContainerClass = "admin-badge-bg admin-badge-border px-1.5 py-0.5";
-    finalNicknameTextClass = cn(finalNicknameTextClass, "text-admin");
+    determinedNicknameColorClass = "text-admin";
+    nicknameFontWeightClass = "font-semibold";
     showCategoryIconInNickname = false;
-  } else if (globalRank > 0 && globalRank <= 3) { // Global Top 3
+  } else if ((displayPreference === 'default' || displayPreference === 'global') && globalRank > 0 && globalRank <= 3) {
     finalContainerClass = cn(globalRank === 1 && 'rank-1-badge', globalRank === 2 && 'rank-2-badge', globalRank === 3 && 'rank-3-badge', "px-1.5 py-0.5");
-    finalNicknameTextClass = cn(finalNicknameTextClass, globalRank === 1 ? 'text-rank-gold' : globalRank === 2 ? 'text-rank-silver' : 'text-rank-bronze');
-    // No separate title for Global Top 3, badge and nickname color are primary indicators
-  } else if (tetrisRank && tetrisRank > 0 && tetrisRank <= 3) { // Tetris Top 3 (and not Global Top 3)
+    const gradientColor = globalRank === 1 ? 'text-rank-gold' : globalRank === 2 ? 'text-rank-silver' : 'text-rank-bronze';
+    determinedNicknameColorClass = gradientColor;
+    nicknameFontWeightClass = "font-semibold";
+  } else if ((displayPreference === 'default' || displayPreference === 'tetris') && tetrisRank && tetrisRank > 0 && tetrisRank <= 3) {
     const titleText = tetrisTitles[tetrisRank - 1];
-    const gradientColorClass = tetrisRank === 1 ? 'text-rank-gold' : tetrisRank === 2 ? 'text-rank-silver' : 'text-rank-bronze';
-    titleElement = <div className="title-container"><p className={cn(finalTitleTextClass, gradientColorClass)}>{titleText}</p></div>;
-    finalNicknameTextClass = cn(finalNicknameTextClass, gradientColorClass);
-    // Background: if also category top 3, use category highlight, otherwise default
-    if (rankInCurrentCategory > 0 && rankInCurrentCategory <= 3) {
+    const gradientColor = tetrisRank === 1 ? 'text-rank-gold' : tetrisRank === 2 ? 'text-rank-silver' : 'text-rank-bronze';
+    determinedTitleColorClass = gradientColor;
+    titleElement = <div className="title-container"><p className={cn("title-text", determinedTitleColorClass)}>{titleText}</p></div>;
+    determinedNicknameColorClass = gradientColor;
+    nicknameFontWeightClass = "font-semibold";
+    if ((displayPreference === 'default' || displayPreference === `category_${postMainCategory}`) && rankInCurrentCategory > 0 && rankInCurrentCategory <= 3) {
         finalContainerClass = cn(`highlight-${postMainCategory.toLowerCase()}`, "px-1.5 py-0.5");
     } else {
-        finalContainerClass = "default-rank-item-bg px-1.5 py-0.5";
+      finalContainerClass = "default-rank-item-bg px-1.5 py-0.5";
     }
-  } else if (rankInCurrentCategory > 0 && rankInCurrentCategory <= 3) { // Category Top 3 (not Global or Tetris Top 3)
+  } else if ((displayPreference === 'default' || displayPreference === `category_${postMainCategory}`) && rankInCurrentCategory > 0 && rankInCurrentCategory <= 3) {
     const titleText = postMainCategory === 'General' ? '일반 & 유머' : postMainCategory;
-    const gradientColorClass = rankInCurrentCategory === 1 ? 'text-rank-gold' : rankInCurrentCategory === 2 ? 'text-rank-silver' : 'text-rank-bronze';
-    titleElement = <div className="title-container"><p className={cn(finalTitleTextClass, gradientColorClass)}>{titleText}</p></div>;
-    finalNicknameTextClass = cn(finalNicknameTextClass, gradientColorClass); // Category Top 3 Nickname gets gradient
+    const gradientColor = rankInCurrentCategory === 1 ? 'text-rank-gold' : rankInCurrentCategory === 2 ? 'text-rank-silver' : 'text-rank-bronze';
+    determinedTitleColorClass = gradientColor;
+    titleElement = <div className="title-container"><p className={cn("title-text", determinedTitleColorClass)}>{titleText}</p></div>;
+    determinedNicknameColorClass = gradientColor;
+    nicknameFontWeightClass = "font-semibold";
     finalContainerClass = cn(`highlight-${postMainCategory.toLowerCase()}`, "px-1.5 py-0.5");
-  } else if (rankInCurrentCategory > 0 && rankInCurrentCategory <= 10) { // Category Top 4-10
-    finalNicknameTextClass = cn(finalNicknameTextClass, `text-${postMainCategory.toLowerCase()}-themed`, `nickname-text-rank-${rankInCurrentCategory}`);
-    finalContainerClass = "default-rank-item-bg px-1.5 py-0.5";
-  } else { // Default styling if no specific rank applies
-    finalNicknameTextClass = cn(finalNicknameTextClass, "text-foreground");
+  } else if (displayPreference === 'default' && rankInCurrentCategory > 0 && rankInCurrentCategory <= 10) {
+    determinedNicknameColorClass = `text-${postMainCategory.toLowerCase()}-themed`;
+    nicknameFontWeightClass = rankInCurrentCategory <=6 ? "font-medium" : "font-normal";
+    nicknameOpacityClass = `nickname-text-rank-${rankInCurrentCategory}`;
     finalContainerClass = "default-rank-item-bg px-1.5 py-0.5";
   }
   
@@ -112,7 +118,7 @@ const NicknameDisplay: FC<NicknameDisplayProps> = ({ author, postMainCategory })
       <NicknameWrapper {...wrapperProps}>
         <div className={cn(finalContainerClass, "inline-flex items-center gap-1", titleElement && "mt-0.5", NicknameWrapper === 'div' && "p-0")}>
             {showCategoryIconInNickname && postMainCategory && <CategoryIcon category={postMainCategory} className="h-3 w-3" />}
-            <span className={cn("nickname-text", finalNicknameTextClass)}>{author.nickname}</span>
+            <span className={cn("text-xs", nicknameFontWeightClass, determinedNicknameColorClass, nicknameOpacityClass)}>{author.nickname}</span>
         </div>
       </NicknameWrapper>
     </div>
@@ -274,53 +280,52 @@ const CategoryRankingCard: FC<{ category: PostMainCategory, currentUser: UserTyp
       <CardContent className="space-y-3">
         {categoryRankers.map((rankerUser) => {
           let finalContainerClass = "default-rank-item-bg";
-          let finalNicknameTextClass = "text-sm"; // Base for nickname text size
-          let finalTitleTextClass = "title-text"; // Base for title text
+          let determinedNicknameColorClass = "text-foreground";
+          let determinedTitleColorClass = "";
           let titleElement = null;
-          let rankNumberClass = 'text-muted-foreground'; // Default rank number color
+          let rankNumberColorClass = 'text-muted-foreground'; 
           let showCategoryIcon = true;
+          let nicknameFontWeightClass = "font-normal";
+          let nicknameOpacityClass = "";
 
           const { rank: globalRank, tetrisRank, categoryStats, username, selectedDisplayRank } = rankerUser;
           const currentCategoryStats = categoryStats?.[category];
           const rankInCurrentCategory = currentCategoryStats?.rankInCate || 0;
-          const displayRankNumber = rankInCurrentCategory; // Show rank within this category card
+          const displayRankNumber = rankInCurrentCategory; 
+          const displayPreference = selectedDisplayRank || 'default';
 
-          // Determine styling based on fixed priority (Global > Tetris > Category)
-          if (username === 'WANGJUNLAND') { // Should be filtered, but as a fallback
-            finalContainerClass = "admin-badge-bg admin-badge-border";
-            finalNicknameTextClass = cn(finalNicknameTextClass, "text-admin");
-            rankNumberClass = "text-admin";
-            showCategoryIcon = false;
-          } else if (globalRank > 0 && globalRank <= 3) {
+
+          if ((displayPreference === 'default' || displayPreference === 'global') && globalRank > 0 && globalRank <= 3) {
             finalContainerClass = cn(globalRank === 1 && 'rank-1-badge', globalRank === 2 && 'rank-2-badge', globalRank === 3 && 'rank-3-badge');
-            finalNicknameTextClass = cn(finalNicknameTextClass, globalRank === 1 ? 'text-rank-gold' : globalRank === 2 ? 'text-rank-silver' : 'text-rank-bronze');
-            rankNumberClass = finalNicknameTextClass.replace(finalNicknameTextClass.split(" ")[0] + " ", ""); 
-            // No specific title for global rank in category card, main style is global
-          } else if (tetrisRank && tetrisRank > 0 && tetrisRank <= 3) {
+            const gradientColor = globalRank === 1 ? 'text-rank-gold' : globalRank === 2 ? 'text-rank-silver' : 'text-rank-bronze';
+            determinedNicknameColorClass = gradientColor;
+            rankNumberColorClass = gradientColor;
+            nicknameFontWeightClass = "font-semibold";
+          } else if ((displayPreference === 'default' || displayPreference === 'tetris') && tetrisRank && tetrisRank > 0 && tetrisRank <= 3) {
             const titleText = tetrisTitles[tetrisRank - 1];
-            const gradientColorClass = tetrisRank === 1 ? 'text-rank-gold' : tetrisRank === 2 ? 'text-rank-silver' : 'text-rank-bronze';
-            titleElement = <div className="title-container"><p className={cn(finalTitleTextClass, gradientColorClass)}>{titleText}</p></div>;
-            finalNicknameTextClass = cn(finalNicknameTextClass, gradientColorClass);
-            rankNumberClass = gradientColorClass;
-            if (rankInCurrentCategory > 0 && rankInCurrentCategory <= 3 && category === rankerUser.selectedDisplayRank?.replace('category_','')) { // Check if this category is the user's selected display
+            const gradientColor = tetrisRank === 1 ? 'text-rank-gold' : tetrisRank === 2 ? 'text-rank-silver' : 'text-rank-bronze';
+            determinedTitleColorClass = gradientColor;
+            titleElement = <div className="title-container"><p className={cn("title-text", determinedTitleColorClass)}>{titleText}</p></div>;
+            determinedNicknameColorClass = gradientColor;
+            rankNumberColorClass = gradientColor;
+            nicknameFontWeightClass = "font-semibold";
+            if ((displayPreference === 'default' || displayPreference === `category_${category}`) && rankInCurrentCategory > 0 && rankInCurrentCategory <= 3) {
                finalContainerClass = cn(`highlight-${category.toLowerCase()}`);
-            } else {
-               finalContainerClass = "default-rank-item-bg";
             }
-          } else if (rankInCurrentCategory > 0 && rankInCurrentCategory <= 3) { // Category Top 3 is the highest applicable style
+          } else if ((displayPreference === 'default' || displayPreference === `category_${category}`) && rankInCurrentCategory > 0 && rankInCurrentCategory <= 3) {
             const titleText = categoryDisplayName;
-            const gradientColorClass = rankInCurrentCategory === 1 ? 'text-rank-gold' : rankInCurrentCategory === 2 ? 'text-rank-silver' : 'text-rank-bronze';
-            titleElement = <div className="title-container"><p className={cn(finalTitleTextClass, gradientColorClass)}>{titleText}</p></div>;
-            finalNicknameTextClass = cn(finalNicknameTextClass, gradientColorClass); // Nickname gets gradient
-            rankNumberClass = gradientColorClass;
+            const gradientColor = rankInCurrentCategory === 1 ? 'text-rank-gold' : rankInCurrentCategory === 2 ? 'text-rank-silver' : 'text-rank-bronze';
+            determinedTitleColorClass = gradientColor;
+            titleElement = <div className="title-container"><p className={cn("title-text", determinedTitleColorClass)}>{titleText}</p></div>;
+            determinedNicknameColorClass = gradientColor;
+            rankNumberColorClass = gradientColor;
             finalContainerClass = cn(`highlight-${category.toLowerCase()}`);
-          } else if (rankInCurrentCategory > 0 && rankInCurrentCategory <= 10) { // Category Top 4-10
-             finalNicknameTextClass = cn(finalNicknameTextClass, `text-${category.toLowerCase()}-themed`, `nickname-text-rank-${rankInCurrentCategory}`);
-             rankNumberClass = `text-${category.toLowerCase()}-themed`;
-             finalContainerClass = "default-rank-item-bg";
-          } else {
-            finalNicknameTextClass = cn(finalNicknameTextClass, "text-foreground"); // Default if no rank
-            finalContainerClass = "default-rank-item-bg";
+            nicknameFontWeightClass = "font-semibold";
+          } else if (displayPreference === 'default' && rankInCurrentCategory > 0 && rankInCurrentCategory <= 10) {
+             determinedNicknameColorClass = `text-${category.toLowerCase()}-themed`;
+             rankNumberColorClass = `text-${category.toLowerCase()}-themed`;
+             nicknameFontWeightClass = rankInCurrentCategory <=6 ? "font-medium" : "font-normal";
+             nicknameOpacityClass = `nickname-text-rank-${rankInCurrentCategory}`;
           }
           
           const NicknameWrapper = finalContainerClass.includes('highlight-general') && !finalContainerClass.includes('highlight-general-inner') ? 'div' : React.Fragment;
@@ -329,7 +334,7 @@ const CategoryRankingCard: FC<{ category: PostMainCategory, currentUser: UserTyp
           return (
             <div key={rankerUser.id} className={cn("flex items-center justify-between p-2.5", finalContainerClass)}>
               <div className="flex items-center gap-2.5">
-                <span className={cn("font-bold text-md w-5 text-center shrink-0", rankNumberClass)}>
+                <span className={cn("font-bold text-md w-5 text-center shrink-0", rankNumberColorClass)}>
                   {displayRankNumber > 0 ? `${displayRankNumber}.` : "-"}
                 </span>
                 <Avatar className="h-8 w-8 border-2 border-accent/70 shrink-0">
@@ -342,8 +347,8 @@ const CategoryRankingCard: FC<{ category: PostMainCategory, currentUser: UserTyp
                   <NicknameWrapper {...wrapperProps}>
                     <div className={cn("flex items-center gap-1.5", NicknameWrapper === 'div' && "p-0", titleElement && "mt-0.5")}>
                         {showCategoryIcon && <CategoryIcon category={category} className="h-4 w-4" />}
-                        <span className={cn("nickname-text", finalNicknameTextClass)}>
-                        {rankerUser.nickname}
+                        <span className={cn("text-sm", nicknameFontWeightClass, determinedNicknameColorClass, nicknameOpacityClass)}>
+                          {rankerUser.nickname}
                         </span>
                     </div>
                   </NicknameWrapper>
