@@ -9,84 +9,76 @@ body {
 
 @layer base {
   :root {
-    --background: 220 15% 15%; 
-    --foreground: 210 30% 85%; 
+    /* Light Theme - Corrected Values */
+    --background: 0 0% 100%; /* white */
+    --foreground: 222.2 84% 4.9%; /* near black */
 
-    --card: 220 15% 20%; 
-    --card-foreground: 210 30% 85%;
-    --popover: 220 15% 12%; 
-    --popover-foreground: 210 30% 85%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
 
-    --primary: 260 70% 65%; 
-    --primary-foreground: 0 0% 100%; 
+    --primary: 260 70% 55%; /* Adjusted purple for light theme if needed, keeping similar hue */
+    --primary-foreground: 0 0% 100%; /* White text on primary */
 
-    --secondary: 180 50% 45%; 
-    --secondary-foreground: 220 15% 15%; 
+    --secondary: 180 50% 40%; /* Adjusted teal for light theme */
+    --secondary-foreground: 0 0% 100%; /* White text on secondary */
 
-    --muted: 220 10% 30%; 
-    --muted-foreground: 210 20% 65%; 
+    --muted: 210 40% 96.1%; /* light gray */
+    --muted-foreground: 215.4 16.3% 46.9%; /* medium gray */
 
-    --accent: 50 90% 60%; 
-    --accent-foreground: 220 15% 15%; 
+    --accent: 50 90% 55%; /* Adjusted gold/amber for light theme */
+    --accent-foreground: 222.2 84% 4.9%; /* Dark text on accent */
     
     --accent-orange: 30 85% 58%; 
     --accent-yellow: 50 95% 55%; 
 
-    --destructive: 0 65% 50%; 
-    --destructive-foreground: 0 0% 100%;
+    --destructive: 0 84.2% 60.2%; /* Standard destructive red */
+    --destructive-foreground: 0 0% 100%; /* White text on destructive */
 
-    --border: 220 10% 40%; 
-    --input: 220 10% 25%; 
-    --ring: 260 70% 65%; 
+    --border: 214.3 31.8% 91.4%; /* light gray border */
+    --input: 214.3 31.8% 91.4%; /* light gray input background */
+    --ring: 260 70% 55%; /* Ring color matching primary */
 
     --radius: 0.5rem; 
 
-    --chart-1: 260 70% 65%;
-    --chart-2: 180 50% 45%;
-    --chart-3: 50 90% 60%; 
+    --chart-1: 260 70% 55%;
+    --chart-2: 180 50% 40%;
+    --chart-3: 50 90% 55%; 
     --chart-4: 30 85% 58%; 
-    --chart-5: 210 30% 70%;
+    --chart-5: 210 30% 60%; /* Lighter gray for charts on light bg */
 
-    --sidebar-background: 220 15% 12%;
-    --sidebar-foreground: 210 30% 80%;
-    --sidebar-primary: 260 70% 65%;
+    --sidebar-background: 220 15% 95%; /* Very light for sidebar */
+    --sidebar-foreground: 222.2 84% 4.9%;
+    --sidebar-primary: 260 70% 55%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 220 10% 25%;
-    --sidebar-accent-foreground: 210 30% 85%;
-    --sidebar-border: 220 10% 35%;
-    --sidebar-ring: 260 70% 65%;
+    --sidebar-accent: 210 40% 90%; /* Light accent for sidebar */
+    --sidebar-accent-foreground: 222.2 84% 4.9%;
+    --sidebar-border: 214.3 31.8% 88%;
+    --sidebar-ring: 260 70% 55%;
 
-    /* Category Specific Icon/Base HSL Colors */
-    --unity-icon-color-hsl: 220 10% 70%;
-    --unity-bg-light: 220 15% 92%;      
+    /* Category Specific Icon/Base HSL Colors - Light Theme */
+    --unity-icon-color-hsl: 220 10% 40%; /* Darker icon for light bg */
+    --unity-bg-light: 220 25% 94%;      
     --unity-text-light-hsl: 220 15% 25%;   
     --unity-border-light: 220 15% 80%;
-    --unity-bg-dark: 220 15% 28%;      
-    --unity-text-dark-hsl: 220 15% 88%;   
-    --unity-border-dark: 220 15% 45%;
     
-    --unreal-icon-color-hsl: 0 0% 90%;
-    --unreal-bg-light: 0 0% 98%;        
+    --unreal-icon-color-hsl: 0 0% 20%; /* Darker icon for light bg */
+    --unreal-bg-light: 0 0% 97%;        
     --unreal-text-light-hsl: 0 0% 10%;      
     --unreal-border-light: 0 0% 85%;
-    --unreal-bg-dark: 0 0% 15%;        
-    --unreal-text-dark-hsl: 0 0% 90%;      
-    --unreal-border-dark: 0 0% 30%;
 
-    --godot-icon-color-hsl: 200 50% 60%;
+    --godot-icon-color-hsl: 200 50% 40%; /* Darker icon for light bg */
     --godot-bg-light: 200 100% 92%;     
     --godot-text-light-hsl: 200 60% 35%;    
     --godot-border-light: 200 50% 75%;
-    --godot-bg-dark: 200 60% 25%;      
-    --godot-text-dark-hsl: 200 80% 75%;    
-    --godot-border-dark: 200 50% 40%;
 
-    --general-icon-color-hsl: 30 80% 60%;
-    --general-text-light-hsl: 0 0% 100%; 
-    --general-text-dark-hsl: 0 0% 100%;
+    --general-icon-color-hsl: 30 80% 50%; /* Darker icon for light bg */
+    --general-text-light-hsl: 0 0% 100%; /* Text on gradient bg can remain white */
   }
 
   .dark {
+    /* Dark Theme - Values from previous state, seemed mostly okay */
     --background: 220 15% 15%;
     --foreground: 210 30% 85%;
 
@@ -131,6 +123,21 @@ body {
     --unreal-icon-color-hsl: 0 0% 70%;
     --godot-icon-color-hsl: 200 50% 50%;
     --general-icon-color-hsl: 30 80% 55%;
+
+    /* Category Specific Background & Default Text Colors for Nickname Containers - Dark Theme */
+    --unity-bg-dark: 220 15% 28%;      
+    --unity-text-dark-hsl: 220 15% 88%;   
+    --unity-border-dark: 220 15% 45%;
+    
+    --unreal-bg-dark: 0 0% 15%;        
+    --unreal-text-dark-hsl: 0 0% 90%;      
+    --unreal-border-dark: 0 0% 30%;
+
+    --godot-bg-dark: 200 60% 25%;      
+    --godot-text-dark-hsl: 200 80% 75%;    
+    --godot-border-dark: 200 50% 40%;
+    
+    --general-text-dark-hsl: 0 0% 100%; /* Text on gradient bg can remain white */
   }
 }
 
@@ -232,17 +239,13 @@ body {
 .highlight-general-inner { /* Inner div for actual content padding & rainbow gradient BG */
    @apply px-1.5 py-0.5 rounded-[calc(var(--radius)-1px)] /* Inner radius slightly smaller */
           bg-gradient-to-r from-violet-500 via-indigo-500 via-blue-500 via-green-500 via-yellow-500 via-orange-500 to-red-500;
-  color: hsl(var(--general-text-light-hsl)); /* Default text color for this highlight */
-}
-.dark .highlight-general-inner {
-  color: hsl(var(--general-text-dark-hsl));
 }
 /* Text inside .highlight-general-inner needs specific styling if not inheriting */
-.highlight-general-inner .nickname-text {
+.highlight-general-inner .nickname-text, .highlight-general-inner .title-text { /* Also apply to titles if they are inside */
   color: hsl(var(--general-text-light-hsl)) !important; 
   @apply drop-shadow-[0_1px_1px_rgba(0,0,0,0.7)]; 
 }
-.dark .highlight-general-inner .nickname-text {
+.dark .highlight-general-inner .nickname-text, .dark .highlight-general-inner .title-text {
   color: hsl(var(--general-text-dark-hsl)) !important;
   @apply drop-shadow-[0_1px_1px_rgba(0,0,0,0.7)];
 }
@@ -252,22 +255,18 @@ body {
 
 /* Category Icon Colors (standalone icons) */
 .text-unity-icon { color: hsl(var(--unity-icon-color-hsl)); }
-.dark .text-unity-icon { color: hsl(var(--unity-icon-color-hsl)); } 
+/* .dark .text-unity-icon already defined if same as light, or define specifically if different */
 
 .text-unreal-icon { color: hsl(var(--unreal-icon-color-hsl)); }
-.dark .text-unreal-icon { color: hsl(var(--unreal-icon-color-hsl)); }
 
 .text-godot-icon { color: hsl(var(--godot-icon-color-hsl)); }
-.dark .text-godot-icon { color: hsl(var(--godot-icon-color-hsl)); }
 
 .text-general-icon { color: hsl(var(--general-icon-color-hsl)); }
-.dark .text-general-icon { color: hsl(var(--general-icon-color-hsl)); }
 
 
 /* Nickname Text Styling (Font weight, Opacity) - To be applied to the span containing the nickname */
-/* The actual color will be inherited from the parent container's text color setting or specific text color class */
-/* These are primarily for adjusting emphasis, not for setting base color if a gradient or specific theme color is applied */
-.nickname-text-rank-1 { @apply font-bold opacity-100; }
+/* The actual color will be inherited from the parent container's text color setting or specific text color class (e.g. gradient or themed solid) */
+.nickname-text-rank-1 { @apply font-bold opacity-100; } /* Usually used with gradient, so font-bold is fine */
 .nickname-text-rank-2 { @apply font-semibold opacity-95; }
 .nickname-text-rank-3 { @apply font-semibold opacity-90; }
 .nickname-text-rank-4 { @apply font-medium opacity-85; }
@@ -280,5 +279,8 @@ body {
 
 .title-container { /* For centering titles above nicknames */
   @apply w-full text-center mb-0.5;
+}
+.title-text { /* Base class for title text, color will be applied specifically */
+ @apply text-[0.7rem] leading-tight font-semibold tracking-tight;
 }
     

@@ -164,7 +164,7 @@ export default function ProfilePage() {
   if (isAdmin) {
     headerNicknameClass = cn(headerNicknameClass, "text-admin");
     headerRankText = "관리자";
-    headerRankTextClass = "text-admin";
+    headerRankTextClass = "text-admin"; // This will be a gradient too
     headerContainerClass = "admin-badge-bg admin-badge-border";
   } else if (user.rank > 0 && user.rank <= 3) { 
     headerNicknameClass = cn(headerNicknameClass, user.rank === 1 ? "text-rank-gold" : user.rank === 2 ? "text-rank-silver" : "text-rank-bronze");
@@ -175,6 +175,8 @@ export default function ProfilePage() {
       user.rank === 2 && 'rank-2-badge',
       user.rank === 3 && 'rank-3-badge'
     );
+  } else {
+     headerNicknameClass = cn(headerNicknameClass, "text-foreground"); // Default for non-top 3
   }
  
 
@@ -340,15 +342,19 @@ export default function ProfilePage() {
           <CardContent>
             <div className="space-y-3 max-h-[500px] overflow-y-auto p-1">
               {mockUsers.filter(u => u.username !== 'WANGJUNLAND' && u.rank > 0).sort((a, b) => a.rank - b.rank).map((rankerUser) => { 
-                let finalNicknameSpanClass = "font-medium text-foreground"; // Default
+                let finalNicknameTextClass = "font-medium"; // Base for nickname text size
                 let finalItemContainerClass = "default-rank-item-bg";
                 let rankNumberClass = "text-muted-foreground";
 
+                // Priority: Global Top 3
                 if (rankerUser.rank > 0 && rankerUser.rank <= 3) {
                   finalItemContainerClass = cn(rankerUser.rank === 1 && 'rank-1-badge', rankerUser.rank === 2 && 'rank-2-badge', rankerUser.rank === 3 && 'rank-3-badge');
-                  finalNicknameSpanClass = cn("font-medium", rankerUser.rank === 1 ? 'text-rank-gold' : rankerUser.rank === 2 ? 'text-rank-silver' : 'text-rank-bronze');
-                  rankNumberClass = finalNicknameSpanClass.replace("font-medium ", "");
+                  finalNicknameTextClass = cn(finalNicknameTextClass, rankerUser.rank === 1 ? 'text-rank-gold' : rankerUser.rank === 2 ? 'text-rank-silver' : 'text-rank-bronze');
+                   rankNumberClass = finalNicknameTextClass.replace("font-medium ", ""); // Keep only gradient
+                } else {
+                   finalNicknameTextClass = cn(finalNicknameTextClass, "text-foreground"); // Default if not top 3
                 }
+
 
                 return (
                   <div key={rankerUser.id} className={cn("flex items-center justify-between p-3 rounded-lg border", 
@@ -363,7 +369,7 @@ export default function ProfilePage() {
                         <Image src={rankerUser.avatar || `https://placehold.co/40x40.png?text=${rankerUser.nickname.substring(0,1)}`} alt={rankerUser.nickname} width={40} height={40} className="rounded-full" data-ai-hint="fantasy character icon" />
                         <AvatarFallback className="bg-muted text-muted-foreground">{rankerUser.nickname.substring(0,1)}</AvatarFallback>
                       </Avatar>
-                      <span className={finalNicknameSpanClass}>
+                      <span className={finalNicknameTextClass}>
                         {rankerUser.nickname}
                       </span>
                     </div>
