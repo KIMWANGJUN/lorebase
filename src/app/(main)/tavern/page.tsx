@@ -45,11 +45,7 @@ const PostItem = ({ post, isAdmin }: { post: Post, isAdmin: boolean }) => {
   const isAuthorAdmin = author?.username === 'WANGJUNLAND';
   const isAuthorGlobalTopRanker = author && !isAuthorAdmin && author.rank > 0 && author.rank <= 3;
   
-  // Use displayRank (index in sorted list) for category highlight decisions
   const authorCategoryStats = author?.categoryStats?.[post.mainCategory];
-  // For PostItem, we might not have the current 'displayRank' in a list easily.
-  // So, we rely on the pre-calculated 'rank' in mockData for individual posts for now.
-  // This logic might need to be revisited if category rank for post author is crucial and dynamic.
   const isAuthorCategoryTopRanker = authorCategoryStats?.rank && authorCategoryStats.rank > 0 && authorCategoryStats.rank <= 3;
 
 
@@ -63,7 +59,6 @@ const PostItem = ({ post, isAdmin }: { post: Post, isAdmin: boolean }) => {
         </div>
       );
     }
-    // Global ranker display
     if (isAuthorGlobalTopRanker) {
       return (
          <div className={cn(
@@ -85,7 +80,6 @@ const PostItem = ({ post, isAdmin }: { post: Post, isAdmin: boolean }) => {
         </div>
       );
     }
-    // Category specific ranker display (if not global top 3)
     if (isAuthorCategoryTopRanker) {
       return (
         <span className={cn(
@@ -239,24 +233,24 @@ const CategoryRankingCard: FC<{ category: PostMainCategory, isAdmin: boolean }> 
       <CardContent className="space-y-3">
         {categoryRankers.map((ranker, index) => {
           const displayRank = index + 1;
-          const isDisplayRankTop3 = displayRank <= 3; // Use displayRank for top 3 highlight
+          const isDisplayRankTop3 = displayRank <= 3;
 
           return (
             <div key={ranker.id} className="flex items-center justify-between p-2.5 bg-background/30 rounded-lg border border-border/50">
               <div className="flex items-center gap-2.5">
                 <span className={cn(
                   "font-bold text-md w-5 text-center",
-                  displayRank === 1 && (category === 'Unity' ? 'text-unity-rank' : category === 'Unreal' ? 'text-unreal-rank' : category === 'Godot' ? 'text-godot-rank' : 'text-general-rank'),
-                  displayRank === 2 && (category === 'Unity' ? 'text-unity-rank opacity-80' : category === 'Unreal' ? 'text-unreal-rank opacity-80' : category === 'Godot' ? 'text-godot-rank opacity-80' : 'text-general-rank opacity-80'),
-                  displayRank === 3 && (category === 'Unity' ? 'text-unity-rank opacity-70' : category === 'Unreal' ? 'text-unreal-rank opacity-70' : category === 'Godot' ? 'text-godot-rank opacity-70' : 'text-general-rank opacity-70'),
-                  displayRank > 3 && "text-muted-foreground"
+                  isDisplayRankTop3 && displayRank === 1 && (category === 'Unity' ? 'text-unity-rank' : category === 'Unreal' ? 'text-unreal-rank' : category === 'Godot' ? 'text-godot-rank' : 'text-general-rank'),
+                  isDisplayRankTop3 && displayRank === 2 && (category === 'Unity' ? 'text-unity-rank opacity-80' : category === 'Unreal' ? 'text-unreal-rank opacity-80' : category === 'Godot' ? 'text-godot-rank opacity-80' : 'text-general-rank opacity-80'),
+                  isDisplayRankTop3 && displayRank === 3 && (category === 'Unity' ? 'text-unity-rank opacity-70' : category === 'Unreal' ? 'text-unreal-rank opacity-70' : category === 'Godot' ? 'text-godot-rank opacity-70' : 'text-general-rank opacity-70'),
+                  !isDisplayRankTop3 && "text-muted-foreground"
                 )}>{displayRank}.</span>
                 <Avatar className="h-8 w-8 border-2 border-accent/70">
                   <Image src={ranker.avatar || `https://placehold.co/40x40.png?text=${ranker.nickname.substring(0,1)}`} alt={ranker.nickname} width={32} height={32} className="rounded-full" data-ai-hint="user avatar"/>
                   <AvatarFallback className="text-xs bg-muted text-muted-foreground">{ranker.nickname.substring(0,1)}</AvatarFallback>
                 </Avatar>
                 <div className={cn("font-medium rounded-md px-2 py-0.5 text-sm flex items-center gap-1",
-                    isDisplayRankTop3 && { // Apply badge background if in displayed top 3
+                    isDisplayRankTop3 && { 
                       'category-rank-unity': category === 'Unity',
                       'category-rank-unreal': category === 'Unreal',
                       'category-rank-godot': category === 'Godot',
@@ -267,7 +261,7 @@ const CategoryRankingCard: FC<{ category: PostMainCategory, isAdmin: boolean }> 
                   {isDisplayRankTop3 && <CategoryIcon category={category} className="h-3.5 w-3.5" />}
                   <span className={cn(
                       "font-semibold",
-                      isDisplayRankTop3 && { // Apply text color if in displayed top 3
+                      isDisplayRankTop3 && { 
                         'text-unity-rank': category === 'Unity',
                         'text-unreal-rank': category === 'Unreal',
                         'text-godot-rank': category === 'Godot',
@@ -408,8 +402,10 @@ export default function TavernPage() {
           />
         </div>
         {user && (
-          <Button className="w-full md:w-auto bg-gradient-to-r from-green-500 to-teal-500 text-primary-foreground hover:opacity-90 shadow-md">
-            <PlusCircle className="mr-2 h-5 w-5" /> 새 글 작성
+          <Button asChild className="w-full md:w-auto bg-gradient-to-r from-green-500 to-teal-500 text-primary-foreground hover:opacity-90 shadow-md">
+            <Link href="/tavern/new">
+              <PlusCircle className="mr-2 h-5 w-5" /> 새 글 작성
+            </Link>
           </Button>
         )}
       </div>
