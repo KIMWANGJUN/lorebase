@@ -12,6 +12,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { MessageSquare, CornerDownRight, Send, Edit3, Save, XCircle, Box, AppWindow, PenTool, LayoutGrid } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import Link from 'next/link'; // Added import
 
 // Helper to generate unique IDs for new comments/replies
 const generateId = () => `comment_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
