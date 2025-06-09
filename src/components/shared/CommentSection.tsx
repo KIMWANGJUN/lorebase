@@ -12,13 +12,13 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { MessageSquare, CornerDownRight, Send, Edit3, Save, XCircle, Box, AppWindow, PenTool, LayoutGrid } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import Link from 'next/link'; // Added import
+import Link from 'next/link';
 
 // Helper to generate unique IDs for new comments/replies
 const generateId = () => `comment_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
 const MAX_REPLY_DEPTH = 3; // 0 (top-level), 1 (reply), 2 (reply to reply)
 
-const CategoryIcon: FC<{ category: PostMainCategory, className?: string }> = ({ category, className = "h-3 w-3" }) => {
+const CategoryIcon: FC<{ category: PostMainCategory, className?: string }> = ({ category, className = "h-3.5 w-3.5" }) => { // Default size changed slightly
   switch (category) {
     case 'Unity': return <Box className={cn(className, "text-purple-500")} />;
     case 'Unreal': return <AppWindow className={cn(className, "text-sky-500")} />;
@@ -31,7 +31,7 @@ const CategoryIcon: FC<{ category: PostMainCategory, className?: string }> = ({ 
 interface CommentEntryProps {
   comment: CommentType;
   currentUser: User | null;
-  postMainCategory: PostMainCategory; // Added to determine category context for rank
+  postMainCategory: PostMainCategory;
   onAddReply: (parentId: string, replyContent: string) => void;
   onEditComment: (commentId: string, newContent: string) => void;
   depth?: number;
@@ -93,6 +93,8 @@ const CommentEntry = ({ comment, currentUser, postMainCategory, onAddReply, onEd
   const NicknameDisplay = () => {
     if (!author) return <p className="text-sm font-medium text-foreground">{comment.authorNickname}</p>;
 
+    const authorHasCategoryPresence = author?.categoryStats?.[postMainCategory]?.score !== undefined && author.categoryStats[postMainCategory].score > 0;
+
     if (isAuthorAdmin) {
       return (
         <div className="admin-badge-bg admin-badge-border rounded-lg px-2 py-0.5 inline-flex items-center gap-1">
@@ -109,7 +111,7 @@ const CommentEntry = ({ comment, currentUser, postMainCategory, onAddReply, onEd
             author.rank === 3 && 'rank-3-badge'
           )}
         >
-          {isAuthorCategoryTopRanker && <CategoryIcon category={postMainCategory} className="h-3 w-3" />}
+          {isAuthorCategoryTopRanker && <CategoryIcon category={postMainCategory} className="h-3.5 w-3.5" />}
           <p className={cn(
             "text-sm font-semibold",
             author.rank === 1 && 'rank-1-text',
@@ -124,16 +126,24 @@ const CommentEntry = ({ comment, currentUser, postMainCategory, onAddReply, onEd
     if (isAuthorCategoryTopRanker) {
       return (
         <span className={cn(
-          "category-rank-nickname text-sm",
+          "category-rank-nickname text-sm inline-flex items-center gap-1",
           postMainCategory === 'Unity' && 'category-rank-unity',
           postMainCategory === 'Unreal' && 'category-rank-unreal',
           postMainCategory === 'Godot' && 'category-rank-godot',
           postMainCategory === 'General' && 'category-rank-general',
         )}>
-          <CategoryIcon category={postMainCategory} className="h-3 w-3 mr-1" />
+          <CategoryIcon category={postMainCategory} className="h-3.5 w-3.5" />
           {comment.authorNickname}
         </span>
       );
+    }
+    if (authorHasCategoryPresence) {
+         return (
+            <p className="text-sm font-medium text-foreground inline-flex items-center gap-1">
+                <CategoryIcon category={postMainCategory} className="h-3.5 w-3.5" />
+                {comment.authorNickname}
+            </p>
+         );
     }
     return <p className="text-sm font-medium text-foreground">{comment.authorNickname}</p>;
   };
@@ -225,7 +235,7 @@ const CommentEntry = ({ comment, currentUser, postMainCategory, onAddReply, onEd
 interface CommentSectionProps {
   postId: string;
   initialComments: CommentType[];
-  postMainCategory: PostMainCategory; // Added prop
+  postMainCategory: PostMainCategory;
 }
 
 export default function CommentSection({ postId, initialComments, postMainCategory }: CommentSectionProps) {
@@ -376,3 +386,4 @@ export default function CommentSection({ postId, initialComments, postMainCatego
     </Card>
   );
 }
+

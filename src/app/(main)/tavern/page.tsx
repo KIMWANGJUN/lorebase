@@ -24,7 +24,7 @@ import { cn } from '@/lib/utils';
 const POSTS_PER_PAGE = 10;
 const RANKERS_TO_SHOW_TAVERN = 10; 
 
-const CategoryIcon: FC<{ category: PostMainCategory, className?: string }> = ({ category, className = "h-4 w-4 shrink-0" }) => { // Added shrink-0
+const CategoryIcon: FC<{ category: PostMainCategory, className?: string }> = ({ category, className = "h-4 w-4 shrink-0" }) => {
   switch (category) {
     case 'Unity': return <Box className={cn(className, "text-purple-500")} />;
     case 'Unreal': return <AppWindow className={cn(className, "text-sky-500")} />;
@@ -53,6 +53,8 @@ const PostItem = ({ post, isAdmin, router }: { post: Post, isAdmin: boolean, rou
 
   const NicknameDisplay = () => {
     if (!author) return <span className="text-xs">{authorDisplayName}</span>;
+
+    const authorHasCategoryPresence = author?.categoryStats?.[post.mainCategory]?.score !== undefined && author.categoryStats[post.mainCategory].score > 0;
 
     if (isAuthorAdmin) {
       return (
@@ -85,16 +87,24 @@ const PostItem = ({ post, isAdmin, router }: { post: Post, isAdmin: boolean, rou
     if (isAuthorCategoryTopRanker) {
       return (
         <span className={cn(
-          "category-rank-nickname text-xs px-1.5 py-0.5",
+          "category-rank-nickname text-xs px-1.5 py-0.5 inline-flex items-center gap-1",
           post.mainCategory === 'Unity' && 'category-rank-unity',
           post.mainCategory === 'Unreal' && 'category-rank-unreal',
           post.mainCategory === 'Godot' && 'category-rank-godot',
           post.mainCategory === 'General' && 'category-rank-general',
         )}>
-          <CategoryIcon category={post.mainCategory} className="h-3 w-3 mr-1" />
+          <CategoryIcon category={post.mainCategory} className="h-3 w-3" />
           {authorDisplayName}
         </span>
       );
+    }
+    if (authorHasCategoryPresence) {
+         return (
+            <span className="text-xs inline-flex items-center gap-1">
+                <CategoryIcon category={post.mainCategory} className="h-3 w-3" />
+                {authorDisplayName}
+            </span>
+         );
     }
     return <span className="text-xs">{authorDisplayName}</span>;
   };
