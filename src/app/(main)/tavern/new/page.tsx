@@ -14,7 +14,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter }
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from "@/hooks/use-toast";
 import type { PostMainCategory, PostType } from '@/types';
-import { ArrowLeft, FilePlus2, LayoutPanelLeft, PenLine, Send, ListFilter } from 'lucide-react';
+import { ArrowLeft, FilePlus2, LayoutPanelLeft, PenLine, Send, ListFilter, Bold, Italic, Strikethrough } from 'lucide-react';
 
 const mainCategories: { value: PostMainCategory; label: string }[] = [
   { value: 'Unity', label: 'Unity 게시판' },
@@ -189,6 +189,20 @@ export default function NewPostPage() {
                 <PenLine className="h-4 w-4 mr-2 text-primary" />
                 본문 내용
               </Label>
+              <div className="mb-2 p-2 border border-input rounded-md bg-background flex gap-1">
+                <Button variant="outline" size="icon" type="button" title="Bold" className="h-8 w-8">
+                  <Bold className="h-4 w-4" />
+                </Button>
+                <Button variant="outline" size="icon" type="button" title="Italic" className="h-8 w-8">
+                  <Italic className="h-4 w-4" />
+                </Button>
+                <Button variant="outline" size="icon" type="button" title="Strikethrough" className="h-8 w-8">
+                  <Strikethrough className="h-4 w-4" />
+                </Button>
+                {/* TODO: Add more formatting buttons here (font size, color etc.) 
+                    These buttons are currently placeholders. 
+                    Full functionality requires a Rich Text Editor component. */}
+              </div>
               <Textarea
                 id="content"
                 placeholder="게시글 내용을 작성해주세요."
