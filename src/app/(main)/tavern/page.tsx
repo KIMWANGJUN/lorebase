@@ -10,6 +10,8 @@ import { mockPosts, mockUsers } from '@/lib/mockData';
 import type { Post, PostMainCategory, PostType, User } from '@/types';
 import Link from 'next/link';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation'; // Ensure useRouter is imported
+import type { AppRouterInstance } from 'next/dist/shared/lib/app-router-context.shared-runtime'; // Import AppRouterInstance
 import { 
   Search, PlusCircle, MessageSquare, ThumbsUp, ThumbsDown, Eye, Pin, Edit, Trash2, 
   ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, ScrollText,
@@ -32,7 +34,7 @@ const CategoryIcon: FC<{ category: PostMainCategory, className?: string }> = ({ 
   }
 };
 
-const PostItem = ({ post, isAdmin }: { post: Post, isAdmin: boolean }) => {
+const PostItem = ({ post, isAdmin, router }: { post: Post, isAdmin: boolean, router: AppRouterInstance }) => {
   const author = mockUsers.find(u => u.id === post.authorId);
   const authorDisplayName = author?.nickname || post.authorNickname;
   const authorAvatar = author?.avatar;
@@ -105,7 +107,7 @@ const PostItem = ({ post, isAdmin }: { post: Post, isAdmin: boolean }) => {
         isNotice && "bg-primary/10 dark:bg-primary/20 border-primary/50 dark:border-primary/70"
       )}
     >
-      <Link href={`/tavern/${post.id}`} className="block hover:bg-card/5 transition-colors rounded-lg">
+      <Link href={`/tavern/${post.id}`} className="block hover:bg-card/5 transition-colors rounded-lg relative">
         <CardHeader className="pb-1 pt-2 px-3">
           <div className="flex justify-between items-start">
             <CardTitle className="font-headline text-md mb-0.5 flex items-center text-foreground">
@@ -296,7 +298,7 @@ export default function TavernPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const { user, isAdmin } = useAuth();
-  const router = useRouter(); // Added for admin edit button
+  const router = useRouter(); 
 
   const handleMainCategoryChange = (newMainCategory: PostMainCategory) => {
     setMainCategory(newMainCategory);
@@ -433,7 +435,7 @@ export default function TavernPage() {
           {currentPostsToDisplay.length > 0 ? (
             <div className="space-y-3"> 
               {currentPostsToDisplay.map((post) => (
-                <PostItem key={post.id} post={post} isAdmin={!!isAdmin} />
+                <PostItem key={post.id} post={post} isAdmin={!!isAdmin} router={router} />
               ))}
             </div>
           ) : (
@@ -464,3 +466,4 @@ export default function TavernPage() {
     </div>
   );
 }
+
