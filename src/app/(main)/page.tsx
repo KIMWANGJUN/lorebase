@@ -31,21 +31,22 @@ const CategorySpecificIcon: React.FC<{ category: PostMainCategory, className?: s
 };
 
 const mockTetrisRankings = {
-  weekly: [
-    { id: 'trw1', nickname: 'TetrisGod', score: 150000 },
-    { id: 'trw2', nickname: 'BlockMaster', score: 125000 },
-    { id: 'trw3', nickname: 'LineClearer', score: 110000 },
-    { id: 'trw4', nickname: 'SpeedyPlayer', score: 95000 },
-    { id: 'trw5', nickname: 'RookieNo1', score: 80000 },
-  ],
-  monthly: [
+  monthly: [ // 주간 랭킹은 제거되었으므로 월간만 남깁니다.
     { id: 'trm1', nickname: 'TetrisGod', score: 2500000 },
     { id: 'trm2', nickname: 'ConsistentPlayer', score: 2200000 },
     { id: 'trm3', nickname: 'BlockMaster', score: 1900000 },
     { id: 'trm4', nickname: 'Marathoner', score: 1600000 },
     { id: 'trm5', nickname: 'TopTier', score: 1400000 },
+    { id: 'trm6', nickname: 'StackerPro', score: 1350000 },
+    { id: 'trm7', nickname: 'ComboKing', score: 1200000 },
   ]
 };
+
+const tetrisTitles = [
+  '"테트리스" 그 자체',
+  '"테트리스" 그랜드 마스터',
+  '"테트리스" 마스터',
+];
 
 
 export default function HomePage() {
@@ -114,7 +115,7 @@ export default function HomePage() {
     <div className="container mx-auto py-8 px-4">
       <section className="grid lg:grid-cols-3 gap-8 mb-16 mt-8">
         <div className="lg:col-span-2">
-          <Card className="shadow-xl bg-card border-border">
+          <Card className="shadow-xl bg-card border-border h-full">
             <CardHeader>
               <CardTitle className="text-center font-headline text-2xl text-primary flex items-center justify-center">
                 <Gamepad2 className="inline-block h-7 w-7 mr-2 text-accent" />
@@ -137,58 +138,43 @@ export default function HomePage() {
           </Card>
         </div>
         <div className="lg:col-span-1">
-          <Card className="shadow-xl bg-card border-border">
+          <Card className="shadow-xl bg-card border-border h-full">
             <CardHeader>
               <CardTitle className="text-center font-headline text-xl text-foreground flex items-center justify-center">
                 <Trophy className="inline-block h-6 w-6 mr-2 text-accent" />
-                테트리스 랭킹
+                테트리스 월간 랭킹
               </CardTitle>
             </CardHeader>
             <CardContent className="p-4">
-              <Tabs defaultValue="weekly" className="w-full">
-                <TabsList className="grid w-full grid-cols-2 mb-4 bg-card border-border p-1 rounded-lg shadow-inner">
-                  <TabsTrigger value="weekly" className="text-xs px-1 py-1.5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">주간</TabsTrigger>
-                  <TabsTrigger value="monthly" className="text-xs px-1 py-1.5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">월간</TabsTrigger>
-                </TabsList>
-                <TabsContent value="weekly">
-                  <div className="space-y-2">
-                    {mockTetrisRankings.weekly.map((ranker, index) => (
-                      <div key={ranker.id} className="flex items-center justify-between p-2 bg-background/30 rounded-lg border border-border/50 text-sm">
-                        <div className="flex items-center gap-2">
-                          <span className={cn("font-bold w-5 text-center", 
-                            index < 3 ? (index === 0 ? 'rank-1-text' : index === 1 ? 'rank-2-text' : 'rank-3-text') : 'text-muted-foreground'
-                          )}>{index + 1}.</span>
-                          <Avatar className="h-6 w-6 border-2 border-accent/50">
-                             <AvatarImage src={`https://placehold.co/40x40.png?text=${ranker.nickname.substring(0,1)}`} alt={ranker.nickname} data-ai-hint="gamer avatar" />
-                             <AvatarFallback className="text-xs bg-muted text-muted-foreground">{ranker.nickname.substring(0,1)}</AvatarFallback>
-                          </Avatar>
-                          <span className="font-medium text-foreground">{ranker.nickname}</span>
-                        </div>
-                        <span className="text-xs font-semibold text-accent">{ranker.score.toLocaleString()} 점</span>
+              <div className="space-y-2">
+                {mockTetrisRankings.monthly.map((ranker, index) => (
+                  <div key={ranker.id} className="flex items-center justify-between p-2.5 bg-background/30 rounded-lg border border-border/50 text-sm">
+                    <div className="flex items-center gap-2">
+                      <span className={cn("font-bold w-5 text-center shrink-0", 
+                        index < 3 ? (index === 0 ? 'rank-1-text' : index === 1 ? 'rank-2-text' : 'rank-3-text') : 'text-muted-foreground'
+                      )}>{index + 1}.</span>
+                      <Avatar className="h-8 w-8 border-2 border-accent/50 shrink-0">
+                          <AvatarImage src={`https://placehold.co/40x40.png?text=${ranker.nickname.substring(0,1)}`} alt={ranker.nickname} data-ai-hint="gamer avatar" />
+                          <AvatarFallback className="text-xs bg-muted text-muted-foreground">{ranker.nickname.substring(0,1)}</AvatarFallback>
+                      </Avatar>
+                      <div className="flex flex-col">
+                        {index < 3 && tetrisTitles[index] && (
+                          <p className={cn(
+                            "text-[0.65rem] leading-tight font-semibold tracking-tight mb-0.5",
+                            index === 0 && "text-yellow-400", // Gold
+                            index === 1 && "text-slate-300",  // Silver
+                            index === 2 && "text-orange-400"   // Bronze
+                          )}>{tetrisTitles[index]}</p>
+                        )}
+                        <span className={cn("font-medium", 
+                          index < 3 ? (index === 0 ? 'rank-1-text' : index === 1 ? 'rank-2-text' : 'rank-3-text') : 'text-foreground'
+                        )}>{ranker.nickname}</span>
                       </div>
-                    ))}
+                    </div>
+                    <span className="text-xs font-semibold text-accent shrink-0">{ranker.score.toLocaleString()} 점</span>
                   </div>
-                </TabsContent>
-                <TabsContent value="monthly">
-                   <div className="space-y-2">
-                    {mockTetrisRankings.monthly.map((ranker, index) => (
-                       <div key={ranker.id} className="flex items-center justify-between p-2 bg-background/30 rounded-lg border border-border/50 text-sm">
-                        <div className="flex items-center gap-2">
-                          <span className={cn("font-bold w-5 text-center", 
-                            index < 3 ? (index === 0 ? 'rank-1-text' : index === 1 ? 'rank-2-text' : 'rank-3-text') : 'text-muted-foreground'
-                          )}>{index + 1}.</span>
-                           <Avatar className="h-6 w-6 border-2 border-accent/50">
-                             <AvatarImage src={`https://placehold.co/40x40.png?text=${ranker.nickname.substring(0,1)}`} alt={ranker.nickname} data-ai-hint="gamer avatar" />
-                             <AvatarFallback className="text-xs bg-muted text-muted-foreground">{ranker.nickname.substring(0,1)}</AvatarFallback>
-                          </Avatar>
-                          <span className="font-medium text-foreground">{ranker.nickname}</span>
-                        </div>
-                        <span className="text-xs font-semibold text-accent">{ranker.score.toLocaleString()} 점</span>
-                      </div>
-                    ))}
-                  </div>
-                </TabsContent>
-              </Tabs>
+                ))}
+              </div>
             </CardContent>
              <CardFooter className="justify-center pt-2">
               <Button variant="outline" size="sm" className="border-accent/50 text-accent hover:bg-accent/10 hover:text-accent/90">
@@ -285,7 +271,8 @@ export default function HomePage() {
                         {rankedUsersToDisplay.map((ranker, index) => {
                           const displayRank = index + 1;
                           const isGlobalTop3 = activeRankingTab === 'Global' && displayRank <= 3;
-                          const isCategoryTop3 = activeRankingTab !== 'Global' && displayRank <= 3 && (ranker.categoryStats?.[activeRankingTab as PostMainCategory]?.rank ?? 0) > 0;
+                          // Corrected: Highlighting is based on the current displayRank (index + 1) within the filtered category list.
+                          const isCategoryTop3 = activeRankingTab !== 'Global' && displayRank <= 3;
 
 
                           return (
