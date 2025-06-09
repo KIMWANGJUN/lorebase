@@ -38,19 +38,17 @@ const CategorySpecificIcon: FC<{ category: PostMainCategory, className?: string 
 interface NicknameDisplayProps {
   author: UserType;
   postMainCategory: PostMainCategory; 
+  baseNicknameClass?: string;
+  baseTitleClass?: string;
 }
 
-const NicknameDisplay: FC<NicknameDisplayProps> = ({ author, postMainCategory }) => {
-  if (!author) return <span className="font-medium text-foreground">Unknown User</span>;
+const NicknameDisplay: FC<NicknameDisplayProps> = ({ author, postMainCategory, baseNicknameClass = "font-medium", baseTitleClass = "title-text" }) => {
+  if (!author) return <span className={cn(baseNicknameClass, "text-foreground")}>Unknown User</span>;
 
   let finalContainerClass = "default-rank-item-bg";
   let titleElement = null;
-
-  let nicknameBaseClasses = "font-medium"; // Base classes for nickname, includes font-size
-  let titleBaseClasses = "title-text"; // Base classes for title
-  
-  let determinedNicknameColorClass = "";
-  let determinedTitleColorClass = "";
+  let finalNicknameClasses = baseNicknameClass; // 기본 폰트 두께 등 포함 가능
+  let finalTitleClasses = baseTitleClass;
   
   const { 
     rank: globalRank, 
@@ -64,51 +62,54 @@ const NicknameDisplay: FC<NicknameDisplayProps> = ({ author, postMainCategory })
   const authorCategoryStats = categoryStats?.[postMainCategory];
   const rankInCurrentCategory = authorCategoryStats?.rankInCate || 0;
   const displayPreference = selectedDisplayRank || 'default';
+  let isGeneralHighlightActive = false;
   
   if (username === 'WANGJUNLAND') {
     finalContainerClass = "admin-badge-bg admin-badge-border px-1.5 py-0.5";
-    determinedNicknameColorClass = "text-admin";
+    finalNicknameClasses = `${baseNicknameClass} text-admin`;
   } else if ((displayPreference === 'default' || displayPreference === 'global') && globalRank > 0 && globalRank <= 3) {
     finalContainerClass = cn(globalRank === 1 && 'rank-1-badge', globalRank === 2 && 'rank-2-badge', globalRank === 3 && 'rank-3-badge', "px-1.5 py-0.5");
     const gradientClass = globalRank === 1 ? "text-rank-gold" : globalRank === 2 ? "text-rank-silver" : "text-rank-bronze";
-    determinedNicknameColorClass = gradientClass;
+    finalNicknameClasses = `${baseNicknameClass} ${gradientClass}`;
   } else if ((displayPreference === 'default' || displayPreference === 'tetris') && tetrisRank && tetrisRank > 0 && tetrisRank <= 3) {
     const gradientClass = tetrisRank === 1 ? "text-rank-gold" : tetrisRank === 2 ? "text-rank-silver" : "text-rank-bronze";
     if(tetrisTitles[tetrisRank - 1]){
-        determinedTitleColorClass = gradientClass;
-        titleElement = <div className="title-container"><p className={`${titleBaseClasses} ${determinedTitleColorClass}`}>{tetrisTitles[tetrisRank - 1]}</p></div>;
+        titleElement = <div className="title-container"><p className={`${finalTitleClasses} ${gradientClass}`}>{tetrisTitles[tetrisRank - 1]}</p></div>;
     }
-    determinedNicknameColorClass = gradientClass;
+    finalNicknameClasses = `${baseNicknameClass} ${gradientClass}`;
     if ((displayPreference === 'default' || displayPreference === `category_${postMainCategory}`) && rankInCurrentCategory > 0 && rankInCurrentCategory <= 3) {
         finalContainerClass = cn(`highlight-${postMainCategory.toLowerCase()}`, "px-1.5 py-0.5");
+         if (postMainCategory === 'General') isGeneralHighlightActive = true;
     } else {
       finalContainerClass = "default-rank-item-bg px-1.5 py-0.5";
     }
   } else if ((displayPreference === 'default' || displayPreference === `category_${postMainCategory}`) && rankInCurrentCategory > 0 && rankInCurrentCategory <= 3) {
     const gradientClass = rankInCurrentCategory === 1 ? "text-rank-gold" : rankInCurrentCategory === 2 ? "text-rank-silver" : "text-rank-bronze";
     const titleTextContent = postMainCategory === 'General' ? '일반 & 유머' : postMainCategory;
-    determinedTitleColorClass = gradientClass;
-    titleElement = <div className="title-container"><p className={`${titleBaseClasses} ${determinedTitleColorClass}`}>{titleTextContent}</p></div>;
-    determinedNicknameColorClass = gradientClass;
+     if (postMainCategory === 'General') {
+        isGeneralHighlightActive = true;
+        titleElement = <div className="title-container"><p className={`${finalTitleClasses} text-content-inside-gradient`}>{titleTextContent}</p></div>;
+        finalNicknameClasses = `${baseNicknameClass} text-content-inside-gradient`;
+    } else {
+        titleElement = <div className="title-container"><p className={`${finalTitleClasses} ${gradientClass}`}>{titleTextContent}</p></div>;
+        finalNicknameClasses = `${baseNicknameClass} ${gradientClass}`;
+    }
     finalContainerClass = cn(`highlight-${postMainCategory.toLowerCase()}`, "px-1.5 py-0.5");
   } else if (displayPreference === 'default' && rankInCurrentCategory > 0 && rankInCurrentCategory <= 10) {
-    determinedNicknameColorClass = `text-${postMainCategory.toLowerCase()}-themed nickname-text-rank-${rankInCurrentCategory}`; // font-medium handled by nickname-text-rank-X
+    finalNicknameClasses = cn(baseNicknameClass, `text-${postMainCategory.toLowerCase()}-themed`, `nickname-text-rank-${rankInCurrentCategory}`);
     finalContainerClass = "default-rank-item-bg px-1.5 py-0.5";
   } else {
-    determinedNicknameColorClass = "text-foreground font-medium"; 
+    finalNicknameClasses = cn(baseNicknameClass, "text-foreground"); // 기본 font-medium은 baseNicknameClass에 포함 가정
     finalContainerClass = "default-rank-item-bg px-1.5 py-0.5";
   }
   
   const showCategoryIconInNickname = !(username === 'WANGJUNLAND' || ((displayPreference === 'default' || displayPreference === 'global') && globalRank > 0 && globalRank <= 3));
   
-  let NicknameWrapperComponent: React.ElementType = React.Fragment;
-  let nicknameWrapperProps: React.HTMLAttributes<HTMLElement> = {};
-  let nicknameSpanActualClasses = cn(nicknameBaseClasses, determinedNicknameColorClass);
-
-  if (finalContainerClass.includes('highlight-general') && !finalContainerClass.includes('highlight-general-inner')) {
-    NicknameWrapperComponent = 'div';
-    nicknameWrapperProps = { className: 'highlight-general-inner p-0' };
-    nicknameSpanActualClasses = cn(nicknameBaseClasses, "text-content-inside-gradient");
+  let NicknameWrapperComponent: React.ElementType = 'div';
+  let nicknameWrapperProps: React.HTMLAttributes<HTMLElement> = { className: cn(finalContainerClass, "inline-flex items-center gap-1", titleElement && "mt-0.5") };
+  
+  if (isGeneralHighlightActive) {
+    nicknameWrapperProps.className = cn(finalContainerClass, 'highlight-general-inner p-0 inline-flex items-center gap-1', titleElement && "mt-0.5");
   }
 
 
@@ -116,12 +117,10 @@ const NicknameDisplay: FC<NicknameDisplayProps> = ({ author, postMainCategory })
     <div className="flex flex-col items-start">
       {titleElement}
       <NicknameWrapperComponent {...nicknameWrapperProps}>
-        <div className={cn(finalContainerClass, "inline-flex items-center gap-1", titleElement && "mt-0.5", NicknameWrapperComponent === 'div' && "p-0")}>
             {showCategoryIconInNickname && postMainCategory && <CategorySpecificIcon category={postMainCategory} className="h-3.5 w-3.5" />}
-            <span className={nicknameSpanActualClasses}>
+            <span className={finalNicknameClasses}>
               {nickname}
             </span>
-        </div>
       </NicknameWrapperComponent>
     </div>
   );
@@ -260,7 +259,7 @@ export default function PostDetailPage() {
               <AvatarFallback className="bg-muted">{getInitials(post.authorNickname)}</AvatarFallback>
             </Avatar>
             <div>
-               {authorUser ? <NicknameDisplay author={authorUser} postMainCategory={post.mainCategory} /> : <span className="font-medium text-foreground">{post.authorNickname}</span>}
+               {authorUser ? <NicknameDisplay author={authorUser} postMainCategory={post.mainCategory} baseNicknameClass="text-sm font-medium" /> : <span className="text-sm font-medium text-foreground">{post.authorNickname}</span>}
               <div className="text-xs text-muted-foreground mt-0.5">
                 <span>{formattedDate}</span>
                 <span className="mx-1">·</span>

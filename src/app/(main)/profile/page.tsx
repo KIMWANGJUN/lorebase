@@ -155,36 +155,31 @@ export default function ProfilePage() {
 
   const bannerImageUrl = "https://placehold.co/1920x600.png";
 
-  let headerNicknameBaseClasses = "text-3xl font-headline";
-  let determinedHeaderNicknameColorClass = "";
+  let finalHeaderNicknameClasses = "text-3xl font-headline";
   let headerRankText = user.rank > 0 ? `종합 ${user.rank}위` : "랭킹 정보 없음";
-  let headerRankTextBaseClasses = "text-lg";
-  let determinedHeaderRankTextColorClass = "text-muted-foreground";
+  let finalHeaderRankTextClasses = "text-lg text-muted-foreground";
   let headerContainerClasses = ""; 
 
 
   if (isAdmin) {
-    determinedHeaderNicknameColorClass = "text-admin"; 
+    finalHeaderNicknameClasses += " text-admin"; 
     headerRankText = "관리자";
-    determinedHeaderRankTextColorClass = "text-admin"; 
+    finalHeaderRankTextClasses = "text-lg text-admin"; 
     headerContainerClasses = "admin-badge-bg admin-badge-border";
   } else if (user.rank > 0 && user.rank <= 3) { 
     const gradientClass = user.rank === 1 ? "text-rank-gold" : user.rank === 2 ? "text-rank-silver" : "text-rank-bronze";
-    determinedHeaderNicknameColorClass = gradientClass; 
+    finalHeaderNicknameClasses += ` ${gradientClass}`; 
     headerRankText = `종합 ${user.rank}위`;
-    determinedHeaderRankTextColorClass = gradientClass;
+    finalHeaderRankTextClasses = `text-lg ${gradientClass}`;
     headerContainerClasses = cn(
       user.rank === 1 && 'rank-1-badge',
       user.rank === 2 && 'rank-2-badge',
       user.rank === 3 && 'rank-3-badge'
     );
   } else {
-    determinedHeaderNicknameColorClass = "text-foreground font-semibold"; 
+    finalHeaderNicknameClasses += " text-foreground font-semibold"; 
   }
  
-  const finalHeaderNicknameClasses = `${headerNicknameBaseClasses} ${determinedHeaderNicknameColorClass}`;
-  const finalHeaderRankTextClasses = `${headerRankTextBaseClasses} ${determinedHeaderRankTextColorClass}`;
-
 
   return (
     <div className="container mx-auto py-10 px-4">
@@ -349,37 +344,33 @@ export default function ProfilePage() {
             <div className="space-y-3 max-h-[500px] overflow-y-auto p-1">
               {mockUsers.filter(u => u.username !== 'WANGJUNLAND' && u.rank > 0).sort((a, b) => a.rank - b.rank).map((rankerUser) => { 
                 let finalItemContainerClasses = "default-rank-item-bg";
-                let rankNumberBaseClasses = "font-bold text-lg w-8 text-center";
-                
-                let determinedRankNumberColorClass = "text-muted-foreground";
-                let determinedNicknameColorClass = "text-foreground";
+                let rankNumberClasses = "font-bold text-lg w-8 text-center";
+                let nicknameClasses = "font-medium"; // 기본 폰트 두께
                 
                 if (rankerUser.rank > 0 && rankerUser.rank <= 3) {
                   finalItemContainerClasses = cn(rankerUser.rank === 1 && 'rank-1-badge', rankerUser.rank === 2 && 'rank-2-badge', rankerUser.rank === 3 && 'rank-3-badge');
                   const gradientClass = rankerUser.rank === 1 ? 'text-rank-gold' : rankerUser.rank === 2 ? 'text-rank-silver' : 'text-rank-bronze';
-                  determinedNicknameColorClass = gradientClass; 
-                  determinedRankNumberColorClass = gradientClass;
+                  nicknameClasses += ` ${gradientClass}`; 
+                  rankNumberClasses += ` ${gradientClass.replace('text-rank-','text-')}`;
                 } else {
-                  determinedNicknameColorClass = "text-foreground font-medium";
+                  nicknameClasses += " text-foreground"; // 기본 텍스트 색상
+                   rankNumberClasses += " text-muted-foreground";
                 }
                 
-                const finalNicknameClasses = `font-medium ${determinedNicknameColorClass}`;
-                const finalRankNumberClasses = `${rankNumberBaseClasses} ${determinedRankNumberColorClass}`;
-
                 return (
                   <div key={rankerUser.id} className={cn("flex items-center justify-between p-3 rounded-lg border", 
                     finalItemContainerClasses,
                     rankerUser.id === user.id && !finalItemContainerClasses.startsWith('rank-') ? 'bg-primary/10 border-primary shadow-md' : 'border-border'
                   )}>
                     <div className="flex items-center gap-3">
-                      <span className={finalRankNumberClasses}>
+                      <span className={rankNumberClasses}>
                           {rankerUser.rank > 0 ? `${rankerUser.rank}.` : <Star className="h-5 w-5 inline text-yellow-400" />}
                       </span>
                       <Avatar className="h-10 w-10 border-2 border-accent/50">
                         <Image src={rankerUser.avatar || `https://placehold.co/40x40.png?text=${rankerUser.nickname.substring(0,1)}`} alt={rankerUser.nickname} width={40} height={40} className="rounded-full" data-ai-hint="fantasy character icon" />
                         <AvatarFallback className="bg-muted text-muted-foreground">{rankerUser.nickname.substring(0,1)}</AvatarFallback>
                       </Avatar>
-                      <span className={finalNicknameClasses}>
+                      <span className={nicknameClasses}>
                         {rankerUser.nickname}
                       </span>
                     </div>

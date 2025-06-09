@@ -48,6 +48,7 @@ body {
     --chart-4: 30 85% 58%; 
     --chart-5: 210 30% 60%; 
 
+    /* Sidebar specific for light mode */
     --sidebar-background: 220 15% 95%; 
     --sidebar-foreground: 222.2 84% 4.9%;
     --sidebar-primary: 260 70% 55%;
@@ -109,6 +110,7 @@ body {
     --input: 220 10% 25%;
     --ring: 260 70% 70%;
 
+    /* Sidebar specific for dark mode */
     --sidebar-background: 220 15% 10%; 
     --sidebar-foreground: 210 30% 80%;
     --sidebar-primary: 260 70% 70%;
@@ -146,19 +148,20 @@ body {
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground; /* Ensures body uses theme variables */
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
 }
 
-/* Gradient text for Titles and Top Ranker Nicknames */
+/* Gradient text utilities - ENSURE THESE ARE CORRECT */
 .text-rank-gold { @apply font-semibold bg-gradient-to-r from-yellow-400 via-amber-500 to-yellow-300 bg-clip-text text-transparent; }
 .text-rank-silver { @apply font-semibold bg-gradient-to-r from-slate-300 via-slate-400 to-slate-200 bg-clip-text text-transparent; }
 .text-rank-bronze { @apply font-semibold bg-gradient-to-r from-orange-400 via-yellow-600 to-orange-300 bg-clip-text text-transparent; }
-
-/* Admin Text & Badge */
 .text-admin { @apply font-semibold bg-gradient-to-r from-purple-400 via-purple-500 to-indigo-500 bg-clip-text text-transparent; }
+
+
+/* Admin Badge Container Styles */
 .admin-badge-bg { @apply bg-primary/20; }
 .admin-badge-border { @apply border border-primary; }
 
@@ -242,15 +245,6 @@ body {
   color: hsl(var(--general-text-dark-hsl)) !important; /* Ensure it's white in dark mode */
   @apply font-semibold drop-shadow-[0_1px_1px_rgba(0,0,0,0.7)];
 }
-/* General theme solid text color if not inside gradient container */
-.text-general-themed { 
-  color: hsl(var(--general-text-light-hsl)); 
-  @apply font-semibold drop-shadow-[0_1px_1px_rgba(0,0,0,0.7)]; 
-}
-.dark .text-general-themed { 
-  color: hsl(var(--general-text-dark-hsl)); 
-  @apply font-semibold drop-shadow-[0_1px_1px_rgba(0,0,0,0.7)]; 
-}
 
 
 /* Category Icon Colors (standalone icons) */
@@ -267,16 +261,16 @@ body {
 .nickname-text-rank-4 { @apply font-medium opacity-85; }
 .nickname-text-rank-5 { @apply font-medium opacity-80; }
 .nickname-text-rank-6 { @apply font-medium opacity-75; }
-.nickname-text-rank-7 { @apply opacity-70; }
-.nickname-text-rank-8 { @apply opacity-65; }
-.nickname-text-rank-9 { @apply opacity-60; }
-.nickname-text-rank-10 { @apply opacity-55; }
+.nickname-text-rank-7 { @apply font-medium opacity-70; } /* font-medium for consistency */
+.nickname-text-rank-8 { @apply font-medium opacity-65; } /* font-medium for consistency */
+.nickname-text-rank-9 { @apply font-medium opacity-60; } /* font-medium for consistency */
+.nickname-text-rank-10 { @apply font-medium opacity-55; } /* font-medium for consistency */
 
 .title-container { 
   @apply w-full text-center mb-0.5;
 }
 .title-text { 
- /* font-semibold is part of gradient classes, or applied with text-content-inside-gradient or text-general-themed */
+ /* font-semibold is part of gradient classes, or applied with text-content-inside-gradient */
  @apply text-[0.7rem] leading-tight tracking-tight;
 }
 
