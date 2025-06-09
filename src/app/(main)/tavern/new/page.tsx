@@ -13,7 +13,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from "@/hooks/use-toast";
-import type { PostMainCategory, PostType } from '@/types';
+import type { Post, PostMainCategory, PostType } from '@/types';
+import { mockPosts } from '@/lib/mockData'; // Import mockPosts
 import { ArrowLeft, FilePlus2, LayoutPanelLeft, PenLine, Send, ListFilter, Bold, Italic, Strikethrough, Image as ImageIcon, Video } from 'lucide-react';
 
 const mainCategories: { value: PostMainCategory; label: string }[] = [
@@ -23,14 +24,13 @@ const mainCategories: { value: PostMainCategory; label: string }[] = [
   { value: 'General', label: '일반 게시판' },
 ];
 
-// Basic post types, can be expanded based on main category selection if needed
 const postTypes: { value: PostType; label: string; mainCategories: PostMainCategory[] }[] = [
   { value: 'QnA', label: '질문/답변', mainCategories: ['Unity', 'Unreal', 'Godot'] },
   { value: 'Knowledge', label: '정보/지식공유', mainCategories: ['Unity', 'Unreal', 'Godot'] },
   { value: 'DevLog', label: '개발일지/프로젝트', mainCategories: ['Unity', 'Unreal', 'Godot'] },
   { value: 'GeneralPost', label: '자유글', mainCategories: ['General'] },
   { value: 'Humor', label: '유머/일상', mainCategories: ['General'] },
-  { value: 'Notice', label: '공지사항', mainCategories: ['General'] }, // Admin only potentially
+  { value: 'Notice', label: '공지사항', mainCategories: ['General'] },
 ];
 
 
@@ -58,11 +58,15 @@ export default function NewPostPage() {
 
   const handleMainCategoryChange = (value: string) => {
     setSelectedMainCategory(value as PostMainCategory);
-    setSelectedPostType(''); // Reset post type when main category changes
+    setSelectedPostType(''); 
   };
   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!user) {
+      toast({ title: "오류", description: "로그인이 필요합니다.", variant: "destructive" });
+      return;
+    }
     if (!selectedMainCategory) {
       toast({ title: "오류", description: "게시판을 선택해주세요.", variant: "destructive" });
       return;
@@ -81,19 +85,34 @@ export default function NewPostPage() {
     }
 
     setIsLoading(true);
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    console.log({
-      mainCategory: selectedMainCategory,
-      postType: selectedPostType,
-      title,
-      content,
-      authorId: user?.id,
-      authorNickname: user?.nickname,
-    });
+    
+    // Simulate API call with a short delay
+    await new Promise(resolve => setTimeout(resolve, 300)); 
+
+    const newPost: Post = {
+      id: `post_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
+      title: title.trim(),
+      content: content.trim(), // Content is plain text for now
+      authorId: user.id,
+      authorNickname: user.nickname,
+      authorAvatar: user.avatar,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      mainCategory: selectedMainCategory as PostMainCategory,
+      type: selectedPostType as PostType,
+      upvotes: 0,
+      downvotes: 0, // Default to 0
+      views: 0,     // Default to 0
+      commentCount: 0, // Default to 0
+      tags: [],     // Placeholder for tags, can be implemented later
+      isPinned: false, // Default to not pinned
+    };
+
+    mockPosts.unshift(newPost); // Add to the beginning of the mockPosts array
+
     setIsLoading(false);
-    toast({ title: "성공!", description: "게시글이 성공적으로 등록되었습니다. (실제 저장되지는 않습니다)" });
-    router.push('/tavern'); // Or to the newly created post page: /tavern/[new_post_id]
+    toast({ title: "성공!", description: "게시글이 등록되었습니다. (커뮤니티 목록에서 확인 가능)" });
+    router.push('/tavern'); 
   };
 
   if (authLoading || !user) {
@@ -205,9 +224,6 @@ export default function NewPostPage() {
                 <Button variant="outline" size="icon" type="button" title="Add Video" className="h-8 w-8">
                   <Video className="h-4 w-4" />
                 </Button>
-                {/* TODO: Add more formatting buttons here (font size, color etc.) 
-                    These buttons are currently placeholders. 
-                    Full functionality requires a Rich Text Editor component and backend/storage integration for media. */}
               </div>
               <Textarea
                 id="content"
@@ -231,4 +247,3 @@ export default function NewPostPage() {
     </div>
   );
 }
-
