@@ -155,29 +155,30 @@ export default function ProfilePage() {
 
   const bannerImageUrl = "https://placehold.co/1920x600.png";
 
-  let headerNicknameTextClass = "";
+  let headerNicknameTextClasses = "text-3xl font-headline";
   let headerRankText = user.rank > 0 ? `종합 ${user.rank}위` : "랭킹 정보 없음";
-  let headerRankTextColorClass = "text-muted-foreground";
-  let headerContainerClass = ""; 
+  let headerRankTextColorClasses = "text-lg";
+  let headerContainerClasses = ""; 
 
 
   if (isAdmin) {
-    headerNicknameTextClass = "text-admin";
+    headerNicknameTextClasses += " text-admin"; // text-admin has font-semibold
     headerRankText = "관리자";
-    headerRankTextColorClass = "text-admin"; 
-    headerContainerClass = "admin-badge-bg admin-badge-border";
+    headerRankTextColorClasses += " text-admin"; 
+    headerContainerClasses = "admin-badge-bg admin-badge-border";
   } else if (user.rank > 0 && user.rank <= 3) { 
-    const gradientColor = user.rank === 1 ? "text-rank-gold" : user.rank === 2 ? "text-rank-silver" : "text-rank-bronze";
-    headerNicknameTextClass = gradientColor;
+    const gradientClass = user.rank === 1 ? "text-rank-gold" : user.rank === 2 ? "text-rank-silver" : "text-rank-bronze";
+    headerNicknameTextClasses += ` ${gradientClass}`; // font-semibold is in gradientClass
     headerRankText = `종합 ${user.rank}위`;
-    headerRankTextColorClass = gradientColor;
-    headerContainerClass = cn(
+    headerRankTextColorClasses += ` ${gradientClass}`;
+    headerContainerClasses = cn(
       user.rank === 1 && 'rank-1-badge',
       user.rank === 2 && 'rank-2-badge',
       user.rank === 3 && 'rank-3-badge'
     );
   } else {
-    headerNicknameTextClass = "text-foreground";
+    headerNicknameTextClasses += " text-foreground font-semibold"; // Default if not admin or top 3
+    headerRankTextColorClasses += " text-muted-foreground";
   }
  
 
@@ -205,13 +206,13 @@ export default function ProfilePage() {
                     <AvatarImage src={user.avatar || `https://placehold.co/200x200.png?text=${user.nickname.substring(0,1)}`} alt={user.nickname} data-ai-hint="fantasy portrait" />
                     <AvatarFallback className="text-4xl bg-muted text-muted-foreground">{user.nickname.substring(0, 2).toUpperCase()}</AvatarFallback>
                 </Avatar>
-                <div className={cn("rounded-lg px-3 py-1 text-center", headerContainerClass)}>
-                  <h1 className={cn("text-3xl font-headline", headerNicknameTextClass)}>{user.nickname}</h1>
+                <div className={cn("rounded-lg px-3 py-1 text-center", headerContainerClasses)}>
+                  <h1 className={headerNicknameTextClasses}>{user.nickname}</h1>
                 </div>
                 <p className="text-sm opacity-80 mt-1">{user.email || "이메일 미등록"}</p>
                 <div className="mt-4 text-center">
                     <p className="text-2xl font-semibold">{user.score.toLocaleString()} 점</p>
-                     <p className={cn("text-lg", headerRankTextColorClass)}>
+                     <p className={headerRankTextColorClasses}>
                         {headerRankText}
                     </p>
                 </div>
@@ -343,32 +344,42 @@ export default function ProfilePage() {
           <CardContent>
             <div className="space-y-3 max-h-[500px] overflow-y-auto p-1">
               {mockUsers.filter(u => u.username !== 'WANGJUNLAND' && u.rank > 0).sort((a, b) => a.rank - b.rank).map((rankerUser) => { 
-                let finalItemContainerClass = "default-rank-item-bg";
-                let rankNumberClass = "text-muted-foreground";
-                let nicknameTextClass = "text-foreground"; 
+                let finalItemContainerClasses = "default-rank-item-bg";
+                let rankNumberClasses = "font-bold text-lg w-8 text-center";
+                let nicknameSpanClasses = "font-medium"; 
+                
+                let determinedNicknameColorClass = "";
+                let determinedRankNumColorClass = "text-muted-foreground";
+
 
                 if (rankerUser.rank > 0 && rankerUser.rank <= 3) {
-                  finalItemContainerClass = cn(rankerUser.rank === 1 && 'rank-1-badge', rankerUser.rank === 2 && 'rank-2-badge', rankerUser.rank === 3 && 'rank-3-badge');
+                  finalItemContainerClasses = cn(rankerUser.rank === 1 && 'rank-1-badge', rankerUser.rank === 2 && 'rank-2-badge', rankerUser.rank === 3 && 'rank-3-badge');
                   const gradientClass = rankerUser.rank === 1 ? 'text-rank-gold' : rankerUser.rank === 2 ? 'text-rank-silver' : 'text-rank-bronze';
-                  nicknameTextClass = gradientClass; 
-                  rankNumberClass = gradientClass;
+                  determinedNicknameColorClass = gradientClass; 
+                  determinedRankNumColorClass = gradientClass;
+                } else {
+                   determinedNicknameColorClass = "text-foreground"; // Default
+                   determinedRankNumColorClass = "text-muted-foreground";
                 }
+                
+                nicknameSpanClasses += ` ${determinedNicknameColorClass}`;
+                rankNumberClasses += ` ${determinedRankNumColorClass}`;
 
 
                 return (
                   <div key={rankerUser.id} className={cn("flex items-center justify-between p-3 rounded-lg border", 
-                    finalItemContainerClass,
-                    rankerUser.id === user.id && !finalItemContainerClass.startsWith('rank-') ? 'bg-primary/10 border-primary shadow-md' : 'border-border'
+                    finalItemContainerClasses,
+                    rankerUser.id === user.id && !finalItemContainerClasses.startsWith('rank-') ? 'bg-primary/10 border-primary shadow-md' : 'border-border'
                   )}>
                     <div className="flex items-center gap-3">
-                      <span className={cn("font-bold text-lg w-8 text-center", rankNumberClass)}>
+                      <span className={rankNumberClasses}>
                           {rankerUser.rank > 0 ? `${rankerUser.rank}.` : <Star className="h-5 w-5 inline text-yellow-400" />}
                       </span>
                       <Avatar className="h-10 w-10 border-2 border-accent/50">
                         <Image src={rankerUser.avatar || `https://placehold.co/40x40.png?text=${rankerUser.nickname.substring(0,1)}`} alt={rankerUser.nickname} width={40} height={40} className="rounded-full" data-ai-hint="fantasy character icon" />
                         <AvatarFallback className="bg-muted text-muted-foreground">{rankerUser.nickname.substring(0,1)}</AvatarFallback>
                       </Avatar>
-                      <span className={cn("font-medium", nicknameTextClass)}>
+                      <span className={nicknameSpanClasses}>
                         {rankerUser.nickname}
                       </span>
                     </div>

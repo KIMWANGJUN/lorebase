@@ -141,35 +141,37 @@ export default function HomePage() {
                   const user = mockUsers.find(u => u.id === rankerData.userId);
                   const isTetrisTop3 = rankerData.rank <= 3;
                   
-                  let titleText = null;
-                  let titleTextClass = "title-text"; // Base class
-                  let nicknameTextClass = "text-sm"; // Base class
-                  let rankNumberClass = "text-muted-foreground";
+                  let titleElement = null;
+                  let nicknameSpanClasses = "text-sm"; 
+                  let rankNumberClasses = "font-bold w-5 text-center shrink-0";
 
                   if (isTetrisTop3 && user && rankerData.rank > 0 && rankerData.rank <= 3) {
-                    const rankColorClass = rankerData.rank === 1 ? "text-rank-gold" : rankerData.rank === 2 ? "text-rank-silver" : "text-rank-bronze";
-                    titleTextClass = cn(titleTextClass, rankColorClass);
-                    nicknameTextClass = cn(nicknameTextClass, rankColorClass);
-                    rankNumberClass = rankColorClass;
-                    
+                    const gradientClass = rankerData.rank === 1 ? "text-rank-gold" : rankerData.rank === 2 ? "text-rank-silver" : "text-rank-bronze";
                     if (tetrisTitles[rankerData.rank - 1]) {
-                      titleText = tetrisTitles[rankerData.rank - 1];
+                       titleElement = (
+                        <div className="title-container">
+                          <p className={`title-text ${gradientClass}`}>{tetrisTitles[rankerData.rank - 1]}</p>
+                        </div>
+                      );
                     }
+                    nicknameSpanClasses += ` ${gradientClass}`;
+                    rankNumberClasses += ` ${gradientClass.replace('text-rank-','text-')}`; // Or just keep gradient
                   } else {
-                    nicknameTextClass = cn(nicknameTextClass, "text-foreground"); // Default if not top 3
+                    nicknameSpanClasses += " text-foreground font-medium";
+                    rankNumberClasses += " text-muted-foreground";
                   }
                   
                   return (
                     <div key={rankerData.userId} className="flex items-center justify-between p-2.5 default-rank-item-bg">
                       <div className="flex items-center gap-2">
-                        <span className={cn("font-bold w-5 text-center shrink-0", rankNumberClass)}>{rankerData.rank}.</span>
+                        <span className={rankNumberClasses}>{rankerData.rank}.</span>
                         <Avatar className="h-8 w-8 border-2 border-accent/50 shrink-0">
                             <AvatarImage src={user?.avatar || `https://placehold.co/40x40.png?text=${rankerData.nickname.substring(0,1)}`} alt={rankerData.nickname} data-ai-hint="gamer avatar" />
                             <AvatarFallback className="text-xs bg-muted text-muted-foreground">{rankerData.nickname.substring(0,1)}</AvatarFallback>
                         </Avatar>
                         <div className="flex flex-col items-start text-left">
-                          {titleText && <div className="title-container"><p className={titleTextClass}>{titleText}</p></div>}
-                          <span className={cn(nicknameTextClass, titleText && "mt-0.5")}>
+                          {titleElement}
+                          <span className={cn(nicknameSpanClasses, titleElement && "mt-0.5")}>
                             {rankerData.nickname}
                           </span>
                         </div>
@@ -275,15 +277,11 @@ export default function HomePage() {
                           if (user.username === 'WANGJUNLAND') return null;
                           
                           let finalContainerClass = "default-rank-item-bg";
-                          let titleText: string | null = null;
-                          let nicknameBaseClasses = "text-sm";
-                          let rankNumberClass = 'text-muted-foreground';
+                          let titleElement = null;
+                          let nicknameSpanClasses = "text-sm"; // Base for nickname span
+                          let rankNumberClasses = "font-bold text-md w-5 text-center shrink-0";
                           
-                          let finalNicknameTextClass = ""; 
-                          let finalTitleTextClass = "title-text"; 
-
-
-                          const { rank: globalRank, tetrisRank, categoryStats, username, selectedDisplayRank } = user;
+                          const { rank: globalRank, tetrisRank, categoryStats, username, selectedDisplayRank, nickname } = user;
                           const currentActiveCategory = activeRankingTab !== 'Global' ? activeRankingTab : undefined;
                           const userCatStats = currentActiveCategory && categoryStats?.[currentActiveCategory];
                           const rankInActiveCategory = userCatStats?.rankInCate || 0;
@@ -296,62 +294,72 @@ export default function HomePage() {
                           }
                           
                           let displayPreference = selectedDisplayRank || 'default';
+                          let determinedNicknameColorClass = "";
+                          let determinedTitleColorClass = "";
+                          let determinedRankNumColorClass = "text-muted-foreground";
 
-                          if (username === 'WANGJUNLAND') {
+
+                          if (username === 'WANGJUNLAND') { // This case should be filtered out, but for safety
                             finalContainerClass = "admin-badge-bg admin-badge-border";
-                            finalNicknameTextClass = "text-admin";
+                            determinedNicknameColorClass = "text-admin";
+                            determinedRankNumColorClass = "text-admin";
                           } else if ((displayPreference === 'default' || displayPreference === 'global') && globalRank > 0 && globalRank <= 3) {
                             finalContainerClass = cn(globalRank === 1 && 'rank-1-badge', globalRank === 2 && 'rank-2-badge', globalRank === 3 && 'rank-3-badge');
                             const gradientClass = globalRank === 1 ? "text-rank-gold" : globalRank === 2 ? "text-rank-silver" : "text-rank-bronze";
-                            finalNicknameTextClass = gradientClass;
-                            rankNumberClass = gradientClass;
+                            determinedNicknameColorClass = gradientClass;
+                            determinedRankNumColorClass = gradientClass;
                           } else if ((displayPreference === 'default' || displayPreference === 'tetris') && tetrisRank && tetrisRank > 0 && tetrisRank <= 3) {
                             const gradientClass = tetrisRank === 1 ? "text-rank-gold" : tetrisRank === 2 ? "text-rank-silver" : "text-rank-bronze";
-                            titleText = tetrisTitles[tetrisRank - 1];
-                            finalTitleTextClass = cn(finalTitleTextClass, gradientClass);
-                            finalNicknameTextClass = gradientClass;
-                            rankNumberClass = gradientClass;
+                            if(tetrisTitles[tetrisRank - 1]) {
+                                titleElement = <div className="title-container"><p className={`title-text ${gradientClass}`}>{tetrisTitles[tetrisRank - 1]}</p></div>;
+                            }
+                            determinedNicknameColorClass = gradientClass;
+                            determinedRankNumColorClass = gradientClass;
                             if (currentActiveCategory && rankInActiveCategory > 0 && rankInActiveCategory <= 3 && (displayPreference === 'default' || displayPreference === `category_${currentActiveCategory}`)) {
                                 finalContainerClass = cn(`highlight-${currentActiveCategory.toLowerCase()}`);
                             }
                           } else if (currentActiveCategory && rankInActiveCategory > 0 && rankInActiveCategory <= 3 && (displayPreference === 'default' || displayPreference === `category_${currentActiveCategory}`)) {
                             const gradientClass = rankInActiveCategory === 1 ? "text-rank-gold" : rankInActiveCategory === 2 ? "text-rank-silver" : "text-rank-bronze";
-                            titleText = currentActiveCategory === 'General' ? '일반 & 유머' : currentActiveCategory;
-                            finalTitleTextClass = cn(finalTitleTextClass, gradientClass);
-                            finalNicknameTextClass = gradientClass;
-                            rankNumberClass = gradientClass;
+                            const titleText = currentActiveCategory === 'General' ? '일반 & 유머' : currentActiveCategory;
+                            titleElement = <div className="title-container"><p className={`title-text ${gradientClass}`}>{titleText}</p></div>;
+                            determinedNicknameColorClass = gradientClass;
+                            determinedRankNumColorClass = gradientClass;
                             finalContainerClass = cn(`highlight-${currentActiveCategory.toLowerCase()}`);
                           } else if (currentActiveCategory && rankInActiveCategory > 0 && rankInActiveCategory <= 10 && displayPreference === 'default') {
-                            finalNicknameTextClass = `text-${currentActiveCategory.toLowerCase()}-themed nickname-text-rank-${rankInActiveCategory}`;
-                            rankNumberClass = `text-${currentActiveCategory.toLowerCase()}-themed`;
+                            determinedNicknameColorClass = `text-${currentActiveCategory.toLowerCase()}-themed nickname-text-rank-${rankInActiveCategory}`;
+                            determinedRankNumColorClass = `text-${currentActiveCategory.toLowerCase()}-themed`;
                           } else {
-                            finalNicknameTextClass = "text-foreground";
+                            determinedNicknameColorClass = "text-foreground font-medium"; // Default to foreground
+                            determinedRankNumColorClass = "text-muted-foreground";
                           }
                           
-                          const showCategoryIcon = activeRankingTab !== 'Global';
+                          nicknameSpanClasses += ` ${determinedNicknameColorClass}`;
+                          rankNumberClasses += ` ${determinedRankNumColorClass}`;
+                          
+                          const showCategoryIcon = activeRankingTab !== 'Global' && !(username === 'WANGJUNLAND' || ((displayPreference === 'default' || displayPreference === 'global') && globalRank > 0 && globalRank <= 3));
                           const NicknameWrapper = finalContainerClass.includes('highlight-general') && !finalContainerClass.includes('highlight-general-inner') ? 'div' : React.Fragment;
                           const wrapperProps = NicknameWrapper === 'div' ? { className: 'highlight-general-inner p-0' } : {};
                           
                           return (
                             <div key={user.id} className={cn("flex items-center justify-between p-2.5", finalContainerClass)}>
                                <div className="flex items-center gap-2.5">
-                                <span className={cn("font-bold text-md w-5 text-center shrink-0", rankNumberClass)}>
+                                <span className={rankNumberClasses}>
                                   {displayRankNumberToShow > 0 ? `${displayRankNumberToShow}.` : "-"}
                                 </span>
                                 <Avatar className="h-8 w-8 border-2 border-accent/70 shrink-0">
-                                  <AvatarImage src={user.avatar || `https://placehold.co/40x40.png?text=${user.nickname.substring(0,1)}`} alt={user.nickname} data-ai-hint="fantasy character avatar" />
-                                  <AvatarFallback className="text-xs bg-muted text-muted-foreground">{user.nickname.substring(0,1)}</AvatarFallback>
+                                  <AvatarImage src={user.avatar || `https://placehold.co/40x40.png?text=${nickname.substring(0,1)}`} alt={nickname} data-ai-hint="fantasy character avatar" />
+                                  <AvatarFallback className="text-xs bg-muted text-muted-foreground">{nickname.substring(0,1)}</AvatarFallback>
                                 </Avatar>
                                 
                                 <div className="flex flex-col items-start text-left">
-                                  {titleText && <div className="title-container"><p className={finalTitleTextClass}>{titleText}</p></div>}
+                                  {titleElement}
                                    <NicknameWrapper {...wrapperProps}>
-                                    <div className={cn("flex items-center gap-1.5", NicknameWrapper === 'div' && "p-0", titleText && "mt-0.5")}>
+                                    <div className={cn("flex items-center gap-1.5", NicknameWrapper === 'div' && "p-0", titleElement && "mt-0.5")}>
                                         {showCategoryIcon && activeRankingTab !== 'Global' && (
                                           <CategorySpecificIcon category={activeRankingTab} className="h-4 w-4" />
                                         )}
-                                        <span className={cn(nicknameBaseClasses, finalNicknameTextClass)}>
-                                          {user.nickname}
+                                        <span className={nicknameSpanClasses}>
+                                          {nickname}
                                         </span>
                                     </div>
                                    </NicknameWrapper>
