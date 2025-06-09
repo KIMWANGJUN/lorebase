@@ -25,6 +25,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const storedUser = localStorage.getItem('currentUser');
     if (storedUser) {
       const parsedUser: User = JSON.parse(storedUser);
+      // Ensure date strings are converted back to Date objects
+      if (parsedUser.nicknameLastChanged) {
+        parsedUser.nicknameLastChanged = new Date(parsedUser.nicknameLastChanged);
+      }
       setUser(parsedUser);
       setIsAdmin(parsedUser.username === 'WANGJUNLAND');
     }
@@ -44,9 +48,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
 
     if (foundUser) {
-      setUser(foundUser);
-      setIsAdmin(foundUser.username === 'WANGJUNLAND');
-      localStorage.setItem('currentUser', JSON.stringify(foundUser));
+      const userToSet = {...foundUser};
+      if (userToSet.nicknameLastChanged && typeof userToSet.nicknameLastChanged === 'string') {
+        userToSet.nicknameLastChanged = new Date(userToSet.nicknameLastChanged);
+      }
+      setUser(userToSet);
+      setIsAdmin(userToSet.username === 'WANGJUNLAND');
+      localStorage.setItem('currentUser', JSON.stringify(userToSet));
       setLoading(false);
       return true;
     }
@@ -62,13 +70,26 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const updateUser = (updatedUserPartial: Partial<User>) => {
     if (user) {
-      const updatedUser = { ...user, ...updatedUserPartial };
-      setUser(updatedUser);
-      localStorage.setItem('currentUser', JSON.stringify(updatedUser));
-      if (updatedUserPartial.username && updatedUserPartial.username === 'WANGJUNLAND') {
-        setIsAdmin(true);
-      } else if (updatedUserPartial.username) {
-        setIsAdmin(false);
+      let finalUpdatedFields = { ...updatedUserPartial };
+
+      // If nickname is being changed, set nicknameLastChanged
+      if (updatedUserPartial.nickname && updatedUserPartial.nickname.trim() !== user.nickname) {
+        finalUpdatedFields.nicknameLastChanged = new Date();
+      }
+
+      const updatedUserObject = { ...user, ...finalUpdatedFields };
+      
+      // Ensure date is correctly typed before setting state and local storage
+      if (updatedUserObject.nicknameLastChanged && typeof updatedUserObject.nicknameLastChanged === 'string') {
+        updatedUserObject.nicknameLastChanged = new Date(updatedUserObject.nicknameLastChanged);
+      }
+
+      setUser(updatedUserObject);
+      localStorage.setItem('currentUser', JSON.stringify(updatedUserObject));
+
+      // Update isAdmin status if username changes (though unlikely in this partial update)
+      if (updatedUserPartial.username) {
+        setIsAdmin(updatedUserPartial.username === 'WANGJUNLAND');
       }
     }
   };

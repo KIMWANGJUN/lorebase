@@ -1,6 +1,6 @@
 // src/app/(main)/profile/page.tsx
 "use client";
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
@@ -22,17 +22,24 @@ export default function ProfilePage() {
   const router = useRouter();
   const { toast } = useToast();
 
-  const [nickname, setNickname] = useState(user?.nickname || '');
-  const [email, setEmail] = useState(user?.email || '');
+  const [nickname, setNickname] = useState('');
+  const [email, setEmail] = useState('');
   const [isEditingNickname, setIsEditingNickname] = useState(false);
   
-  const canChangeNickname = () => {
-    if (!user?.nicknameLastChanged || isAdmin) return true;
+  const calculateCanChangeNickname = () => {
+    if (!user) return false;
+    if (isAdmin) return true;
+    if (!user.nicknameLastChanged) return true;
     const thirtyDays = 30 * 24 * 60 * 60 * 1000;
     return new Date().getTime() - new Date(user.nicknameLastChanged).getTime() > thirtyDays;
   };
-  const [nicknameChangeAllowed, setNicknameChangeAllowed] = useState(canChangeNickname());
-  const nextChangeDate = user?.nicknameLastChanged ? new Date(new Date(user.nicknameLastChanged).getTime() + (30 * 24 * 60 * 60 * 1000)) : null;
+
+  const [nicknameChangeAllowed, setNicknameChangeAllowed] = useState(false);
+  
+  const nextChangeDate = useMemo(() => {
+    if (!user || isAdmin || !user.nicknameLastChanged || calculateCanChangeNickname()) return null;
+    return new Date(new Date(user.nicknameLastChanged).getTime() + (30 * 24 * 60 * 60 * 1000));
+  }, [user, isAdmin]);
 
 
   useEffect(() => {
@@ -41,36 +48,59 @@ export default function ProfilePage() {
     } else if (user) {
       setNickname(user.nickname);
       setEmail(user.email || '');
-      setNicknameChangeAllowed(canChangeNickname());
+      setNicknameChangeAllowed(calculateCanChangeNickname());
     }
   }, [user, authLoading, router]);
 
   const handleNicknameSave = () => {
     if (!user) return;
-    if (!nickname.trim()) {
+
+    if (!isAdmin && !nicknameChangeAllowed) {
+      toast({ title: "오류", description: "닉네임은 30일에 한 번만 변경할 수 있습니다.", variant: "destructive"});
+      return;
+    }
+
+    const trimmedNickname = nickname.trim();
+    if (!trimmedNickname) {
         toast({ title: "오류", description: "닉네임은 비워둘 수 없습니다.", variant: "destructive"});
         return;
     }
-    // Simulate check for duplicate nickname (excluding current user)
-    const isDuplicate = mockUsers.some(u => u.id !== user.id && u.nickname.toLowerCase() === nickname.trim().toLowerCase());
+    if (trimmedNickname === user.nickname) {
+        setIsEditingNickname(false);
+        return;
+    }
+
+    const isDuplicate = mockUsers.some(u => u.id !== user.id && u.nickname.toLowerCase() === trimmedNickname.toLowerCase());
     if (isDuplicate) {
         toast({ title: "오류", description: "이미 사용 중인 닉네임입니다.", variant: "destructive"});
         return;
     }
 
-    updateUser({ nickname, nicknameLastChanged: new Date() });
+    updateUser({ nickname: trimmedNickname }); // AuthContext will set nicknameLastChanged
     setIsEditingNickname(false);
-    setNicknameChangeAllowed(false); 
+    // After updateUser, the user object in AuthContext updates, 
+    // which triggers the useEffect that recalculates nicknameChangeAllowed.
     toast({ title: "성공", description: "닉네임이 변경되었습니다." });
   };
 
   const handleEmailSave = () => {
     if (!user) return;
-     if (!email.trim() || !/\S+@\S+\.\S+/.test(email.trim())) {
+    const trimmedEmail = email.trim();
+
+    if (trimmedEmail && !/\S+@\S+\.\S+/.test(trimmedEmail)) { // Only validate if email is not empty
         toast({ title: "오류", description: "유효한 이메일 주소를 입력해주세요.", variant: "destructive"});
         return;
     }
-    updateUser({ email });
+    
+    if (trimmedEmail && trimmedEmail !== (user.email || '')) { // Check for duplicates only if email is changed and not empty
+        const isDuplicate = mockUsers.some(u => u.id !== user.id && u.email?.toLowerCase() === trimmedEmail.toLowerCase());
+        if (isDuplicate) {
+            toast({ title: "오류", description: "이미 사용 중인 이메일입니다.", variant: "destructive"});
+            return;
+        }
+    }
+    
+    updateUser({ email: trimmedEmail || undefined }); // Send undefined if email is cleared
     toast({ title: "성공", description: "이메일이 등록/수정되었습니다." });
   };
   
@@ -113,7 +143,7 @@ export default function ProfilePage() {
                   </div>
                 ) : user.rank > 0 && user.rank <=3 ? (
                   <div className={cn(
-                    "rounded-lg px-3 py-1", // Base badge styles
+                    "rounded-lg px-3 py-1", 
                     user.rank === 1 && 'rank-1-badge',
                     user.rank === 2 && 'rank-2-badge',
                     user.rank === 3 && 'rank-3-badge'
@@ -159,13 +189,18 @@ export default function ProfilePage() {
                                         {isEditingNickname ? (
                                             <Button onClick={handleNicknameSave} size="sm" className="bg-accent text-accent-foreground hover:bg-accent/90"><CheckCircle className="h-4 w-4 mr-1"/> 저장</Button>
                                         ) : (
-                                            <Button onClick={() => setIsEditingNickname(true)} variant="outline" size="sm" disabled={!nicknameChangeAllowed} className="border-border text-muted-foreground hover:bg-muted/50 hover:border-accent"><Edit3 className="h-4 w-4 mr-1"/> 변경</Button>
+                                            <Button onClick={() => setIsEditingNickname(true)} variant="outline" size="sm" disabled={!isAdmin && !nicknameChangeAllowed} className="border-border text-muted-foreground hover:bg-muted/50 hover:border-accent"><Edit3 className="h-4 w-4 mr-1"/> 변경</Button>
                                         )}
                                     </div>
-                                    {!nicknameChangeAllowed && !isAdmin && nextChangeDate && (
+                                    {!isAdmin && !nicknameChangeAllowed && nextChangeDate && (
                                         <p className="text-xs text-muted-foreground mt-1">
                                             <Clock className="inline-block h-3 w-3 mr-1"/> 
                                             다음 닉네임 변경은 {nextChangeDate.toLocaleDateString()} 이후에 가능합니다.
+                                        </p>
+                                    )}
+                                     {!isAdmin && nicknameChangeAllowed && !user.nicknameLastChanged && (
+                                        <p className="text-xs text-muted-foreground mt-1">
+                                            닉네임은 30일에 한 번 변경 가능합니다.
                                         </p>
                                     )}
                                 </div>
@@ -173,7 +208,7 @@ export default function ProfilePage() {
                                     <Label htmlFor="email" className="text-muted-foreground">이메일</Label>
                                     <div className="flex items-center gap-2">
                                       <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="bg-input border-border text-foreground focus:ring-accent"/>
-                                      <Button onClick={handleEmailSave} variant="outline" size="sm" className="border-border text-muted-foreground hover:bg-muted/50 hover:border-accent"><CheckCircle className="h-4 w-4 mr-1"/> 저장</Button>
+                                      <Button onClick={handleEmailSave} variant="outline" size="sm" className="border-border text-muted-foreground hover:bg-muted/50 hover:border-accent"><CheckCircle className="h-4 w-4 mr-1"/> 등록/수정</Button>
                                     </div>
                                 </div>
                             </CardContent>
@@ -254,14 +289,14 @@ export default function ProfilePage() {
                         </div>
                       ) : isTopRanker ? (
                          <div className={cn(
-                            "rounded-lg px-3 py-1", // Keep rounded-lg
+                            "rounded-lg px-3 py-1", 
                             ranker.rank === 1 && 'rank-1-badge',
                             ranker.rank === 2 && 'rank-2-badge',
                             ranker.rank === 3 && 'rank-3-badge'
                           )}
                         >
                           <span className={cn(
-                            "font-semibold", // Added font-semibold here
+                            "font-semibold", 
                             ranker.rank === 1 && 'rank-1-text',
                             ranker.rank === 2 && 'rank-2-text',
                             ranker.rank === 3 && 'rank-3-text'

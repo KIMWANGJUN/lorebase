@@ -2,11 +2,15 @@
 // src/lib/mockData.ts
 import type { User, StarterProject, AssetInfo, Post, Comment, RankEntry, Inquiry, PostMainCategory } from '@/types';
 
+const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+const fifteenDaysAgo = new Date(Date.now() - 15 * 24 * 60 * 60 * 1000);
+const fortyFiveDaysAgo = new Date(Date.now() - 45 * 24 * 60 * 60 * 1000);
+
 export const mockUsers: User[] = [
   { 
     id: 'admin', username: 'WANGJUNLAND', nickname: 'WANGJUNLAND', email: 'admin@example.com', 
     score: 99999, rank: 0, avatar: 'https://placehold.co/100x100.png?text=WJ', 
-    nicknameLastChanged: new Date('2023-01-01'),
+    nicknameLastChanged: new Date('2023-01-01'), // Admins can change anytime
     categoryStats: {
       Unity: { score: 1000, rank: 1 },
       Unreal: { score: 1000, rank: 1 },
@@ -17,7 +21,7 @@ export const mockUsers: User[] = [
   { 
     id: 'user1', username: 'unityMaster', nickname: '유니티장인', email: 'unity@example.com', 
     score: 1250, rank: 1, avatar: 'https://placehold.co/100x100.png?text=U1', 
-    nicknameLastChanged: new Date('2024-05-01'),
+    nicknameLastChanged: fortyFiveDaysAgo, // Can change
     categoryStats: {
       Unity: { score: 800, rank: 1 },
       Unreal: { score: 300, rank: 3 },
@@ -28,7 +32,7 @@ export const mockUsers: User[] = [
   { 
     id: 'user2', username: 'unrealDev', nickname: '언리얼신', email: 'unreal@example.com', 
     score: 1100, rank: 2, avatar: 'https://placehold.co/100x100.png?text=U2', 
-    nicknameLastChanged: new Date('2024-06-15'),
+    nicknameLastChanged: fifteenDaysAgo, // Cannot change yet
     categoryStats: {
       Unity: { score: 200 },
       Unreal: { score: 750, rank: 1 },
@@ -39,7 +43,7 @@ export const mockUsers: User[] = [
   { 
     id: 'user3', username: 'godotFan', nickname: '고도엔진팬', email: 'godot@example.com', 
     score: 950, rank: 3, avatar: 'https://placehold.co/100x100.png?text=GF', 
-    nicknameLastChanged: new Date('2024-04-20'),
+    // nicknameLastChanged: undefined, // Can change (first time)
     categoryStats: {
       Unity: { score: 100 },
       Unreal: { score: 50 },
@@ -48,9 +52,9 @@ export const mockUsers: User[] = [
     }
   },
   { 
-    id: 'user4', username: 'indieDreamer', nickname: '인디드리머', 
+    id: 'user4', username: 'indieDreamer', nickname: '인디드리머', email: 'dreamer@example.com',
     score: 700, rank: 4, avatar: 'https://placehold.co/100x100.png?text=ID', 
-    nicknameLastChanged: new Date('2024-07-01'),
+    nicknameLastChanged: new Date('2024-07-01'), // More than 30 days ago from a potential current date of ~Aug
     categoryStats: {
       Unity: { score: 300, rank: 2 },
       Unreal: { score: 100 },
@@ -61,7 +65,7 @@ export const mockUsers: User[] = [
   { 
     id: 'user5', username: 'pixelArtist', nickname: '픽셀아티스트', 
     score: 600, rank: 5, avatar: 'https://placehold.co/100x100.png?text=PA', 
-    nicknameLastChanged: new Date('2024-07-05'),
+    nicknameLastChanged: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000), // Less than 30 days ago
     categoryStats: {
       Unity: { score: 50, rank: 3 },
       Unreal: { score: 250, rank: 2 },
@@ -70,14 +74,14 @@ export const mockUsers: User[] = [
     }
   },
    { 
-    id: 'user6', username: 'generalEnjoyer', nickname: '일반글애호가', 
+    id: 'user6', username: 'generalEnjoyer', nickname: '일반글애호가', email: 'general@example.com',
     score: 550, rank: 6, avatar: 'https://placehold.co/100x100.png?text=GE', 
     nicknameLastChanged: new Date('2024-07-06'),
     categoryStats: {
       Unity: { score: 10 },
       Unreal: { score: 20 },
       Godot: { score: 30 },
-      General: { score: 490, rank: 1 }, // Test new rank 1 for general
+      General: { score: 490, rank: 1 }, 
     }
   },
   { 
