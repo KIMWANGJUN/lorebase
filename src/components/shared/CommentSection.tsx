@@ -36,89 +36,89 @@ const CategoryIcon: FC<{ category: PostMainCategory, className?: string }> = ({ 
 };
 
 interface NicknameDisplayForCommentProps {
-  author: UserType; // Pass full user object
-  postMainCategory: PostMainCategory; // Contextual category for display
+  author: UserType;
+  postMainCategory: PostMainCategory;
 }
 
 const NicknameDisplayForComment: FC<NicknameDisplayForCommentProps> = ({ author, postMainCategory }) => {
   if (!author) return <p className="text-sm font-medium text-foreground">Unknown User</p>;
   
-  let itemContainerClass = "default-rank-item-bg px-1.5 py-0.5"; 
-  let nicknameTextClass = "text-foreground"; 
-  let titleText = "";
+  let itemContainerClass = "default-rank-item-bg";
+  let nicknameTextClass = "text-foreground";
+  let titleText: string | null = null;
   let titleColorClass = "";
-  let showCategoryIcon = false;
+  let showCategoryIcon = true;
 
-  const displayPreference = author.selectedDisplayRank || 'default';
-  let effectiveDisplayType: DisplayRankType = 'default';
-  const authorCategoryStats = author.categoryStats?.[postMainCategory];
+  const { 
+    rank: globalRank, 
+    tetrisRank, 
+    categoryStats, 
+    selectedDisplayRank = 'default', 
+    username 
+  } = author;
 
+  const authorCategoryStats = categoryStats?.[postMainCategory];
+  const categoryRankInContext = authorCategoryStats?.rankInCate || 0;
 
-  // Determine the highest priority rank the user qualifies for
-  if (author.username === 'WANGJUNLAND') effectiveDisplayType = 'default';
-  else if (author.rank > 0 && author.rank <= 3) effectiveDisplayType = 'global';
-  else if (author.tetrisRank && author.tetrisRank <= 3) effectiveDisplayType = 'tetris';
-  else if (authorCategoryStats?.rankInCate && authorCategoryStats.rankInCate <= 3) effectiveDisplayType = `category_${postMainCategory}`;
-  else if (authorCategoryStats?.rankInCate && authorCategoryStats.rankInCate <= 10) effectiveDisplayType = `category_${postMainCategory}`;
-
-
-  // Honor user preference if applicable and not overridden by a higher fixed priority
-  if (displayPreference !== 'default' && author.username !== 'WANGJUNLAND') {
-    if (displayPreference === 'global' && author.rank > 0 && author.rank <= 3) effectiveDisplayType = 'global';
-    else if (displayPreference === 'tetris' && author.tetrisRank && author.tetrisRank <= 3 && effectiveDisplayType !== 'global') effectiveDisplayType = 'tetris';
-    else if (displayPreference.startsWith('category_') && effectiveDisplayType !== 'global' && effectiveDisplayType !== 'tetris') {
-        const preferredCat = displayPreference.split('_')[1] as PostMainCategory;
-        const preferredCatStats = author.categoryStats?.[preferredCat];
-        if (preferredCatStats?.rankInCate && preferredCatStats.rankInCate <= 3) {
-           effectiveDisplayType = displayPreference; 
-        } else if (postMainCategory === preferredCat && authorCategoryStats?.rankInCate && authorCategoryStats.rankInCate <= 3) {
-            effectiveDisplayType = `category_${postMainCategory}`; 
-        } else if (preferredCatStats?.rankInCate && preferredCatStats.rankInCate <=10 ) {
-            effectiveDisplayType = displayPreference; 
-        }
-    }
-  }
-  
-  // Apply styles based on effectiveDisplayType
-  if (author.username === 'WANGJUNLAND') {
+  // 1. Admin
+  if (username === 'WANGJUNLAND') {
     itemContainerClass = "admin-badge-bg admin-badge-border px-1.5 py-0.5";
     nicknameTextClass = "text-admin";
-  } else if (effectiveDisplayType === 'global') {
-    itemContainerClass = cn(author.rank === 1 && 'rank-1-badge', author.rank === 2 && 'rank-2-badge', author.rank === 3 && 'rank-3-badge', "px-1.5 py-0.5");
-    nicknameTextClass = cn(author.rank === 1 && 'text-rank-gold', author.rank === 2 && 'text-rank-silver', author.rank === 3 && 'text-rank-bronze');
-  } else if (effectiveDisplayType === 'tetris') {
-    if (author.tetrisRank && author.tetrisRank <= 3) {
-        titleText = tetrisTitles[author.tetrisRank - 1];
-        if (author.tetrisRank === 1) { titleColorClass = 'text-rank-gold'; nicknameTextClass = 'text-rank-gold'; }
-        else if (author.tetrisRank === 2) { titleColorClass = 'text-rank-silver'; nicknameTextClass = 'text-rank-silver'; }
-        else { titleColorClass = 'text-rank-bronze'; nicknameTextClass = 'text-rank-bronze'; }
+    showCategoryIcon = false;
+    titleText = null; // Admin has no specific title here
+  }
+  // 2. Global Community Rank Top 3
+  else if (globalRank && globalRank > 0 && globalRank <= 3) {
+    itemContainerClass = cn(globalRank === 1 && 'rank-1-badge', globalRank === 2 && 'rank-2-badge', globalRank === 3 && 'rank-3-badge', "px-1.5 py-0.5");
+    nicknameTextClass = cn(globalRank === 1 && 'text-rank-gold', globalRank === 2 && 'text-rank-silver', globalRank === 3 && 'text-rank-bronze');
+    showCategoryIcon = true; // Global rank might still show category icon
+    titleText = null; // Global rank implies its own prestige, no separate title text needed on the item itself
+  }
+  // 3. Tetris Monthly Rank Top 3 (and not Global Top 3)
+  else if (tetrisRank && tetrisRank > 0 && tetrisRank <= 3) {
+    titleText = tetrisTitles[tetrisRank - 1];
+    if (tetrisRank === 1) { titleColorClass = 'text-rank-gold'; nicknameTextClass = 'text-rank-gold'; }
+    else if (tetrisRank === 2) { titleColorClass = 'text-rank-silver'; nicknameTextClass = 'text-rank-silver'; }
+    else { titleColorClass = 'text-rank-bronze'; nicknameTextClass = 'text-rank-bronze'; }
+    
+    if (categoryRankInContext > 0 && categoryRankInContext <= 3) { // If also top in category, use category background
+        itemContainerClass = cn(`highlight-${postMainCategory.toLowerCase()}`, "px-1.5 py-0.5");
+    } else {
+        itemContainerClass = "default-rank-item-bg px-1.5 py-0.5";
     }
-    if (authorCategoryStats?.rankInCate && authorCategoryStats.rankInCate <= 3) { // If also Cat Top 3
-        itemContainerClass = cn(`highlight-${postMainCategory.toLowerCase()} px-1.5 py-0.5`);
-    } // else default-rank-item-bg is fine
     showCategoryIcon = true;
-  } else if (effectiveDisplayType.startsWith('category_')) {
-    const displayCat = effectiveDisplayType.split('_')[1] as PostMainCategory; // This will be postMainCategory
-    const displayCatStats = author.categoryStats?.[displayCat];
-    const displayCatRank = displayCatStats?.rankInCate || 0;
-
-    if (displayCatRank > 0 && displayCatRank <= 3) {
-        titleText = displayCat === 'General' ? '일반 & 유머' : displayCat;
-        if (displayCatRank === 1) titleColorClass = 'text-rank-gold';
-        else if (displayCatRank === 2) titleColorClass = 'text-rank-silver';
-        else titleColorClass = 'text-rank-bronze';
-        itemContainerClass = cn(`highlight-${displayCat.toLowerCase()} px-1.5 py-0.5`);
-    } // For 4-10, itemContainerClass remains default-rank-item-bg
-    nicknameTextClass = cn(displayCatRank > 0 ? `nickname-text-rank-${displayCatRank}` : '');
+  }
+  // 4. Category Rank Top 3 (and not Global/Tetris Top 3)
+  else if (categoryRankInContext > 0 && categoryRankInContext <= 3) {
+    titleText = postMainCategory === 'General' ? '일반 & 유머' : postMainCategory;
+    if (categoryRankInContext === 1) titleColorClass = 'text-rank-gold';
+    else if (categoryRankInContext === 2) titleColorClass = 'text-rank-silver';
+    else titleColorClass = 'text-rank-bronze';
+    
+    itemContainerClass = cn(`highlight-${postMainCategory.toLowerCase()}`, "px-1.5 py-0.5");
+    nicknameTextClass = cn(`text-category-${postMainCategory.toLowerCase()}`, `nickname-text-rank-${categoryRankInContext}`);
     showCategoryIcon = true;
+  }
+  // 5. Category Rank 4-10 (and not any of above)
+  else if (categoryRankInContext > 0 && categoryRankInContext <= 10) {
+    itemContainerClass = "default-rank-item-bg px-1.5 py-0.5";
+    nicknameTextClass = cn(`text-category-${postMainCategory.toLowerCase()}`, `nickname-text-rank-${categoryRankInContext}`);
+    showCategoryIcon = true;
+    titleText = null;
+  }
+  // 6. Default
+  else {
+    itemContainerClass = "default-rank-item-bg px-1.5 py-0.5";
+    nicknameTextClass = "text-foreground"; 
+    showCategoryIcon = true; 
+    titleText = null;
   }
   
   const NicknameWrapper = itemContainerClass.includes('highlight-general') && !itemContainerClass.includes('highlight-general-inner') ? 'div' : React.Fragment;
   const wrapperProps = NicknameWrapper === 'div' ? { className: 'highlight-general-inner' } : {};
 
-
   return (
-    <div className="flex flex-col items-start"> {/* Changed to items-start for title centering */}
+    <div className="flex flex-col items-start">
       {titleText && (
         <div className="title-container">
             <p className={cn("text-[0.7rem] leading-tight font-semibold tracking-tight", titleColorClass)}>
@@ -127,7 +127,7 @@ const NicknameDisplayForComment: FC<NicknameDisplayForCommentProps> = ({ author,
         </div>
       )}
       <NicknameWrapper {...wrapperProps}>
-        <div className={cn("inline-flex items-center gap-1", itemContainerClass, titleText && "mt-0.5")}>
+        <div className={cn("inline-flex items-center gap-1", itemContainerClass, titleText && "mt-0.5", NicknameWrapper === 'div' && "p-0")}>
             {showCategoryIcon && <CategoryIcon category={postMainCategory} className="h-3.5 w-3.5" />}
             <span className={cn("text-sm font-medium nickname-text", nicknameTextClass)}>{author.nickname}</span>
         </div>
@@ -153,7 +153,7 @@ const CommentEntry = ({ comment, currentUser, postMainCategory, onAddReply, onEd
   const [isEditing, setIsEditing] = useState(false);
   const [editedContent, setEditedContent] = useState(comment.content);
   
-  const author = mockUsers.find(u => u.id === comment.authorId); // Find full author object
+  const author = mockUsers.find(u => u.id === comment.authorId); 
   const isAuthor = currentUser?.id === comment.authorId;
   const canReply = depth < MAX_REPLY_DEPTH -1; 
 
@@ -170,7 +170,7 @@ const CommentEntry = ({ comment, currentUser, postMainCategory, onAddReply, onEd
   };
 
   const handleReplySubmit = () => {
-    if (replyContent.trim() && currentUser && author) { // Ensure author exists
+    if (replyContent.trim() && currentUser && author) { 
       onAddReply(comment.id, replyContent.trim());
       setReplyContent('');
       setActiveReplyBoxId(null); 
@@ -195,11 +195,11 @@ const CommentEntry = ({ comment, currentUser, postMainCategory, onAddReply, onEd
   const formattedDate = `${commentDate.toLocaleDateString()} ${commentDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
 
   return (
-    <div className={cn("py-3", depth > 0 && "ml-4 pl-4 border-l md:ml-6 md:pl-6")}>
+    <div className={cn("py-3", depth > 0 && "ml-4 pl-4 border-l md:ml-6 md:pl-6 border-border/50")}>
       <div className="flex items-start space-x-2 md:space-x-3">
         <Avatar className="h-8 w-8">
           <AvatarImage src={author?.avatar || `https://placehold.co/40x40.png?text=${comment.authorNickname.substring(0,1)}`} alt={comment.authorNickname}/>
-          <AvatarFallback>{comment.authorNickname.substring(0, 1).toUpperCase()}</AvatarFallback>
+          <AvatarFallback className="text-xs bg-muted text-muted-foreground">{comment.authorNickname.substring(0, 1).toUpperCase()}</AvatarFallback>
         </Avatar>
         <div className="flex-1">
           <div className="flex items-center justify-between">
@@ -214,26 +214,26 @@ const CommentEntry = ({ comment, currentUser, postMainCategory, onAddReply, onEd
               <Textarea 
                 value={editedContent} 
                 onChange={(e) => setEditedContent(e.target.value)}
-                className="min-h-[60px] text-sm"
+                className="min-h-[60px] text-sm bg-input border-input text-foreground"
                 rows={2}
               />
               <div className="flex gap-2">
-                <Button size="xs" onClick={handleEditSave}><Save className="h-3 w-3 mr-1"/> 저장</Button>
-                <Button size="xs" variant="outline" onClick={handleEditToggle}><XCircle className="h-3 w-3 mr-1"/> 취소</Button>
+                <Button size="xs" onClick={handleEditSave} className="bg-accent text-accent-foreground hover:bg-accent/90"><Save className="h-3 w-3 mr-1"/> 저장</Button>
+                <Button size="xs" variant="outline" onClick={handleEditToggle} className="border-border text-muted-foreground hover:bg-muted/50"><XCircle className="h-3 w-3 mr-1"/> 취소</Button>
               </div>
             </div>
           ) : (
-            <p className="text-sm mt-1 whitespace-pre-wrap">{comment.content}</p>
+            <p className="text-sm mt-1 whitespace-pre-wrap text-foreground/90">{comment.content}</p>
           )}
           {!isEditing && (
             <div className="mt-1.5 flex items-center space-x-3">
               {currentUser && canReply && (
-                <Button variant="ghost" size="xs" onClick={handleToggleReplyInput} className="text-xs text-muted-foreground">
+                <Button variant="ghost" size="xs" onClick={handleToggleReplyInput} className="text-xs text-muted-foreground hover:text-accent hover:bg-accent/10">
                   <CornerDownRight className="h-3 w-3 mr-1" /> {isReplyBoxOpen ? '취소' : '답글'}
                 </Button>
               )}
               {isAuthor && (
-                <Button variant="ghost" size="xs" onClick={handleEditToggle} className="text-xs text-muted-foreground">
+                <Button variant="ghost" size="xs" onClick={handleEditToggle} className="text-xs text-muted-foreground hover:text-accent hover:bg-accent/10">
                   <Edit3 className="h-3 w-3 mr-1" /> 수정
                 </Button>
               )}
@@ -247,10 +247,10 @@ const CommentEntry = ({ comment, currentUser, postMainCategory, onAddReply, onEd
             placeholder={`${comment.authorNickname}에게 답글 작성...`}
             value={replyContent}
             onChange={(e) => setReplyContent(e.target.value)}
-            className="min-h-[60px] text-sm"
+            className="min-h-[60px] text-sm bg-input border-input text-foreground"
             rows={2}
           />
-          <Button size="sm" onClick={handleReplySubmit} className="mt-2">
+          <Button size="sm" onClick={handleReplySubmit} className="mt-2 bg-primary text-primary-foreground hover:bg-primary/90">
             <Send className="h-3.5 w-3.5 mr-1.5" /> 답글 등록
           </Button>
         </div>
@@ -281,7 +281,7 @@ interface CommentSectionProps {
   postId: string;
   initialComments: CommentType[];
   postMainCategory: PostMainCategory;
-  authorFull: UserType; // Pass the full author object of the post
+  authorFull: UserType; 
 }
 
 export default function CommentSection({ postId, initialComments, postMainCategory, authorFull }: CommentSectionProps) {
@@ -374,30 +374,30 @@ export default function CommentSection({ postId, initialComments, postMainCatego
 
 
   return (
-    <Card className="mt-8 shadow-md">
+    <Card className="mt-8 shadow-md bg-card border-border">
       <CardHeader>
-        <h3 className="text-xl font-semibold flex items-center">
-          <MessageSquare className="h-5 w-5 mr-2" /> 댓글 ({totalCommentCount})
+        <h3 className="text-xl font-semibold flex items-center text-foreground">
+          <MessageSquare className="h-5 w-5 mr-2 text-primary" /> 댓글 ({totalCommentCount})
         </h3>
       </CardHeader>
       <CardContent>
         {currentUser ? (
-          <div className="mb-6 pb-6 border-b">
+          <div className="mb-6 pb-6 border-b border-border/50">
             <div className="flex items-start space-x-3">
               <Avatar className="h-9 w-9 mt-1">
                 <AvatarImage src={currentUser.avatar || `https://placehold.co/40x40.png?text=${currentUser.nickname.substring(0,1)}`} alt={currentUser.nickname} />
-                <AvatarFallback>{currentUser.nickname.substring(0,1).toUpperCase()}</AvatarFallback>
+                <AvatarFallback className="text-xs bg-muted text-muted-foreground">{currentUser.nickname.substring(0,1).toUpperCase()}</AvatarFallback>
               </Avatar>
               <div className="flex-1">
                 <Textarea
                   placeholder="따뜻한 댓글을 남겨주세요."
                   value={newCommentContent}
                   onChange={(e) => setNewCommentContent(e.target.value)}
-                  className="min-h-[70px]"
+                  className="min-h-[70px] bg-input border-input text-foreground"
                   rows={3}
                 />
                 <div className="flex justify-end mt-2">
-                  <Button onClick={handleTopLevelCommentSubmit} disabled={!newCommentContent.trim()}>
+                  <Button onClick={handleTopLevelCommentSubmit} disabled={!newCommentContent.trim()} className="bg-primary text-primary-foreground hover:bg-primary/90">
                     <Send className="h-4 w-4 mr-2" /> 댓글 등록
                   </Button>
                 </div>
@@ -405,7 +405,7 @@ export default function CommentSection({ postId, initialComments, postMainCatego
             </div>
           </div>
         ) : (
-          <p className="text-muted-foreground mb-6 pb-6 border-b text-sm">
+          <p className="text-muted-foreground mb-6 pb-6 border-b border-border/50 text-sm">
             댓글을 작성하려면 <Link href="/login" className="underline text-primary hover:text-primary/80">로그인</Link>하세요.
           </p>
         )}
@@ -417,7 +417,7 @@ export default function CommentSection({ postId, initialComments, postMainCatego
                 key={comment.id}
                 comment={comment}
                 currentUser={currentUser}
-                postMainCategory={postMainCategory} // Pass the post's main category for context
+                postMainCategory={postMainCategory}
                 onAddReply={handleAddReplyToComment}
                 onEditComment={handleEditCommentInternal}
                 activeReplyBoxId={activeReplyBoxId}
@@ -432,7 +432,3 @@ export default function CommentSection({ postId, initialComments, postMainCatego
     </Card>
   );
 }
-
-
-    
-```

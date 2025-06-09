@@ -15,7 +15,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Edit3, Mail, MessageSquare, ShieldAlert, UserCog, ShieldX, Star, CheckCircle, Clock, Users, Wand2, Crown, Gamepad2 } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import type { User, PostMainCategory, DisplayRankType } from '@/types';
-import { mockRankings, mockPosts, mockInquiries, mockUsers, tetrisTitles, mockTetrisRankings } from '@/lib/mockData'; 
+import { mockPosts, mockInquiries, mockUsers, tetrisTitles, mockTetrisRankings } from '@/lib/mockData'; 
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
 
@@ -37,7 +37,7 @@ export default function ProfilePage() {
   const [nickname, setNickname] = useState('');
   const [email, setEmail] = useState('');
   const [isEditingNickname, setIsEditingNickname] = useState(false);
-  const [selectedDisplayRank, setSelectedDisplayRank] = useState<DisplayRankType | undefined>(user?.selectedDisplayRank || 'default');
+  const [selectedDisplayRankState, setSelectedDisplayRankState] = useState<DisplayRankType | undefined>(user?.selectedDisplayRank || 'default');
   
   const calculateCanChangeNickname = () => {
     if (!user) return false;
@@ -61,7 +61,7 @@ export default function ProfilePage() {
     } else if (user) {
       setNickname(user.nickname);
       setEmail(user.email || '');
-      setSelectedDisplayRank(user.selectedDisplayRank || 'default');
+      setSelectedDisplayRankState(user.selectedDisplayRank || 'default');
       setNicknameChangeAllowed(calculateCanChangeNickname());
     }
   }, [user, authLoading, router]);
@@ -118,7 +118,7 @@ export default function ProfilePage() {
 
   const handleDisplayRankChange = (value: string) => {
     const newDisplayRank = value as DisplayRankType;
-    setSelectedDisplayRank(newDisplayRank);
+    setSelectedDisplayRankState(newDisplayRank);
     if (user) {
       updateUser({ selectedDisplayRank: newDisplayRank });
       toast({ title: "성공", description: "대표 칭호/하이라이트 설정이 변경되었습니다." });
@@ -126,21 +126,20 @@ export default function ProfilePage() {
   };
 
   const availableDisplayRanks = useMemo(() => {
-    if (!user) return [];
+    if (!user || user.username === 'WANGJUNLAND') return [{value: 'default' as DisplayRankType, label: '기본 표시 (관리자는 설정 불가)'}];
     const ranks: { value: DisplayRankType; label: string }[] = [{value: 'default', label: '기본 표시 (우선순위 따름)'}];
     
-    if (user.rank > 0 && user.rank <= 3 && user.username !== 'WANGJUNLAND') {
+    if (user.rank > 0 && user.rank <= 3) {
       ranks.push({ value: 'global', label: `종합 랭킹 ${user.rank}위` });
     }
 
-    const userTetrisRank = mockTetrisRankings.find(tr => tr.userId === user.id);
-    if (userTetrisRank && userTetrisRank.rank <= 3) {
-      ranks.push({ value: 'tetris', label: `${tetrisTitles[userTetrisRank.rank -1]} (테트리스 ${userTetrisRank.rank}위)`});
+    if (user.tetrisRank && user.tetrisRank > 0 && user.tetrisRank <= 3) {
+      ranks.push({ value: 'tetris', label: `${tetrisTitles[user.tetrisRank - 1]} (테트리스 ${user.tetrisRank}위)`});
     }
 
     (Object.keys(user.categoryStats || {}) as PostMainCategory[]).forEach(catKey => {
       const stat = user.categoryStats?.[catKey];
-      if (stat && stat.rankInCate && stat.rankInCate <= 3) {
+      if (stat && stat.rankInCate && stat.rankInCate > 0 && stat.rankInCate <= 3) {
         ranks.push({ value: `category_${catKey}`, label: `${getCategoryDisplayName(catKey)} 랭킹 ${stat.rankInCate}위` });
       }
     });
@@ -155,6 +154,29 @@ export default function ProfilePage() {
   const userInquiries = mockInquiries.filter(iq => iq.userId === user.id);
 
   const bannerImageUrl = "https://placehold.co/1920x600.png";
+
+  // Determine user's primary style for the avatar header based on fixed priority
+  let headerNicknameClass = "text-3xl font-bold font-headline";
+  let headerRankText = user.rank > 0 ? `종합 ${user.rank}위` : "랭킹 정보 없음";
+  let headerRankClass = "text-muted-foreground";
+  let headerContainerClass = ""; // For potential rank badge background on avatar card
+
+  if (isAdmin) {
+    headerNicknameClass = cn(headerNicknameClass, "text-admin");
+    headerRankText = "관리자";
+    headerRankClass = "text-admin";
+    headerContainerClass = "admin-badge-bg admin-badge-border";
+  } else if (user.rank > 0 && user.rank <= 3) { // Global Top 3
+    headerNicknameClass = cn(headerNicknameClass, user.rank === 1 ? "text-rank-gold" : user.rank === 2 ? "text-rank-silver" : "text-rank-bronze");
+    headerRankClass = user.rank === 1 ? "text-rank-gold" : user.rank === 2 ? "text-rank-silver" : "text-rank-bronze";
+    headerContainerClass = cn(
+      user.rank === 1 && 'rank-1-badge',
+      user.rank === 2 && 'rank-2-badge',
+      user.rank === 3 && 'rank-3-badge'
+    );
+  }
+  // Note: For the avatar header, we simplify and don't show Tetris or Category specific styles directly,
+  // as the primary display is the global rank. User selection will affect other parts of the site.
 
   return (
     <div className="container mx-auto py-10 px-4">
@@ -180,37 +202,14 @@ export default function ProfilePage() {
                     <AvatarImage src={user.avatar || `https://placehold.co/200x200.png?text=${user.nickname.substring(0,1)}`} alt={user.nickname} data-ai-hint="fantasy portrait" />
                     <AvatarFallback className="text-4xl bg-muted text-muted-foreground">{user.nickname.substring(0, 2).toUpperCase()}</AvatarFallback>
                 </Avatar>
-                 {isAdmin ? (
-                  <div className="admin-badge-bg admin-badge-border rounded-lg px-3 py-1 text-sm font-medium">
-                    <h1 className="text-3xl font-bold font-headline text-admin">{user.nickname}</h1>
-                  </div>
-                ) : user.rank > 0 && user.rank <=3 ? (
-                  <div className={cn(
-                    "rounded-lg px-3 py-1", 
-                    user.rank === 1 && 'rank-1-badge',
-                    user.rank === 2 && 'rank-2-badge',
-                    user.rank === 3 && 'rank-3-badge'
-                  )}>
-                    <h1 className={cn("text-3xl font-bold font-headline",
-                      user.rank === 1 && 'text-rank-gold',
-                      user.rank === 2 && 'text-rank-silver',
-                      user.rank === 3 && 'text-rank-bronze'
-                    )}>{user.nickname}</h1>
-                  </div>
-                ) : (
-                  <h1 className="text-3xl font-bold font-headline">{user.nickname}</h1>
-                )}
+                <div className={cn("rounded-lg px-3 py-1 text-center", headerContainerClass)}>
+                  <h1 className={headerNicknameClass}>{user.nickname}</h1>
+                </div>
                 <p className="text-sm opacity-80 mt-1">{user.email || "이메일 미등록"}</p>
                 <div className="mt-4 text-center">
                     <p className="text-2xl font-semibold">{user.score.toLocaleString()} 점</p>
-                     <p className={cn("text-lg", 
-                        isAdmin ? "text-admin" : 
-                        user.rank > 0 && user.rank <=3 ? (
-                          user.rank === 1 ? "text-rank-gold" :
-                          user.rank === 2 ? "text-rank-silver" : "text-rank-bronze"
-                        ) : "text-muted-foreground" // Default for non-top 3
-                     )}>
-                        {isAdmin ? "관리자" : user.rank > 0 ? `종합 ${user.rank}위` : "랭킹 정보 없음"}
+                     <p className={cn("text-lg", headerRankClass)}>
+                        {headerRankText}
                     </p>
                 </div>
             </div>
@@ -271,7 +270,7 @@ export default function ProfilePage() {
                           </CardHeader>
                           <CardContent>
                             {availableDisplayRanks.length > 1 && !isAdmin ? (
-                              <RadioGroup value={selectedDisplayRank} onValueChange={handleDisplayRankChange}>
+                              <RadioGroup value={selectedDisplayRankState} onValueChange={handleDisplayRankChange}>
                                 {availableDisplayRanks.map(rankOption => (
                                   <div key={rankOption.value} className="flex items-center space-x-2 py-2">
                                     <RadioGroupItem value={rankOption.value} id={rankOption.value} />
@@ -283,8 +282,10 @@ export default function ProfilePage() {
                               </RadioGroup>
                             ) : isAdmin ? (
                                 <p className="text-sm text-muted-foreground">관리자 계정은 칭호/하이라이트 설정을 사용하지 않습니다.</p>
-                            ) : (
-                              <p className="text-sm text-muted-foreground">선택 가능한 대표 칭호/하이라이트가 없거나 하나만 있습니다. (현재: {availableDisplayRanks[0]?.label || '기본'})</p>
+                            ) : availableDisplayRanks.length === 1 ? (
+                               <p className="text-sm text-muted-foreground">현재 설정 가능한 대표 칭호가 한 가지 입니다: {availableDisplayRanks[0].label}</p>
+                            ): (
+                              <p className="text-sm text-muted-foreground">선택 가능한 대표 칭호/하이라이트가 없습니다.</p>
                             )}
                           </CardContent>
                         </Card>
@@ -338,24 +339,22 @@ export default function ProfilePage() {
           </CardHeader>
           <CardContent>
             <div className="space-y-3 max-h-[500px] overflow-y-auto p-1">
-              {mockRankings.map((rankerData) => { // mockRankings is already filtered for non-admins
+              {mockUsers.filter(u => u.username !== 'WANGJUNLAND' && u.rank > 0).sort((a, b) => a.rank - b.rank).map((rankerData) => { 
                 const isTopGlobalRanker = rankerData.rank > 0 && rankerData.rank <= 3;
 
                 let itemContainerClass = "default-rank-item-bg";
                 let nicknameTextClass = "text-foreground";
 
                 if (isTopGlobalRanker) {
-                  if (rankerData.rank === 1) itemContainerClass = 'rank-1-badge';
-                  else if (rankerData.rank === 2) itemContainerClass = 'rank-2-badge';
-                  else if (rankerData.rank === 3) itemContainerClass = 'rank-3-badge';
-                  
-                  nicknameTextClass = rankerData.rank === 1 ? 'text-rank-gold' : rankerData.rank === 2 ? 'text-rank-silver' : 'text-rank-bronze';
+                  if (rankerData.rank === 1) {itemContainerClass = 'rank-1-badge'; nicknameTextClass = 'text-rank-gold';}
+                  else if (rankerData.rank === 2) {itemContainerClass = 'rank-2-badge'; nicknameTextClass = 'text-rank-silver';}
+                  else {itemContainerClass = 'rank-3-badge'; nicknameTextClass = 'text-rank-bronze';}
                 }
 
                 return (
-                  <div key={rankerData.userId} className={cn("flex items-center justify-between p-3 rounded-lg border", 
+                  <div key={rankerData.id} className={cn("flex items-center justify-between p-3 rounded-lg border", 
                     itemContainerClass,
-                    rankerData.userId === user.id && !itemContainerClass.startsWith('rank-') ? 'bg-primary/10 border-primary shadow-md' : 'border-border'
+                    rankerData.id === user.id && !itemContainerClass.startsWith('rank-') ? 'bg-primary/10 border-primary shadow-md' : 'border-border'
                   )}>
                     <div className="flex items-center gap-3">
                       <span className={cn("font-bold text-lg w-8 text-center", 
@@ -383,5 +382,3 @@ export default function ProfilePage() {
     </div>
   );
 }
-
-```
