@@ -1,4 +1,3 @@
-
 // src/lib/mockData.ts
 import type { User, StarterProject, AssetInfo, Post, Comment, RankEntry, Inquiry, PostMainCategory } from '@/types';
 
@@ -67,7 +66,7 @@ export const mockUsers: User[] = [
     score: 600, rank: 5, avatar: 'https://placehold.co/100x100.png?text=PA', 
     nicknameLastChanged: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000), // Less than 30 days ago
     categoryStats: {
-      Unity: { score: 50, rank: 3 },
+      Unity: { score: 50, rank: 3 }, // Changed to rank 3 for testing title
       Unreal: { score: 250, rank: 2 },
       Godot: { score: 200, rank: 2 },
       General: { score: 100 },
@@ -89,7 +88,7 @@ export const mockUsers: User[] = [
     score: 400, rank: 7, avatar: 'https://placehold.co/100x100.png?text=UN', 
     nicknameLastChanged: new Date('2024-07-07'),
     categoryStats: {
-      Unity: { score: 350 },
+      Unity: { score: 350, rank: 2 }, // Changed to rank 2 for testing title
       Unreal: { score: 0 },
       Godot: { score: 0 },
       General: { score: 50 },
@@ -106,7 +105,32 @@ export const mockUsers: User[] = [
       General: { score: 20 },
     }
   },
+  // Placeholder users for Tetris ranking if they don't map to existing users
+  // For this example, I'll assume some existing users are also Tetris rankers to simplify.
+  // If TetrisGod, ConsistentPlayer etc. were NEW users, they'd need full User entries.
 ];
+
+
+// Tetris Rankings (Game Specific)
+export const mockTetrisRankings = {
+  monthly: [ 
+    // For simplicity, mapping to existing user IDs. In a real app, these might be different.
+    { userId: 'user1', nickname: 'TetrisGod', score: 2500000 }, // user1 is 유니티장인
+    { userId: 'user2', nickname: 'ConsistentPlayer', score: 2200000 }, // user2 is 언리얼신
+    { userId: 'user3', nickname: 'BlockMaster', score: 1900000 }, // user3 is 고도엔진팬
+    { userId: 'user4', nickname: 'Marathoner', score: 1600000 },
+    { userId: 'user5', nickname: 'TopTier', score: 1400000 },
+    { userId: 'user6', nickname: 'StackerPro', score: 1350000 },
+    { userId: 'user7', nickname: 'ComboKing', score: 1200000 },
+  ]
+};
+
+export const tetrisTitles: string[] = [
+  '"테트리스" 그 자체',
+  '"테트리스" 그랜드 마스터',
+  '"테트리스" 마스터',
+];
+
 
 export const mockStarterProjects: StarterProject[] = [
   { id: 'sp1', engine: 'Unity', name: 'Unity 2D 플랫포머 스타터', description: '기본적인 2D 플랫포머 게임 개발을 위한 Unity 프로젝트 템플릿입니다. 캐릭터 컨트롤, 타일맵, 간단한 UI가 포함되어 있습니다.', imageUrl: 'https://placehold.co/600x400.png', downloadUrl: '#', version: '1.0.2', lastUpdatedAt: new Date().toISOString(), tags: ['2D', 'Platformer', 'Unity'] },

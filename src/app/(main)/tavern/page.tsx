@@ -1,17 +1,16 @@
-
 // src/app/(main)/tavern/page.tsx
 "use client";
-import { useState, useMemo, useEffect, type FC, type ElementType } from 'react';
+import { useState, useMemo, useEffect, type FC, type ElementType, useCallback } from 'react';
+import type { AppRouterInstance } from 'next/dist/shared/lib/app-router-context.shared-runtime'; 
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { mockPosts, mockUsers } from '@/lib/mockData';
-import type { Post, PostMainCategory, PostType, User } from '@/types';
+import { mockPosts, mockUsers, mockTetrisRankings, tetrisTitles } from '@/lib/mockData'; // Import tetris data
+import type { Post, PostMainCategory, PostType, User as UserType } from '@/types'; // Renamed User
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation'; 
-import type { AppRouterInstance } from 'next/dist/shared/lib/app-router-context.shared-runtime'; 
 import { 
   Search, PlusCircle, MessageSquare, ThumbsUp, ThumbsDown, Eye, Pin, Edit, Trash2, 
   ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, ScrollText,
@@ -22,17 +21,146 @@ import { useAuth } from '@/contexts/AuthContext';
 import { cn } from '@/lib/utils';
 
 const POSTS_PER_PAGE = 10;
-const RANKERS_TO_SHOW_TAVERN = 10; 
+const RANKERS_TO_SHOW_TAVERN = 20; 
 
-const CategoryIcon: FC<{ category: PostMainCategory, className?: string }> = ({ category, className = "h-4 w-4 shrink-0" }) => {
+// Helper function to get user's rank in a specific category
+const getAuthorRankInCategory = (author: UserType | undefined, category: PostMainCategory, allUsers: UserType[]): number | null => {
+  if (!author || !author.categoryStats || !author.categoryStats[category]) {
+    return null;
+  }
+  const categoryScore = author.categoryStats[category]?.score;
+  if (typeof categoryScore !== 'number') {
+    return null;
+  }
+
+  const usersInCategory = allUsers
+    .filter(u => u.id !== 'admin' && u.categoryStats && u.categoryStats[category] && typeof u.categoryStats[category]?.score === 'number')
+    .sort((a, b) => (b.categoryStats![category]!.score || 0) - (a.categoryStats![category]!.score || 0));
+
+  const rank = usersInCategory.findIndex(u => u.id === author.id);
+  return rank !== -1 ? rank + 1 : null;
+};
+
+
+const CategoryIcon: FC<{ category: PostMainCategory, className?: string }> = ({ category, className = "h-3.5 w-3.5 shrink-0" }) => {
+  let iconColorClass = "";
   switch (category) {
-    case 'Unity': return <Box className={cn(className, "text-purple-500")} />;
-    case 'Unreal': return <AppWindow className={cn(className, "text-sky-500")} />;
-    case 'Godot': return <PenTool className={cn(className, "text-emerald-500")} />;
-    case 'General': return <LayoutGrid className={cn(className, "text-orange-500")} />;
+    case 'Unity': iconColorClass = "text-unity-icon"; break;
+    case 'Unreal': iconColorClass = "text-unreal-icon"; break;
+    case 'Godot': iconColorClass = "text-godot-icon"; break;
+    case 'General': iconColorClass = "text-general-icon"; break;
+    default: iconColorClass = "text-muted-foreground"; break;
+  }
+
+  switch (category) {
+    case 'Unity': return <Box className={cn(iconColorClass, className)} />;
+    case 'Unreal': return <AppWindow className={cn(iconColorClass, className)} />;
+    case 'Godot': return <PenTool className={cn(iconColorClass, className)} />;
+    case 'General': return <LayoutGrid className={cn(iconColorClass, className)} />;
     default: return null;
   }
 };
+
+interface NicknameDisplayProps {
+  author?: UserType;
+  authorDisplayName: string;
+  postMainCategory: PostMainCategory;
+}
+
+const NicknameDisplay: FC<NicknameDisplayProps> = ({ author, authorDisplayName, postMainCategory }) => {
+  if (!author) return <span className="text-xs">{authorDisplayName}</span>;
+
+  const isAdminUser = author.username === 'WANGJUNLAND';
+  const isGlobalTop3 = author.rank > 0 && author.rank <= 3;
+  
+  const tetrisRankEntry = mockTetrisRankings.monthly.find(r => r.userId === author.id);
+  const tetrisRankIndex = tetrisRankEntry ? mockTetrisRankings.monthly.indexOf(tetrisRankEntry) : -1;
+  const isTetrisTop3 = tetrisRankEntry && tetrisRankIndex !== -1 && tetrisRankIndex < 3;
+
+  const authorRankInPostCategory = getAuthorRankInCategory(author, postMainCategory, mockUsers);
+  const isCategoryTop3InPost = authorRankInPostCategory !== null && authorRankInPostCategory <= 3;
+  const isCategoryTop10InPost = authorRankInPostCategory !== null && authorRankInPostCategory <= 10;
+  
+  const authorHasCategoryPresence = author.categoryStats && author.categoryStats[postMainCategory] && (author.categoryStats[postMainCategory]?.score || 0) > 0;
+
+  let titleText: string | null = null;
+  let titleClass = "";
+  let nicknameContainerClass = "inline-flex items-center gap-1 rounded-md text-xs"; // Base class
+  let nicknameTextClass = ""; // For nickname text specific styling
+
+  if (isAdminUser) {
+    nicknameContainerClass = cn(nicknameContainerClass, "admin-badge-bg admin-badge-border px-1.5 py-0.5");
+    nicknameTextClass = "text-admin font-semibold";
+  } else if (isGlobalTop3) {
+    if (author.rank === 1) nicknameContainerClass = cn(nicknameContainerClass, "rank-1-badge px-1.5 py-0.5");
+    else if (author.rank === 2) nicknameContainerClass = cn(nicknameContainerClass, "rank-2-badge px-1.5 py-0.5");
+    else if (author.rank === 3) nicknameContainerClass = cn(nicknameContainerClass, "rank-3-badge px-1.5 py-0.5");
+    
+    if (author.rank === 1) nicknameTextClass = "rank-1-text font-semibold";
+    else if (author.rank === 2) nicknameTextClass = "rank-2-text font-semibold";
+    else if (author.rank === 3) nicknameTextClass = "rank-3-text font-semibold";
+  } else if (isTetrisTop3) {
+    titleText = tetrisTitles[tetrisRankIndex];
+    if (tetrisRankIndex === 0) { titleClass = 'text-rank-gold'; nicknameTextClass = 'text-rank-gold font-semibold';}
+    else if (tetrisRankIndex === 1) { titleClass = 'text-rank-silver'; nicknameTextClass = 'text-rank-silver font-semibold';}
+    else if (tetrisRankIndex === 2) { titleClass = 'text-rank-bronze'; nicknameTextClass = 'text-rank-bronze font-semibold';}
+
+    if (isCategoryTop3InPost) { // Tetris Top 3 + Category Top 3 -> Category BG
+         nicknameContainerClass = cn(nicknameContainerClass, 
+            postMainCategory === 'Unity' && 'highlight-unity',
+            postMainCategory === 'Unreal' && 'highlight-unreal',
+            postMainCategory === 'Godot' && 'highlight-godot',
+            postMainCategory === 'General' && 'highlight-general',
+            'px-1.5 py-0.5'
+        );
+    } else {
+        nicknameContainerClass = cn(nicknameContainerClass, 'px-1.5 py-0.5'); // Default padding if no category bg
+    }
+
+  } else if (isCategoryTop3InPost) {
+    titleText = postMainCategory === 'General' ? '일반 & 유머' : postMainCategory;
+     if (authorRankInPostCategory === 1) titleClass = 'text-rank-gold';
+    else if (authorRankInPostCategory === 2) titleClass = 'text-rank-silver';
+    else if (authorRankInPostCategory === 3) titleClass = 'text-rank-bronze';
+
+    nicknameContainerClass = cn(nicknameContainerClass, 
+        postMainCategory === 'Unity' && 'highlight-unity',
+        postMainCategory === 'Unreal' && 'highlight-unreal',
+        postMainCategory === 'Godot' && 'highlight-godot',
+        postMainCategory === 'General' && 'highlight-general',
+        'px-1.5 py-0.5'
+    );
+    nicknameTextClass = cn(`nickname-text-rank-${authorRankInPostCategory}`);
+  } else if (isCategoryTop10InPost) {
+    // No title, default background for container, specific text style for nickname
+    nicknameContainerClass = cn(nicknameContainerClass, 'px-1.5 py-0.5'); // Default padding
+    nicknameTextClass = cn(`nickname-text-rank-${authorRankInPostCategory}`);
+    // Make sure the highlight class is NOT applied to the container here
+    // The text color will be from the category if defined in .nickname-text-rank-*
+    // e.g. .highlight-unity .nickname-text-rank-4 { color: var(--unity-text-dark); opacity: 0.7; }
+    // This means nicknameTextClass needs to work with the default container background.
+    // So, CSS for .nickname-text-rank-X should directly specify text color for ranks 4-10 based on category.
+  } else {
+     nicknameContainerClass = cn(nicknameContainerClass, 'px-1.5 py-0.5');
+     nicknameTextClass = "text-muted-foreground"; // Default for no rank
+  }
+
+
+  return (
+    <div className="flex flex-col items-start">
+      {titleText && (
+        <p className={cn("text-[0.65rem] leading-tight font-semibold tracking-tight mb-0.5", titleClass)}>
+          {titleText}
+        </p>
+      )}
+      <div className={nicknameContainerClass}>
+        {authorHasCategoryPresence && !isAdminUser && !isGlobalTop3 && <CategoryIcon category={postMainCategory} className="h-3 w-3" />}
+        <span className={cn(nicknameTextClass, "text-xs")}>{authorDisplayName}</span>
+      </div>
+    </div>
+  );
+};
+
 
 const PostItem = ({ post, isAdmin, router }: { post: Post, isAdmin: boolean, router: AppRouterInstance }) => {
   const author = mockUsers.find(u => u.id === post.authorId);
@@ -44,70 +172,6 @@ const PostItem = ({ post, isAdmin, router }: { post: Post, isAdmin: boolean, rou
   const formattedDate = `${postDateToShow.getFullYear()}년 ${postDateToShow.getMonth() + 1}월 ${postDateToShow.getDate()}일 ${postDateToShow.getHours()}시 ${postDateToShow.getMinutes()}분`;
 
   const isNotice = post.type === 'Notice' || post.type === 'Announcement';
-  const isAuthorAdmin = author?.username === 'WANGJUNLAND';
-  const isAuthorGlobalTopRanker = author && !isAuthorAdmin && author.rank > 0 && author.rank <= 3;
-  
-  const authorCategoryStats = author?.categoryStats?.[post.mainCategory];
-  const isAuthorCategoryTopRanker = authorCategoryStats?.rank && authorCategoryStats.rank > 0 && authorCategoryStats.rank <= 3;
-
-
-  const NicknameDisplay = () => {
-    if (!author) return <span className="text-xs">{authorDisplayName}</span>;
-
-    const authorHasCategoryPresence = author?.categoryStats?.[post.mainCategory]?.score !== undefined && author.categoryStats[post.mainCategory].score > 0;
-
-    if (isAuthorAdmin) {
-      return (
-        <div className="admin-badge-bg admin-badge-border rounded-lg px-1.5 py-0.5 text-xs inline-flex items-center gap-1">
-          <span className="text-admin font-semibold">{authorDisplayName}</span>
-        </div>
-      );
-    }
-    if (isAuthorGlobalTopRanker) {
-      return (
-         <div className={cn(
-            "rounded-lg px-1.5 py-0.5 text-xs inline-flex items-center gap-1",
-            author.rank === 1 && 'rank-1-badge',
-            author.rank === 2 && 'rank-2-badge',
-            author.rank === 3 && 'rank-3-badge'
-          )}
-        >
-          {authorHasCategoryPresence && <CategoryIcon category={post.mainCategory} className="h-3 w-3" />}
-          <span className={cn(
-            "font-semibold",
-            author.rank === 1 && 'rank-1-text',
-            author.rank === 2 && 'rank-2-text',
-            author.rank === 3 && 'rank-3-text'
-          )}>
-            {authorDisplayName}
-          </span>
-        </div>
-      );
-    }
-    if (isAuthorCategoryTopRanker) { // This handles cases where user is category top ranker but NOT global top ranker
-      return (
-        <span className={cn(
-          "category-rank-nickname text-xs px-1.5 py-0.5 inline-flex items-center gap-1",
-          post.mainCategory === 'Unity' && 'category-rank-unity',
-          post.mainCategory === 'Unreal' && 'category-rank-unreal',
-          post.mainCategory === 'Godot' && 'category-rank-godot',
-          post.mainCategory === 'General' && 'category-rank-general',
-        )}>
-          <CategoryIcon category={post.mainCategory} className="h-3 w-3" />
-          {authorDisplayName}
-        </span>
-      );
-    }
-    if (authorHasCategoryPresence) { // This handles cases where user has category presence but is not a top ranker globally or in category
-         return (
-            <span className="text-xs inline-flex items-center gap-1">
-                <CategoryIcon category={post.mainCategory} className="h-3 w-3" />
-                {authorDisplayName}
-            </span>
-         );
-    }
-    return <span className="text-xs">{authorDisplayName}</span>; // Default for users with no special rank or category presence
-  };
 
   return (
     <Card 
@@ -137,12 +201,12 @@ const PostItem = ({ post, isAdmin, router }: { post: Post, isAdmin: boolean, rou
               </div>
             )}
           </div>
-          <div className="flex items-center text-xs text-muted-foreground space-x-1.5">
-            <Avatar className="h-4 w-4 border border-border">
+          <div className="flex items-center text-xs text-muted-foreground space-x-1.5 mt-1">
+            <Avatar className="h-4 w-4 border border-border shrink-0">
               <AvatarImage src={authorAvatar} />
-              <AvatarFallback>{getInitials(authorDisplayName)}</AvatarFallback>
+              <AvatarFallback className="text-[10px]">{getInitials(authorDisplayName)}</AvatarFallback>
             </Avatar>
-            <NicknameDisplay />
+            <NicknameDisplay author={author} authorDisplayName={authorDisplayName} postMainCategory={post.mainCategory} />
             <span>·</span>
             <span className="text-xs">{formattedDate}</span>
             <span>·</span>
@@ -212,14 +276,25 @@ const SubTabsComponent: FC<SubTabsComponentProps> = ({ activeSubTab, setActiveSu
 };
 
 const CategoryRankingCard: FC<{ category: PostMainCategory, isAdmin: boolean }> = ({ category, isAdmin }) => {
-  const categoryRankers = useMemo(() => {
-    return mockUsers
-      .filter(u => u.username !== 'WANGJUNLAND' && u.categoryStats && u.categoryStats[category] && u.categoryStats[category]!.score > 0)
-      .sort((a, b) => (b.categoryStats![category]!.score || 0) - (a.categoryStats![category]!.score || 0))
-      .slice(0, RANKERS_TO_SHOW_TAVERN);
-  }, [category]);
-
   const categoryDisplayName = category === 'General' ? '일반 & 유머' : category;
+
+  const getTopNUsersForCategoryCard = useCallback((users: UserType[], cat: PostMainCategory, count: number): (UserType & { categoryRankInList: number })[] => {
+    const usersWithValidCategoryStats = users.filter(u => {
+      return u.id !== 'admin' && u.categoryStats && u.categoryStats[cat] && typeof u.categoryStats[cat]?.score === 'number';
+    });
+
+    const sortedUsers = [...usersWithValidCategoryStats].sort((a, b) => {
+      const scoreA = a.categoryStats?.[cat]?.score ?? -1;
+      const scoreB = b.categoryStats?.[cat]?.score ?? -1;
+      return scoreB - scoreA;
+    });
+    return sortedUsers.slice(0, count).map((u, index) => ({ ...u, categoryRankInList: index + 1 }));
+  }, []);
+  
+  const categoryRankers = useMemo(() => {
+    return getTopNUsersForCategoryCard(mockUsers, category, RANKERS_TO_SHOW_TAVERN);
+  }, [category, getTopNUsersForCategoryCard]);
+
 
   if (categoryRankers.length === 0) {
     return (
@@ -246,48 +321,79 @@ const CategoryRankingCard: FC<{ category: PostMainCategory, isAdmin: boolean }> 
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
-        {categoryRankers.map((ranker, index) => {
-          const displayRank = index + 1;
-          const isDisplayRankTop3 = displayRank <= 3;
+        {categoryRankers.map((ranker) => {
+          const displayRank = ranker.categoryRankInList;
+          const isGlobalTop3 = ranker.rank > 0 && ranker.rank <= 3; // Check original global rank
+          const isCategoryTop3 = displayRank <= 3;
+          const isCategoryTop10 = displayRank <= 10;
+          const isCategoryTop20 = displayRank <= 20; // For icon display
+
+          let titleText: string | null = null;
+          let titleClass = "";
+          let itemContainerClass = "p-2.5 bg-background/30 rounded-lg border border-border/50"; // Default
+          let nicknameTextClass = ""; // Default handled by highlight or global rank
+
+          if (isGlobalTop3) {
+            if (ranker.rank === 1) itemContainerClass = 'rank-1-badge p-2.5';
+            else if (ranker.rank === 2) itemContainerClass = 'rank-2-badge p-2.5';
+            else if (ranker.rank === 3) itemContainerClass = 'rank-3-badge p-2.5';
+            
+            // Nickname text color from global rank text classes
+            if (ranker.rank === 1) nicknameTextClass = 'rank-1-text';
+            else if (ranker.rank === 2) nicknameTextClass = 'rank-2-text';
+            else if (ranker.rank === 3) nicknameTextClass = 'rank-3-text';
+          } else if (isCategoryTop3) { // Not global top 3, but category top 3
+            titleText = category === 'General' ? '일반 & 유머' : category;
+            if (displayRank === 1) titleClass = 'text-rank-gold';
+            else if (displayRank === 2) titleClass = 'text-rank-silver';
+            else if (displayRank === 3) titleClass = 'text-rank-bronze';
+            
+            itemContainerClass = cn(
+                'p-2.5 rounded-lg border', // Base padding and border for highlights
+                category === 'Unity' && 'highlight-unity',
+                category === 'Unreal' && 'highlight-unreal',
+                category === 'Godot' && 'highlight-godot',
+                category === 'General' && 'highlight-general'
+            );
+            nicknameTextClass = cn(`nickname-text-rank-${displayRank}`); // Text color from highlight, style from rank
+          } else if (isCategoryTop10) { // Category 4-10 (no special background, just text style)
+            nicknameTextClass = cn(`nickname-text-rank-${displayRank}`);
+            // For ranks 4-10, text color should come from CSS like:
+            // .highlight-unity .nickname-text-rank-4 (if we want specific color) or just rely on opacity.
+            // If .nickname-text-rank-X itself defines color based on category, that works.
+            // Let's assume .nickname-text-rank-X applies category specific color for 4-10.
+             if (category === 'Unity') nicknameTextClass = cn(nicknameTextClass, 'text-unity-text-highlight');
+             else if (category === 'Unreal') nicknameTextClass = cn(nicknameTextClass, 'text-unreal-text-highlight');
+             else if (category === 'Godot') nicknameTextClass = cn(nicknameTextClass, 'text-godot-text-highlight');
+             else if (category === 'General') nicknameTextClass = cn(nicknameTextClass, 'text-general-text-highlight'); // if not rainbow text
+          } else {
+            nicknameTextClass = 'text-foreground'; // Default for beyond top 10
+          }
+
 
           return (
-            <div key={ranker.id} className="flex items-center justify-between p-2.5 bg-background/30 rounded-lg border border-border/50">
+            <div key={ranker.id} className={cn("flex items-center justify-between", itemContainerClass)}>
               <div className="flex items-center gap-2.5">
                 <span className={cn(
                   "font-bold text-md w-5 text-center shrink-0",
-                  isDisplayRankTop3 && displayRank === 1 && (category === 'Unity' ? 'text-unity-rank' : category === 'Unreal' ? 'text-unreal-rank' : category === 'Godot' ? 'text-godot-rank' : 'text-general-rank'),
-                  isDisplayRankTop3 && displayRank === 2 && (category === 'Unity' ? 'text-unity-rank opacity-80' : category === 'Unreal' ? 'text-unreal-rank opacity-80' : category === 'Godot' ? 'text-godot-rank opacity-80' : 'text-general-rank opacity-80'),
-                  isDisplayRankTop3 && displayRank === 3 && (category === 'Unity' ? 'text-unity-rank opacity-70' : category === 'Unreal' ? 'text-unreal-rank opacity-70' : category === 'Godot' ? 'text-godot-rank opacity-70' : 'text-general-rank opacity-70'),
-                  !isDisplayRankTop3 && "text-muted-foreground"
+                  isGlobalTop3 && nicknameTextClass, // Uses gold/silver/bronze from global rank text
+                  !isGlobalTop3 && isCategoryTop3 && titleClass, // Uses gold/silver/bronze for category title
+                  !isGlobalTop3 && !isCategoryTop3 && "text-muted-foreground"
                 )}>{displayRank}.</span>
                 <Avatar className="h-8 w-8 border-2 border-accent/70 shrink-0">
                   <Image src={ranker.avatar || `https://placehold.co/40x40.png?text=${ranker.nickname.substring(0,1)}`} alt={ranker.nickname} width={32} height={32} className="rounded-full" data-ai-hint="user avatar"/>
                   <AvatarFallback className="text-xs bg-muted text-muted-foreground">{ranker.nickname.substring(0,1)}</AvatarFallback>
                 </Avatar>
                 
-                <div className="flex items-center gap-1.5">
-                  <CategoryIcon category={category} className="h-4 w-4" />
-                  <div className={cn(
-                      "font-medium rounded-md px-1.5 py-0.5 text-sm", 
-                      isDisplayRankTop3 && { 
-                        'category-rank-unity': category === 'Unity',
-                        'category-rank-unreal': category === 'Unreal',
-                        'category-rank-godot': category === 'Godot',
-                        'category-rank-general': category === 'General',
-                      }
-                    )}
-                  >
-                    <span className={cn(
-                        "font-semibold",
-                        isDisplayRankTop3 && { 
-                          'text-unity-rank': category === 'Unity',
-                          'text-unreal-rank': category === 'Unreal',
-                          'text-godot-rank': category === 'Godot',
-                          'text-general-rank': category === 'General',
-                        },
-                        !isDisplayRankTop3 && "text-foreground"
-                      )}
-                    >
+                <div className="flex flex-col items-start text-left">
+                   {titleText && (
+                    <p className={cn("text-[0.7rem] leading-tight font-semibold tracking-tight mb-0.5", titleClass)}>
+                      {titleText}
+                    </p>
+                  )}
+                  <div className="flex items-center gap-1.5">
+                    {isCategoryTop20 && <CategoryIcon category={category} className="h-3.5 w-3.5" />}
+                    <span className={cn("font-medium text-sm", nicknameTextClass)}>
                       {ranker.nickname}
                     </span>
                   </div>
@@ -490,5 +596,4 @@ export default function TavernPage() {
     </div>
   );
 }
-
 
