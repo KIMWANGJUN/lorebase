@@ -17,7 +17,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 const POSTS_PER_PAGE = 10;
 const MAX_PAGES = 10;
-const RANKERS_TO_SHOW = 5;
+const RANKERS_TO_SHOW = 10; // Changed from 5 to 10
 
 const CategorySpecificIcon: React.FC<{ category: PostMainCategory, className?: string }> = ({ category, className }) => {
   const defaultClassName = "h-4 w-4";
@@ -150,14 +150,12 @@ export default function HomePage() {
                   <Link href={`/tavern/${post.id}`} key={post.id} className="block no-underline hover:no-underline group">
                     <Card className="shadow-md hover:shadow-lg transition-shadow duration-300 bg-card border-border group-hover:border-primary/50 cursor-pointer">
                       <CardHeader className="py-3 px-4">
-                        <CardTitle className="font-headline text-lg text-foreground group-hover:text-primary transition-colors line-clamp-1">
-                          {post.title}
-                        </CardTitle>
-                        <div className="flex justify-between items-center text-xs text-muted-foreground mt-1">
-                          <span>
-                            {new Date(post.createdAt).toLocaleDateString()} · {post.mainCategory} / {post.type}
-                          </span>
-                          <div className="flex items-center gap-3">
+                       <div className="flex justify-between items-center">
+                          <CardTitle className="font-headline text-lg text-foreground group-hover:text-primary transition-colors line-clamp-1">
+                            {post.title}
+                             {post.isEdited && <span className="ml-2 text-xs font-normal text-muted-foreground">(수정됨)</span>}
+                          </CardTitle>
+                           <div className="flex items-center gap-3 text-xs text-muted-foreground">
                             <span className="flex items-center">
                               <ThumbsUp className="mr-1 h-3.5 w-3.5" /> {post.upvotes}
                             </span>
@@ -165,6 +163,11 @@ export default function HomePage() {
                               <MessageSquare className="mr-1 h-3.5 w-3.5" /> {post.commentCount}
                             </span>
                           </div>
+                        </div>
+                        <div className="text-xs text-muted-foreground mt-1">
+                           <span>{new Date(post.createdAt).toLocaleDateString()}</span>
+                           <span className="mx-1">·</span>
+                           <span>{post.mainCategory} / {post.type}</span>
                         </div>
                       </CardHeader>
                     </Card>
@@ -239,7 +242,7 @@ export default function HomePage() {
                                     isGlobalTop3 && displayRank === 1 && 'rank-1-badge',
                                     isGlobalTop3 && displayRank === 2 && 'rank-2-badge',
                                     isGlobalTop3 && displayRank === 3 && 'rank-3-badge',
-                                    isCategoryTop3 && { // Apply badge background if in displayed top 3 for category
+                                    isCategoryTop3 && { 
                                       'category-rank-unity': activeRankingTab === 'Unity',
                                       'category-rank-unreal': activeRankingTab === 'Unreal',
                                       'category-rank-godot': activeRankingTab === 'Godot',
@@ -253,7 +256,7 @@ export default function HomePage() {
                                       isGlobalTop3 && displayRank === 1 && 'rank-1-text',
                                       isGlobalTop3 && displayRank === 2 && 'rank-2-text',
                                       isGlobalTop3 && displayRank === 3 && 'rank-3-text',
-                                      isCategoryTop3 && { // Apply text color if in displayed top 3 for category
+                                      isCategoryTop3 && { 
                                         'text-unity-rank': activeRankingTab === 'Unity',
                                         'text-unreal-rank': activeRankingTab === 'Unreal',
                                         'text-godot-rank': activeRankingTab === 'Godot',
@@ -293,3 +296,4 @@ export default function HomePage() {
     </div>
   );
 }
+

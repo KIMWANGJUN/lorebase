@@ -10,8 +10,8 @@ import { mockPosts, mockUsers } from '@/lib/mockData';
 import type { Post, PostMainCategory, PostType, User } from '@/types';
 import Link from 'next/link';
 import Image from 'next/image';
-import { useRouter } from 'next/navigation'; // Ensure useRouter is imported
-import type { AppRouterInstance } from 'next/dist/shared/lib/app-router-context.shared-runtime'; // Import AppRouterInstance
+import { useRouter } from 'next/navigation'; 
+import type { AppRouterInstance } from 'next/dist/shared/lib/app-router-context.shared-runtime'; 
 import { 
   Search, PlusCircle, MessageSquare, ThumbsUp, ThumbsDown, Eye, Pin, Edit, Trash2, 
   ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, ScrollText,
@@ -22,7 +22,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { cn } from '@/lib/utils';
 
 const POSTS_PER_PAGE = 10;
-const RANKERS_TO_SHOW_TAVERN = 5;
+const RANKERS_TO_SHOW_TAVERN = 10; // Changed from 5 to 10
 
 const CategoryIcon: FC<{ category: PostMainCategory, className?: string }> = ({ category, className = "h-4 w-4" }) => {
   switch (category) {
@@ -466,4 +466,5 @@ export default function TavernPage() {
     </div>
   );
 }
+
 
