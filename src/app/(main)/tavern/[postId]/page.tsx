@@ -43,82 +43,64 @@ interface NicknameDisplayProps {
 const NicknameDisplay: FC<NicknameDisplayProps> = ({ author, postMainCategory }) => {
   if (!author) return <span className="font-medium text-foreground">Unknown User</span>;
 
-  let finalItemContainerClass = "default-rank-item-bg";
-  let finalNicknameTextClass = "text-foreground";
-  let finalTitleText: string | null = null;
-  let finalTitleColorClass = "";
-  let showCategoryIcon = true;
+  let finalContainerClass = "default-rank-item-bg";
+  let finalNicknameSpanClass = "font-medium text-foreground"; // Default
+  let titleElement = null;
+  let showCategoryIconInNickname = true;
 
   const { 
     rank: globalRank, 
     tetrisRank, 
     categoryStats, 
-    username 
+    username,
+    selectedDisplayRank 
   } = author;
 
   const authorCategoryStats = categoryStats?.[postMainCategory];
   const rankInCurrentCategory = authorCategoryStats?.rankInCate || 0;
 
-  // 1. Admin
+  // Determine styling based on priority
   if (username === 'WANGJUNLAND') {
-    finalItemContainerClass = "admin-badge-bg admin-badge-border px-1.5 py-0.5";
-    finalNicknameTextClass = "text-admin";
-    showCategoryIcon = false; 
-  }
-  // 2. Global Community Rank Top 3
-  else if (globalRank > 0 && globalRank <= 3) {
-    finalItemContainerClass = cn(globalRank === 1 && 'rank-1-badge', globalRank === 2 && 'rank-2-badge', globalRank === 3 && 'rank-3-badge', "px-1.5 py-0.5");
-    finalNicknameTextClass = globalRank === 1 ? 'text-rank-gold' : globalRank === 2 ? 'text-rank-silver' : 'text-rank-bronze';
-    showCategoryIcon = true; 
-  }
-  // 3. Tetris Monthly Rank Top 3
-  else if (tetrisRank && tetrisRank > 0 && tetrisRank <= 3) {
-    finalTitleText = tetrisTitles[tetrisRank - 1];
-    finalTitleColorClass = tetrisRank === 1 ? 'text-rank-gold' : tetrisRank === 2 ? 'text-rank-silver' : 'text-rank-bronze';
-    finalNicknameTextClass = finalTitleColorClass;
-    showCategoryIcon = true;
-    if (rankInCurrentCategory > 0 && rankInCurrentCategory <= 3) {
-      finalItemContainerClass = cn(`highlight-${postMainCategory.toLowerCase()}`, "px-1.5 py-0.5");
-    } else {
-      finalItemContainerClass = "default-rank-item-bg px-1.5 py-0.5";
-    }
-  }
-  // 4. Category Rank Top 3
-  else if (rankInCurrentCategory > 0 && rankInCurrentCategory <= 3) {
-    finalTitleText = postMainCategory === 'General' ? '일반 & 유머' : postMainCategory;
-    finalTitleColorClass = rankInCurrentCategory === 1 ? 'text-rank-gold' : rankInCurrentCategory === 2 ? 'text-rank-silver' : 'text-rank-bronze';
-    finalNicknameTextClass = finalTitleColorClass; 
-    finalItemContainerClass = cn(`highlight-${postMainCategory.toLowerCase()}`, "px-1.5 py-0.5");
-    showCategoryIcon = true;
-  }
-  // 5. Category Rank 4-10
-  else if (rankInCurrentCategory > 0 && rankInCurrentCategory <= 10) {
-    finalNicknameTextClass = cn(`text-${postMainCategory.toLowerCase()}-themed`, `nickname-text-rank-${rankInCurrentCategory}`);
-    finalItemContainerClass = "default-rank-item-bg px-1.5 py-0.5";
-    showCategoryIcon = true;
-  }
-  // 6. Default
-  else {
-    finalItemContainerClass = "default-rank-item-bg px-1.5 py-0.5";
-    showCategoryIcon = true; 
+    finalContainerClass = "admin-badge-bg admin-badge-border px-1.5 py-0.5";
+    finalNicknameSpanClass = "font-medium text-admin";
+    showCategoryIconInNickname = false;
+  } else if (globalRank > 0 && globalRank <= 3) {
+    finalContainerClass = cn(globalRank === 1 && 'rank-1-badge', globalRank === 2 && 'rank-2-badge', globalRank === 3 && 'rank-3-badge', "px-1.5 py-0.5");
+    finalNicknameSpanClass = cn("font-medium", globalRank === 1 ? 'text-rank-gold' : globalRank === 2 ? 'text-rank-silver' : 'text-rank-bronze');
+    showCategoryIconInNickname = true;
+  } else if (tetrisRank && tetrisRank > 0 && tetrisRank <= 3) {
+    const titleText = tetrisTitles[tetrisRank - 1];
+    const titleColorClass = tetrisRank === 1 ? 'text-rank-gold' : tetrisRank === 2 ? 'text-rank-silver' : 'text-rank-bronze';
+    titleElement = <div className="title-container"><p className={cn("text-[0.75rem] leading-tight font-semibold tracking-tight", titleColorClass)}>{titleText}</p></div>;
+    finalNicknameSpanClass = cn("font-medium", titleColorClass);
+    finalContainerClass = (rankInCurrentCategory > 0 && rankInCurrentCategory <= 3) ? cn(`highlight-${postMainCategory.toLowerCase()}`, "px-1.5 py-0.5") : "default-rank-item-bg px-1.5 py-0.5";
+    showCategoryIconInNickname = true;
+  } else if (rankInCurrentCategory > 0 && rankInCurrentCategory <= 3) {
+    const titleText = postMainCategory === 'General' ? '일반 & 유머' : postMainCategory;
+    const titleColorClass = rankInCurrentCategory === 1 ? 'text-rank-gold' : rankInCurrentCategory === 2 ? 'text-rank-silver' : 'text-rank-bronze';
+    titleElement = <div className="title-container"><p className={cn("text-[0.75rem] leading-tight font-semibold tracking-tight", titleColorClass)}>{titleText}</p></div>;
+    finalNicknameSpanClass = cn("font-medium", titleColorClass);
+    finalContainerClass = cn(`highlight-${postMainCategory.toLowerCase()}`, "px-1.5 py-0.5");
+    showCategoryIconInNickname = true;
+  } else if (rankInCurrentCategory > 0 && rankInCurrentCategory <= 10) {
+    finalNicknameSpanClass = cn("font-medium", `text-${postMainCategory.toLowerCase()}-themed`, `nickname-text-rank-${rankInCurrentCategory}`);
+    finalContainerClass = "default-rank-item-bg px-1.5 py-0.5";
+    showCategoryIconInNickname = true;
+  } else {
+    finalContainerClass = "default-rank-item-bg px-1.5 py-0.5";
+    showCategoryIconInNickname = true; 
   }
   
-  const NicknameWrapper = finalItemContainerClass.includes('highlight-general') && !finalItemContainerClass.includes('highlight-general-inner') ? 'div' : React.Fragment;
+  const NicknameWrapper = finalContainerClass.includes('highlight-general') && !finalContainerClass.includes('highlight-general-inner') ? 'div' : React.Fragment;
   const wrapperProps = NicknameWrapper === 'div' ? { className: 'highlight-general-inner p-0' } : {};
 
   return (
     <div className="flex flex-col items-start">
-      {finalTitleText && (
-        <div className="title-container">
-            <p className={cn("text-[0.75rem] leading-tight font-semibold tracking-tight", finalTitleColorClass)}>
-            {finalTitleText}
-            </p>
-        </div>
-      )}
+      {titleElement}
       <NicknameWrapper {...wrapperProps}>
-        <div className={cn("inline-flex items-center gap-1", finalItemContainerClass, finalTitleText && "mt-0.5", NicknameWrapper === 'div' && "p-0")}>
-            {showCategoryIcon && postMainCategory && <CategorySpecificIcon category={postMainCategory} className="h-3.5 w-3.5" />}
-            <span className={cn("font-medium nickname-text", finalNicknameTextClass)}>{author.nickname}</span>
+        <div className={cn("inline-flex items-center gap-1", finalContainerClass, titleElement && "mt-0.5", NicknameWrapper === 'div' && "p-0")}>
+            {showCategoryIconInNickname && postMainCategory && <CategorySpecificIcon category={postMainCategory} className="h-3.5 w-3.5" />}
+            <span className={cn("nickname-text", finalNicknameSpanClass)}>{author.nickname}</span>
         </div>
       </NicknameWrapper>
     </div>

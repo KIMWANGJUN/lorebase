@@ -88,11 +88,13 @@ export default function HomePage() {
 
     let sortedUsers;
     if (category === 'Global') {
-      sortedUsers = [...usersToRank].sort((a, b) => b.score - a.score);
+      // Global rank is pre-calculated and stored in user.rank
+      sortedUsers = [...usersToRank].filter(u => u.rank > 0).sort((a, b) => a.rank - b.rank);
     } else {
+      // Category rank is pre-calculated and stored in user.categoryStats[category].rankInCate
       sortedUsers = [...usersToRank]
-        .filter(u => u.categoryStats && u.categoryStats[category] && typeof u.categoryStats[category]?.score === 'number')
-        .sort((a, b) => (b.categoryStats![category]!.score || 0) - (a.categoryStats![category]!.score || 0));
+        .filter(u => u.categoryStats && u.categoryStats[category] && typeof u.categoryStats[category]?.rankInCate === 'number' && u.categoryStats[category]!.rankInCate! > 0)
+        .sort((a, b) => (a.categoryStats![category]!.rankInCate || Infinity) - (b.categoryStats![category]!.rankInCate || Infinity));
     }
     return sortedUsers.slice(0, count);
   }, []);
@@ -138,15 +140,28 @@ export default function HomePage() {
             <CardContent className="p-4">
               <div className="space-y-3">
                 {mockTetrisRankings.slice(0, RANKERS_TO_SHOW).map((rankerData) => {
+                  const user = mockUsers.find(u => u.id === rankerData.userId);
                   const isTetrisTop3 = rankerData.rank <= 3;
-                  let titleClass = "";
-                  let nicknameClass = "text-foreground"; // Default
+                  
+                  let titleTextClass = "";
+                  let nicknameSpanClass = "text-sm text-foreground"; // Default nickname class
                   let rankNumberClass = "text-muted-foreground";
+                  let titleElement = null;
 
-                  if (isTetrisTop3) {
-                    if (rankerData.rank === 1) { titleClass = 'text-rank-gold'; nicknameClass = 'text-rank-gold'; rankNumberClass = 'text-rank-gold'; }
-                    else if (rankerData.rank === 2) { titleClass = 'text-rank-silver'; nicknameClass = 'text-rank-silver'; rankNumberClass = 'text-rank-silver'; }
-                    else if (rankerData.rank === 3) { titleClass = 'text-rank-bronze'; nicknameClass = 'text-rank-bronze'; rankNumberClass = 'text-rank-bronze'; }
+                  if (isTetrisTop3 && user) {
+                    if (rankerData.rank === 1) { titleTextClass = 'text-rank-gold'; nicknameSpanClass = 'text-sm text-rank-gold'; rankNumberClass = 'text-rank-gold'; }
+                    else if (rankerData.rank === 2) { titleTextClass = 'text-rank-silver'; nicknameSpanClass = 'text-sm text-rank-silver'; rankNumberClass = 'text-rank-silver'; }
+                    else if (rankerData.rank === 3) { titleTextClass = 'text-rank-bronze'; nicknameSpanClass = 'text-sm text-rank-bronze'; rankNumberClass = 'text-rank-bronze'; }
+                    
+                    if (tetrisTitles[rankerData.rank - 1]) {
+                      titleElement = (
+                        <div className="title-container">
+                           <p className={cn("text-[0.7rem] leading-tight font-semibold tracking-tight", titleTextClass)}>
+                           {tetrisTitles[rankerData.rank - 1]}
+                           </p>
+                       </div>
+                      );
+                    }
                   }
                   
                   return (
@@ -158,14 +173,8 @@ export default function HomePage() {
                             <AvatarFallback className="text-xs bg-muted text-muted-foreground">{rankerData.nickname.substring(0,1)}</AvatarFallback>
                         </Avatar>
                         <div className="flex flex-col items-start text-left">
-                          {isTetrisTop3 && tetrisTitles[rankerData.rank - 1] && (
-                             <div className="title-container">
-                                <p className={cn("text-[0.7rem] leading-tight font-semibold tracking-tight", titleClass)}>
-                                {tetrisTitles[rankerData.rank - 1]}
-                                </p>
-                            </div>
-                          )}
-                          <span className={cn("text-sm", nicknameClass)}>
+                          {titleElement}
+                          <span className={cn(nicknameSpanClass, titleElement && "mt-0.5")}>
                             {rankerData.nickname}
                           </span>
                         </div>
@@ -267,76 +276,64 @@ export default function HomePage() {
                   <TabsContent key={tabValue} value={tabValue}>
                     {rankedUsersToDisplay.length > 0 ? (
                       <div className="space-y-3">
-                        {rankedUsersToDisplay.map((ranker, index) => {
-                          const user = mockUsers.find(u => u.id === ranker.id);
-                          if (!user || user.username === 'WANGJUNLAND') return null;
+                        {rankedUsersToDisplay.map((user) => {
+                          if (user.username === 'WANGJUNLAND') return null;
                           
-                          let finalItemContainerClass = "default-rank-item-bg";
-                          let finalNicknameTextClass = "text-foreground";
-                          let finalTitleText: string | null = null;
-                          let finalTitleColorClass = "";
+                          let containerClass = "default-rank-item-bg";
+                          let nicknameSpanClass = "text-sm text-foreground"; // Default nickname class
+                          let titleElement = null;
+                          let rankNumberClass = 'text-muted-foreground';
                           let showCategoryIcon = false;
                           let displayRankNumberToShow = 0;
-                          let rankNumberColorClass = 'text-muted-foreground';
 
-                          const { rank: globalRank, tetrisRank, categoryStats } = user;
-                          const currentCategory = activeRankingTab !== 'Global' ? activeRankingTab : undefined;
-                          const userCatStats = currentCategory && categoryStats?.[currentCategory];
-                          const rankInCurrentCategory = userCatStats?.rankInCate || 0;
+                          const { rank: globalRank, tetrisRank, categoryStats, selectedDisplayRank } = user;
+                          const currentActiveCategory = activeRankingTab !== 'Global' ? activeRankingTab : undefined;
+                          const userCatStats = currentActiveCategory && categoryStats?.[currentActiveCategory];
+                          const rankInActiveCategory = userCatStats?.rankInCate || 0;
 
-                          // Determine display rank number
-                          displayRankNumberToShow = tabValue === 'Global' ? globalRank : rankInCurrentCategory;
-                          if (displayRankNumberToShow === 0 && tabValue !== 'Global' && globalRank > 0) { // Fallback for category tab if no cat rank but has global rank
-                             // displayRankNumberToShow = globalRank; // Or keep it 0/'-' to show they are unranked in category
+                          if (tabValue === 'Global') {
+                            displayRankNumberToShow = globalRank;
+                          } else if (categoryStats && categoryStats[tabValue as PostMainCategory]){
+                            displayRankNumberToShow = categoryStats[tabValue as PostMainCategory]?.rankInCate || 0;
                           }
 
-
-                          // 1. Global Rank Top 3
-                          if (globalRank > 0 && globalRank <= 3) {
-                            finalItemContainerClass = cn(globalRank === 1 && 'rank-1-badge', globalRank === 2 && 'rank-2-badge', globalRank === 3 && 'rank-3-badge');
-                            finalNicknameTextClass = globalRank === 1 ? 'text-rank-gold' : globalRank === 2 ? 'text-rank-silver' : 'text-rank-bronze';
-                            rankNumberColorClass = finalNicknameTextClass;
-                            showCategoryIcon = currentCategory !== undefined; 
-                          }
-                          // 2. Tetris Rank Top 3 (if not Global Top 3)
-                          else if (tetrisRank && tetrisRank > 0 && tetrisRank <= 3) {
-                            finalTitleText = tetrisTitles[tetrisRank - 1];
-                            finalTitleColorClass = tetrisRank === 1 ? 'text-rank-gold' : tetrisRank === 2 ? 'text-rank-silver' : 'text-rank-bronze';
-                            finalNicknameTextClass = finalTitleColorClass;
-                            rankNumberColorClass = finalTitleColorClass;
-                            showCategoryIcon = currentCategory !== undefined;
-                            if (currentCategory && rankInCurrentCategory > 0 && rankInCurrentCategory <= 3) {
-                                finalItemContainerClass = cn(`highlight-${currentCategory.toLowerCase()}`);
+                          // Determine primary style based on fixed priority
+                          if (globalRank > 0 && globalRank <= 3) { // Global Top 3
+                            containerClass = cn(globalRank === 1 && 'rank-1-badge', globalRank === 2 && 'rank-2-badge', globalRank === 3 && 'rank-3-badge');
+                            nicknameSpanClass = cn("text-sm", globalRank === 1 ? 'text-rank-gold' : globalRank === 2 ? 'text-rank-silver' : 'text-rank-bronze');
+                            rankNumberClass = nicknameSpanClass.replace("text-sm ", ""); 
+                            // No title for global top 3, badge itself is the indicator
+                          } else if (tetrisRank && tetrisRank > 0 && tetrisRank <= 3) { // Tetris Top 3 (not Global Top 3)
+                            const titleText = tetrisTitles[tetrisRank - 1];
+                            const titleColor = tetrisRank === 1 ? 'text-rank-gold' : tetrisRank === 2 ? 'text-rank-silver' : 'text-rank-bronze';
+                            titleElement = <div className="title-container"><p className={cn("text-[0.7rem] leading-tight font-semibold tracking-tight", titleColor)}>{titleText}</p></div>;
+                            nicknameSpanClass = cn("text-sm", titleColor);
+                            rankNumberClass = titleColor;
+                            if (currentActiveCategory && rankInActiveCategory > 0 && rankInActiveCategory <= 3) {
+                                containerClass = cn(`highlight-${currentActiveCategory.toLowerCase()}`);
                             }
-                          }
-                          // 3. Category Rank Top 3 (if not Global or Tetris Top 3)
-                          else if (currentCategory && rankInCurrentCategory > 0 && rankInCurrentCategory <= 3) {
-                            finalTitleText = currentCategory === 'General' ? '일반 & 유머' : currentCategory;
-                            finalTitleColorClass = rankInCurrentCategory === 1 ? 'text-rank-gold' : rankInCurrentCategory === 2 ? 'text-rank-silver' : 'text-rank-bronze';
-                            finalNicknameTextClass = finalTitleColorClass; // Category Top 3 nicknames are also gradient
-                            rankNumberColorClass = finalTitleColorClass;
-                            finalItemContainerClass = cn(`highlight-${currentCategory.toLowerCase()}`);
-                            showCategoryIcon = true;
-                          }
-                          // 4. Category Rank 4-10 (if not any above)
-                          else if (currentCategory && rankInCurrentCategory > 0 && rankInCurrentCategory <= 10) {
-                            finalNicknameTextClass = cn(`text-${currentCategory.toLowerCase()}-themed`, `nickname-text-rank-${rankInCurrentCategory}`);
-                            rankNumberColorClass = `text-${currentCategory.toLowerCase()}-themed`;
-                            showCategoryIcon = true;
-                          }
-                           // 5. Default (if no other rank applies or on Global tab and not top 3)
-                          else {
-                            showCategoryIcon = currentCategory !== undefined;
-                            // Nickname and rank number color remain default (text-foreground, text-muted-foreground)
+                          } else if (currentActiveCategory && rankInActiveCategory > 0 && rankInActiveCategory <= 3) { // Category Top 3 (not Global/Tetris Top 3)
+                            const titleText = currentActiveCategory === 'General' ? '일반 & 유머' : currentActiveCategory;
+                            const titleColor = rankInActiveCategory === 1 ? 'text-rank-gold' : rankInActiveCategory === 2 ? 'text-rank-silver' : 'text-rank-bronze';
+                            titleElement = <div className="title-container"><p className={cn("text-[0.7rem] leading-tight font-semibold tracking-tight", titleColor)}>{titleText}</p></div>;
+                            nicknameSpanClass = cn("text-sm", titleColor);
+                            rankNumberClass = titleColor;
+                            containerClass = cn(`highlight-${currentActiveCategory.toLowerCase()}`);
+                          } else if (currentActiveCategory && rankInActiveCategory > 0 && rankInActiveCategory <= 10) { // Category Top 4-10
+                            nicknameSpanClass = cn("text-sm", `text-${currentActiveCategory.toLowerCase()}-themed`, `nickname-text-rank-${rankInActiveCategory}`);
+                            rankNumberClass = `text-${currentActiveCategory.toLowerCase()}-themed`;
+                            // containerClass remains default-rank-item-bg
                           }
                           
-                          const NicknameWrapper = finalItemContainerClass.includes('highlight-general') && !finalItemContainerClass.includes('highlight-general-inner') ? 'div' : React.Fragment;
+                          showCategoryIcon = activeRankingTab !== 'Global';
+                          
+                          const NicknameWrapper = containerClass.includes('highlight-general') && !containerClass.includes('highlight-general-inner') ? 'div' : React.Fragment;
                           const wrapperProps = NicknameWrapper === 'div' ? { className: 'highlight-general-inner p-0' } : {};
                           
                           return (
-                            <div key={user.id} className={cn("flex items-center justify-between p-2.5", finalItemContainerClass)}>
+                            <div key={user.id} className={cn("flex items-center justify-between p-2.5", containerClass)}>
                                <div className="flex items-center gap-2.5">
-                                <span className={cn("font-bold text-md w-5 text-center shrink-0", rankNumberColorClass)}>
+                                <span className={cn("font-bold text-md w-5 text-center shrink-0", rankNumberClass)}>
                                   {displayRankNumberToShow > 0 ? `${displayRankNumberToShow}.` : "-"}
                                 </span>
                                 <Avatar className="h-8 w-8 border-2 border-accent/70 shrink-0">
@@ -345,19 +342,13 @@ export default function HomePage() {
                                 </Avatar>
                                 
                                 <div className="flex flex-col items-start text-left">
-                                  {finalTitleText && (
-                                    <div className="title-container">
-                                      <p className={cn("text-[0.7rem] leading-tight font-semibold tracking-tight", finalTitleColorClass)}>
-                                        {finalTitleText}
-                                      </p>
-                                    </div>
-                                  )}
+                                  {titleElement}
                                    <NicknameWrapper {...wrapperProps}>
-                                    <div className={cn("flex items-center gap-1.5", NicknameWrapper === 'div' && "p-0", finalTitleText && "mt-0.5")}>
+                                    <div className={cn("flex items-center gap-1.5", NicknameWrapper === 'div' && "p-0", titleElement && "mt-0.5")}>
                                         {showCategoryIcon && activeRankingTab !== 'Global' && (
                                           <CategorySpecificIcon category={activeRankingTab} className="h-4 w-4" />
                                         )}
-                                        <span className={cn("text-sm nickname-text", finalNicknameTextClass)}>
+                                        <span className={cn("nickname-text", nicknameSpanClass)}>
                                         {user.nickname}
                                         </span>
                                     </div>

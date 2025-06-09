@@ -158,18 +158,18 @@ export default function ProfilePage() {
   // Determine user's primary style for the avatar header based on fixed priority
   let headerNicknameClass = "text-3xl font-bold font-headline";
   let headerRankText = user.rank > 0 ? `종합 ${user.rank}위` : "랭킹 정보 없음";
-  let headerRankClass = "text-muted-foreground";
+  let headerRankTextClass = "text-muted-foreground";
   let headerContainerClass = ""; 
 
   if (isAdmin) {
     headerNicknameClass = cn(headerNicknameClass, "text-admin");
     headerRankText = "관리자";
-    headerRankClass = "text-admin";
+    headerRankTextClass = "text-admin";
     headerContainerClass = "admin-badge-bg admin-badge-border";
   } else if (user.rank > 0 && user.rank <= 3) { 
     headerNicknameClass = cn(headerNicknameClass, user.rank === 1 ? "text-rank-gold" : user.rank === 2 ? "text-rank-silver" : "text-rank-bronze");
     headerRankText = `종합 ${user.rank}위`;
-    headerRankClass = user.rank === 1 ? "text-rank-gold" : user.rank === 2 ? "text-rank-silver" : "text-rank-bronze";
+    headerRankTextClass = user.rank === 1 ? "text-rank-gold" : user.rank === 2 ? "text-rank-silver" : "text-rank-bronze";
     headerContainerClass = cn(
       user.rank === 1 && 'rank-1-badge',
       user.rank === 2 && 'rank-2-badge',
@@ -208,7 +208,7 @@ export default function ProfilePage() {
                 <p className="text-sm opacity-80 mt-1">{user.email || "이메일 미등록"}</p>
                 <div className="mt-4 text-center">
                     <p className="text-2xl font-semibold">{user.score.toLocaleString()} 점</p>
-                     <p className={cn("text-lg", headerRankClass)}>
+                     <p className={cn("text-lg", headerRankTextClass)}>
                         {headerRankText}
                     </p>
                 </div>
@@ -340,12 +340,14 @@ export default function ProfilePage() {
           <CardContent>
             <div className="space-y-3 max-h-[500px] overflow-y-auto p-1">
               {mockUsers.filter(u => u.username !== 'WANGJUNLAND' && u.rank > 0).sort((a, b) => a.rank - b.rank).map((rankerUser) => { 
-                let finalNicknameTextClass = "text-foreground";
+                let finalNicknameSpanClass = "font-medium text-foreground"; // Default
                 let finalItemContainerClass = "default-rank-item-bg";
+                let rankNumberClass = "text-muted-foreground";
 
                 if (rankerUser.rank > 0 && rankerUser.rank <= 3) {
                   finalItemContainerClass = cn(rankerUser.rank === 1 && 'rank-1-badge', rankerUser.rank === 2 && 'rank-2-badge', rankerUser.rank === 3 && 'rank-3-badge');
-                  finalNicknameTextClass = rankerUser.rank === 1 ? 'text-rank-gold' : rankerUser.rank === 2 ? 'text-rank-silver' : 'text-rank-bronze';
+                  finalNicknameSpanClass = cn("font-medium", rankerUser.rank === 1 ? 'text-rank-gold' : rankerUser.rank === 2 ? 'text-rank-silver' : 'text-rank-bronze');
+                  rankNumberClass = finalNicknameSpanClass.replace("font-medium ", "");
                 }
 
                 return (
@@ -354,16 +356,14 @@ export default function ProfilePage() {
                     rankerUser.id === user.id && !finalItemContainerClass.startsWith('rank-') ? 'bg-primary/10 border-primary shadow-md' : 'border-border'
                   )}>
                     <div className="flex items-center gap-3">
-                      <span className={cn("font-bold text-lg w-8 text-center", 
-                          (rankerUser.rank > 0 && rankerUser.rank <=3) ? finalNicknameTextClass : "text-muted-foreground"
-                      )}>
+                      <span className={cn("font-bold text-lg w-8 text-center", rankNumberClass)}>
                           {rankerUser.rank > 0 ? `${rankerUser.rank}.` : <Star className="h-5 w-5 inline text-yellow-400" />}
                       </span>
                       <Avatar className="h-10 w-10 border-2 border-accent/50">
                         <Image src={rankerUser.avatar || `https://placehold.co/40x40.png?text=${rankerUser.nickname.substring(0,1)}`} alt={rankerUser.nickname} width={40} height={40} className="rounded-full" data-ai-hint="fantasy character icon" />
                         <AvatarFallback className="bg-muted text-muted-foreground">{rankerUser.nickname.substring(0,1)}</AvatarFallback>
                       </Avatar>
-                      <span className={cn("font-medium", finalNicknameTextClass)}>
+                      <span className={finalNicknameSpanClass}>
                         {rankerUser.nickname}
                       </span>
                     </div>
