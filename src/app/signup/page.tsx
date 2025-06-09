@@ -1,3 +1,4 @@
+
 // src/app/signup/page.tsx
 "use client";
 import { useState } from 'react';
@@ -7,8 +8,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from "@/hooks/use-toast";
 import { UserPlus, Mail, KeyRound, AtSign } from 'lucide-react';
+import type { NewUserDto } from '@/lib/mockData'; // Import the DTO type
 
 export default function SignupPage() {
   const [username, setUsername] = useState('');
@@ -18,21 +21,43 @@ export default function SignupPage() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+  const { signup } = useAuth(); // Get signup function from context
   const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!username.trim() || !nickname.trim() || !password) {
+      toast({ title: "오류", description: "아이디, 닉네임, 비밀번호는 필수입니다.", variant: "destructive" });
+      return;
+    }
     if (password !== confirmPassword) {
       toast({ title: "오류", description: "비밀번호가 일치하지 않습니다.", variant: "destructive" });
       return;
     }
+    // Basic validation for email if provided
+    if (email && !/\S+@\S+\.\S+/.test(email)) {
+        toast({ title: "오류", description: "유효한 이메일 주소를 입력해주세요.", variant: "destructive"});
+        return;
+    }
+
     setIsLoading(true);
-    // Simulate API call for signup
-    await new Promise(resolve => setTimeout(resolve, 1000)); 
+    
+    const signupData: NewUserDto = {
+      username: username.trim(),
+      nickname: nickname.trim(),
+      email: email.trim() || undefined, // Send undefined if empty
+      password: password, // Password will be handled by auth context / mockData
+    };
+
+    const result = await signup(signupData);
     setIsLoading(false);
-    // In a real app, handle response from backend (e.g. username/email taken)
-    toast({ title: "회원가입 성공", description: "로그인 페이지로 이동합니다." });
-    router.push('/login');
+
+    if (result.success) {
+      toast({ title: "회원가입 성공!", description: "로그인 페이지로 이동합니다. 가입하신 정보로 로그인해주세요." });
+      router.push('/login');
+    } else {
+      toast({ title: "회원가입 실패", description: result.message || "알 수 없는 오류가 발생했습니다.", variant: "destructive" });
+    }
   };
 
   return (
@@ -48,14 +73,14 @@ export default function SignupPage() {
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <Label htmlFor="username">아이디</Label>
+              <Label htmlFor="username">아이디 <span className="text-destructive">*</span></Label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                 <Input id="username" type="text" placeholder="사용할 아이디" value={username} onChange={(e) => setUsername(e.target.value)} required className="pl-10"/>
               </div>
             </div>
             <div>
-              <Label htmlFor="nickname">닉네임</Label>
+              <Label htmlFor="nickname">닉네임 <span className="text-destructive">*</span></Label>
                <div className="relative">
                 <AtSign className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                 <Input id="nickname" type="text" placeholder="사용할 닉네임" value={nickname} onChange={(e) => setNickname(e.target.value)} required className="pl-10"/>
@@ -69,14 +94,14 @@ export default function SignupPage() {
               </div>
             </div>
             <div>
-              <Label htmlFor="password">비밀번호</Label>
+              <Label htmlFor="password">비밀번호 <span className="text-destructive">*</span></Label>
               <div className="relative">
                 <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                 <Input id="password" type="password" placeholder="비밀번호" value={password} onChange={(e) => setPassword(e.target.value)} required className="pl-10"/>
               </div>
             </div>
             <div>
-              <Label htmlFor="confirmPassword">비밀번호 확인</Label>
+              <Label htmlFor="confirmPassword">비밀번호 확인 <span className="text-destructive">*</span></Label>
               <div className="relative">
                 <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                 <Input id="confirmPassword" type="password" placeholder="비밀번호 확인" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required className="pl-10"/>
@@ -99,3 +124,4 @@ export default function SignupPage() {
     </div>
   );
 }
+

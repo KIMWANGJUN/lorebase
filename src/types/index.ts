@@ -1,4 +1,5 @@
 
+
 export type PostMainCategory = 'Unity' | 'Unreal' | 'Godot' | 'General';
 
 export interface UserCategoryStat {
@@ -15,6 +16,7 @@ export type DisplayRankType =
 export interface User {
   id: string;
   username: string; // 아이디
+  password?: string; // 사용자 비밀번호 (mock용)
   nickname: string; // 닉네임
   email?: string;
   avatar?: string;
@@ -30,7 +32,6 @@ export interface User {
   categoryStats?: { 
     [key in PostMainCategory]?: UserCategoryStat;
   };
-  // categoryRankInList?: number; // No longer needed, use rankInCate from categoryStats
   selectedDisplayRank?: DisplayRankType; // User's preference for display
   tetrisRank?: number; // Monthly Tetris rank, 1-based. 0 or undefined if not ranked.
 }
@@ -134,4 +135,3 @@ export interface TetrisRanker {
   rank: number; // Calculated rank within Tetris monthly
 }
     
-```

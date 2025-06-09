@@ -1,14 +1,16 @@
+
 // src/contexts/AuthContext.tsx
 "use client";
-import type { User } from '@/types';
+import type { User, NewUserDto as SignupUserDto } from '@/types'; // Changed import name
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
-import { mockUsers } from '@/lib/mockData'; // Using mockUsers for initial data
+import { mockUsers, addUser as addUserToMockList } from '@/lib/mockData'; // Using mockUsers for initial data
 
 interface AuthContextType {
   user: User | null;
   isAdmin: boolean;
   login: (username: string, pass: string) => Promise<boolean>;
   logout: () => void;
+  signup: (userData: SignupUserDto) => Promise<{ success: boolean, message?: string }>; // Added signup
   updateUser: (updatedUser: Partial<User>) => void;
   loading: boolean;
 }
@@ -21,11 +23,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
-    // Simulate checking for persisted login state
     const storedUser = localStorage.getItem('currentUser');
     if (storedUser) {
       const parsedUser: User = JSON.parse(storedUser);
-      // Ensure date strings are converted back to Date objects
       if (parsedUser.nicknameLastChanged) {
         parsedUser.nicknameLastChanged = new Date(parsedUser.nicknameLastChanged);
       }
@@ -37,14 +37,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const login = async (username: string, pass: string): Promise<boolean> => {
     setLoading(true);
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 500));
+    await new Promise(resolve => setTimeout(resolve, 300)); // Simulate API delay
     
     let foundUser: User | undefined;
-    if (username === 'WANGJUNLAND' && pass === 'WJLAND1013$') {
-      foundUser = mockUsers.find(u => u.username === 'WANGJUNLAND');
+    if (username === 'WANGJUNLAND') {
+      if (pass === 'WJLAND1013$') { // Strict password check for admin
+        foundUser = mockUsers.find(u => u.username === 'WANGJUNLAND');
+      }
     } else {
-      foundUser = mockUsers.find(u => u.username === username); // Simplified: no password check for others
+      // For regular users, check username and password
+      foundUser = mockUsers.find(u => u.username === username && u.password === pass);
     }
 
     if (foundUser) {
@@ -68,18 +70,27 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     localStorage.removeItem('currentUser');
   };
 
+  const signup = async (userData: SignupUserDto): Promise<{ success: boolean, message?: string }> => {
+    setLoading(true);
+    await new Promise(resolve => setTimeout(resolve, 300)); // Simulate API delay
+    
+    const result = addUserToMockList(userData); // This now modifies the global mockUsers array
+    
+    setLoading(false);
+    return result; // result contains { success: boolean, message?: string, user?: User }
+  };
+
+
   const updateUser = (updatedUserPartial: Partial<User>) => {
     if (user) {
       let finalUpdatedFields = { ...updatedUserPartial };
 
-      // If nickname is being changed, set nicknameLastChanged
       if (updatedUserPartial.nickname && updatedUserPartial.nickname.trim() !== user.nickname) {
         finalUpdatedFields.nicknameLastChanged = new Date();
       }
 
       const updatedUserObject = { ...user, ...finalUpdatedFields };
       
-      // Ensure date is correctly typed before setting state and local storage
       if (updatedUserObject.nicknameLastChanged && typeof updatedUserObject.nicknameLastChanged === 'string') {
         updatedUserObject.nicknameLastChanged = new Date(updatedUserObject.nicknameLastChanged);
       }
@@ -87,7 +98,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setUser(updatedUserObject);
       localStorage.setItem('currentUser', JSON.stringify(updatedUserObject));
 
-      // Update isAdmin status if username changes (though unlikely in this partial update)
+      // Update global mockUsers array as well for consistency across sessions if needed (or if page reloads without localstorage clear)
+      const userIndex = mockUsers.findIndex(u => u.id === user.id);
+      if (userIndex !== -1) {
+        mockUsers[userIndex] = { ...mockUsers[userIndex], ...finalUpdatedFields };
+      }
+
+
       if (updatedUserPartial.username) {
         setIsAdmin(updatedUserPartial.username === 'WANGJUNLAND');
       }
@@ -95,7 +112,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, isAdmin, login, logout, updateUser, loading }}>
+    <AuthContext.Provider value={{ user, isAdmin, login, logout, signup, updateUser, loading }}>
       {!loading ? children : <div className="flex h-screen items-center justify-center"><p>Loading...</p></div>}
     </AuthContext.Provider>
   );
@@ -108,3 +125,4 @@ export const useAuth = () => {
   }
   return context;
 };
+

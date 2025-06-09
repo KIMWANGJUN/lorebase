@@ -5,60 +5,59 @@ import type { User, StarterProject, AssetInfo, Post, Comment, RankEntry, Inquiry
 const fortyFiveDaysAgo = new Date(Date.now() - 45 * 24 * 60 * 60 * 1000);
 const fifteenDaysAgo = new Date(Date.now() - 15 * 24 * 60 * 60 * 1000);
 
-// Removed 'rank' from the initial data structure. It will be calculated.
-export const mockUsersData: Omit<User, 'rank' | 'tetrisRank' | 'categoryStats' | 'selectedDisplayRank'>[] = [
+export let mockUsersData: Omit<User, 'rank' | 'tetrisRank' | 'categoryStats' | 'selectedDisplayRank'>[] = [
   {
-    id: 'admin', username: 'WANGJUNLAND', nickname: 'WANGJUNLAND', email: 'admin@example.com',
+    id: 'admin', username: 'WANGJUNLAND', password: 'WJLAND1013$', nickname: 'WANGJUNLAND', email: 'admin@example.com',
     score: 99999, avatar: 'https://placehold.co/100x100.png?text=WJ',
     nicknameLastChanged: new Date('2023-01-01'),
   },
   {
-    id: 'user1', username: 'unityMaster', nickname: '유니티장인', email: 'unity@example.com',
+    id: 'user1', username: 'unityMaster', password: 'password123', nickname: '유니티장인', email: 'unity@example.com',
     score: 1250, avatar: 'https://placehold.co/100x100.png?text=UM',
     nicknameLastChanged: fortyFiveDaysAgo,
   },
   {
-    id: 'user2', username: 'unrealDev', nickname: '언리얼신', email: 'unreal@example.com',
+    id: 'user2', username: 'unrealDev', password: 'password123', nickname: '언리얼신', email: 'unreal@example.com',
     score: 1100, avatar: 'https://placehold.co/100x100.png?text=UD',
     nicknameLastChanged: fifteenDaysAgo,
   },
   {
-    id: 'user3', username: 'godotFan', nickname: '고도엔진팬', email: 'godot@example.com',
+    id: 'user3', username: 'godotFan', password: 'password123', nickname: '고도엔진팬', email: 'godot@example.com',
     score: 950, avatar: 'https://placehold.co/100x100.png?text=GF',
   },
   {
-    id: 'user4', username: 'indieDreamer', nickname: '인디드리머', email: 'dreamer@example.com',
+    id: 'user4', username: 'indieDreamer', password: 'password123', nickname: '인디드리머', email: 'dreamer@example.com',
     score: 700, avatar: 'https://placehold.co/100x100.png?text=ID',
     nicknameLastChanged: new Date('2024-07-01'),
   },
   {
-    id: 'user5', username: 'pixelArtist', nickname: '픽셀아티스트',
+    id: 'user5', username: 'pixelArtist', password: 'password123', nickname: '픽셀아티스트',
     score: 600, avatar: 'https://placehold.co/100x100.png?text=PA',
     nicknameLastChanged: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
   },
   {
-    id: 'user6', username: 'generalEnjoyer', nickname: '일반글애호가', email: 'general@example.com',
+    id: 'user6', username: 'generalEnjoyer', password: 'password123', nickname: '일반글애호가', email: 'general@example.com',
     score: 550, avatar: 'https://placehold.co/100x100.png?text=GE',
     nicknameLastChanged: new Date('2024-07-06'),
   },
   {
-    id: 'user7', username: 'unityNewbie', nickname: '유니티뉴비',
+    id: 'user7', username: 'unityNewbie', password: 'password123', nickname: '유니티뉴비',
     score: 400, avatar: 'https://placehold.co/100x100.png?text=UN',
     nicknameLastChanged: new Date('2024-07-07'),
   },
   {
-    id: 'user8', username: 'unrealArtist', nickname: '언리얼아티스트',
+    id: 'user8', username: 'unrealArtist', password: 'password123', nickname: '언리얼아티스트',
     score: 300, avatar: 'https://placehold.co/100x100.png?text=UA',
     nicknameLastChanged: new Date('2024-07-08'),
   },
   {
-    id: 'user9_multi_rank', username: 'multiRanker', nickname: '멀티랭커', email: 'multi@example.com',
+    id: 'user9_multi_rank', username: 'multiRanker', password: 'password123', nickname: '멀티랭커', email: 'multi@example.com',
     score: 1050,
     avatar: 'https://placehold.co/100x100.png?text=MR',
     nicknameLastChanged: new Date('2024-06-01'),
   },
   {
-    id: 'user10_tetris_cat_rank', username: 'tetrisCatEnjoyer', nickname: '테트리스냥이',
+    id: 'user10_tetris_cat_rank', username: 'tetrisCatEnjoyer', password: 'password123', nickname: '테트리스냥이',
     score: 800,
     avatar: 'https://placehold.co/100x100.png?text=TC',
   }
@@ -71,7 +70,7 @@ export const tetrisTitles: string[] = [
 ];
 
 const rawTetrisRankings: Omit<TetrisRanker, 'rank'>[] = [
-  { userId: 'user9_multi_rank', nickname: '멀티랭커', score: 2500000 }, // Changed to make multiRanker #1 in Tetris
+  { userId: 'user9_multi_rank', nickname: '멀티랭커', score: 2500000 },
   { userId: 'user1', nickname: '유니티장인', score: 2300000 },
   { userId: 'user2', nickname: '언리얼신', score: 2200000 },
   { userId: 'user3', nickname: '고도엔진팬', score: 1900000 },
@@ -90,7 +89,24 @@ export const mockTetrisRankings: TetrisRanker[] = rawTetrisRankings
   }));
 
 
-const assignCategoryRanks = (users: User[]): User[] => {
+const calculateGlobalRanks = (usersToRank: User[]): void => {
+  const nonAdminUsers = usersToRank.filter(u => u.username !== 'WANGJUNLAND');
+  nonAdminUsers.sort((a, b) => b.score - a.score);
+
+  let currentGlobalRank = 1;
+  for (let i = 0; i < nonAdminUsers.length; i++) {
+    if (i > 0 && nonAdminUsers[i].score < nonAdminUsers[i - 1].score) {
+      currentGlobalRank = i + 1;
+    }
+    nonAdminUsers[i].rank = currentGlobalRank;
+  }
+  // Ensure admin rank is 0
+  const admin = usersToRank.find(u => u.username === 'WANGJUNLAND');
+  if (admin) admin.rank = 0;
+};
+
+
+const assignCategoryRanks = (users: User[]): void => {
   const categories: PostMainCategory[] = ['Unity', 'Unreal', 'Godot', 'General'];
   categories.forEach(category => {
     const rankedUsersInCategory = users
@@ -107,7 +123,6 @@ const assignCategoryRanks = (users: User[]): User[] => {
       }
     });
   });
-  return users;
 };
 
 const assignCalculatedRanks = (
@@ -129,11 +144,10 @@ const assignCalculatedRanks = (
         categoryStats = { Unity: { score: 1000 }, Unreal: { score: 1000 }, Godot: { score: 1000 }, General: { score: 1000 } };
     }
 
-
     return {
-      ...(u as User), // Cast to User, rank will be overwritten
+      ...(u as User), 
       id: u.id || u.username,
-      rank: 0, // Placeholder, will be calculated and assigned
+      rank: 0, 
       tetrisRank: tetrisRankMap.get(u.id || u.username) || undefined,
       categoryStats,
       selectedDisplayRank: (u as User).selectedDisplayRank || 'default',
@@ -141,33 +155,52 @@ const assignCalculatedRanks = (
     };
   });
 
-  // Calculate Global Ranks (excluding admin)
-  const nonAdminUsers = processedUsers.filter(u => u.username !== 'WANGJUNLAND');
-  nonAdminUsers.sort((a, b) => b.score - a.score); // Sort by global score
-
-  let currentGlobalRank = 1;
-  for (let i = 0; i < nonAdminUsers.length; i++) {
-    if (i > 0 && nonAdminUsers[i].score < nonAdminUsers[i - 1].score) {
-      currentGlobalRank = i + 1;
-    }
-    nonAdminUsers[i].rank = currentGlobalRank;
-  }
-  
-  processedUsers = processedUsers.map(pu => {
-    const rankedUser = nonAdminUsers.find(nau => nau.id === pu.id);
-    if (rankedUser) {
-      return rankedUser;
-    }
-    // For admin, rank remains 0 or as initially set if not filtered (it is filtered above)
-    if (pu.username === 'WANGJUNLAND') pu.rank = 0;
-    return pu;
-  });
-
-  return assignCategoryRanks(processedUsers);
+  calculateGlobalRanks(processedUsers);
+  assignCategoryRanks(processedUsers);
+  return processedUsers;
 };
 
+export let mockUsers: User[] = assignCalculatedRanks(mockUsersData);
 
-export const mockUsers: User[] = assignCalculatedRanks(mockUsersData);
+export type NewUserDto = Omit<User, 'rank' | 'categoryStats' | 'selectedDisplayRank' | 'tetrisRank' | 'id' | 'score' | 'nicknameLastChanged' | 'isBlocked' | 'avatar'> & { password?: string };
+
+export const addUser = (newUserData: NewUserDto): { success: boolean, message?: string, user?: User } => {
+  if (mockUsers.some(u => u.username === newUserData.username)) {
+    return { success: false, message: "이미 사용 중인 아이디입니다." };
+  }
+  if (mockUsers.some(u => u.nickname === newUserData.nickname)) {
+    return { success: false, message: "이미 사용 중인 닉네임입니다." };
+  }
+  if (newUserData.email && mockUsers.some(u => u.email === newUserData.email)) {
+    return { success: false, message: "이미 사용 중인 이메일입니다." };
+  }
+
+  const newUser: User = {
+    id: `user${Date.now()}${Math.floor(Math.random() * 1000)}`,
+    username: newUserData.username,
+    password: newUserData.password, // Store password for mock login
+    nickname: newUserData.nickname,
+    email: newUserData.email,
+    score: 0,
+    avatar: `https://placehold.co/100x100.png?text=${newUserData.nickname.substring(0,1).toUpperCase()}`,
+    nicknameLastChanged: new Date(),
+    isBlocked: false,
+    categoryStats: {
+      Unity: { score: 0 },
+      Unreal: { score: 0 },
+      Godot: { score: 0 },
+      General: { score: 0 },
+    },
+    selectedDisplayRank: 'default',
+    rank: 0, // Will be recalculated
+  };
+
+  mockUsers.push(newUser);
+  calculateGlobalRanks(mockUsers); // Recalculate ranks for all users
+  assignCategoryRanks(mockUsers); // Recalculate category ranks for all users
+
+  return { success: true, user: newUser };
+};
 
 
 export const mockStarterProjects: StarterProject[] = [
@@ -184,7 +217,7 @@ export const mockAssetInfos: AssetInfo[] = [
   { id: 'ai4', name: 'Unity Asset Store (Free)', type: 'Plugin', description: 'Unity Asset Store에서 제공하는 다양한 무료 에셋 및 플러그인.', siteUrl: 'https://assetstore.unity.com/?category=3d&orderBy=1&price=0-0', imageUrl: 'https://placehold.co/600x400.png', isFree: true, updateFrequency: 'Daily', tags: ['Unity', 'Plugin', 'Model'] },
 ];
 
-export const mockPosts: Post[] = [
+export let mockPosts: Post[] = [
   { id: 'post_unity_qna1', mainCategory: 'Unity', title: 'Unity Rigidbody 관련 질문입니다.', content: 'Rigidbody.MovePosition과 transform.Translate의 정확한 차이점과 사용 사례가 궁금합니다.', authorId: 'user4', authorNickname: '인디드리머', createdAt: new Date(Date.now() - 86400000 * 3).toISOString(), updatedAt: new Date(Date.now() - 86400000 * 3).toISOString(), type: 'QnA', upvotes: 10, downvotes: 0, views: 120, commentCount: 2, tags: ['Unity', 'Physics', 'Rigidbody'] },
   { id: 'post_unity_knowledge1', mainCategory: 'Unity', title: 'Unity DOTS 사용 후기 공유합니다.', content: '최근에 Unity DOTS를 사용해서 프로젝트를 진행해봤는데, 성능 최적화에 정말 큰 도움이 되었습니다. 처음엔 학습 곡선이 좀 있지만 익숙해지니 좋네요. 다른 분들 경험은 어떠신가요?', authorId: 'user1', authorNickname: '유니티장인', createdAt: new Date(Date.now() - 86400000 * 2).toISOString(), updatedAt: new Date(Date.now() - 86400000 * 2).toISOString(), type: 'Knowledge', upvotes: 25, downvotes: 1, views: 150, commentCount: 7, isPinned: true, tags: ['Unity', 'DOTS', 'Performance'] },
   { id: 'post_unity_devlog1', mainCategory: 'Unity', title: '나만의 2D 플랫포머 개발 일지 #1 - 캐릭터 구현', content: 'Unity로 2D 플랫포머 게임을 만들고 있습니다. 오늘은 기본 캐릭터 움직임과 점프를 구현했습니다!', authorId: 'user5', authorNickname: '픽셀아티스트', createdAt: new Date(Date.now() - 86400000 * 1).toISOString(), updatedAt: new Date(Date.now() - 86400000 * 1).toISOString(), type: 'DevLog', upvotes: 15, downvotes: 0, views: 90, commentCount: 3, tags: ['Unity', '2D', 'Platformer', 'DevLog'] },
@@ -236,7 +269,7 @@ export const mockPosts: Post[] = [
 ];
 
 
-export const mockComments: Comment[] = [
+export let mockComments: Comment[] = [
   { id: 'comment1', postId: 'post_unity_knowledge1', authorId: 'user2', authorNickname: '언리얼신', content: 'DOTS 정말 좋죠! 저도 작은 프로젝트에 적용해봤는데 확실히 퍼포먼스가 다르더라고요.', createdAt: new Date(Date.now() - 86400000 * 1.9).toISOString(), upvotes: 5, downvotes: 0, replies: [
     { id: 'reply1_to_comment1', postId: 'post_unity_knowledge1', authorId: 'user1', authorNickname: '유니티장인', content: '맞아요! 처음엔 어려웠는데, 익숙해지니 가능성이 무궁무진한 것 같아요.', createdAt: new Date(Date.now() - 86400000 * 1.8).toISOString(), upvotes: 2, downvotes: 0, parentId: 'comment1', replies: [] }
   ]},
@@ -254,7 +287,7 @@ export const mockRankings: RankEntry[] = mockUsers
   .map((user, index, sortedUsers) => {
     let rank = index + 1;
     if (index > 0 && user.score === sortedUsers[index - 1].score) {
-      rank = sortedUsers[index - 1].rank; // Assign same rank for ties
+      rank = sortedUsers[index - 1].rank; 
     }
     return {
       userId: user.id,
@@ -270,3 +303,4 @@ export const mockInquiries: Inquiry[] = [
   { id: 'inq1', userId: 'user4', userNickname: '인디드리머', title: '닉네임 변경 기간 문의', content: '닉네임 변경 후 1개월 제한이 정확히 어떻게 적용되는지 궁금합니다.', createdAt: new Date(Date.now() - 86400000 * 3).toISOString(), status: 'Answered', response: '닉네임 변경 시점으로부터 만 30일 이후에 다시 변경 가능합니다.', respondedAt: new Date(Date.now() - 86400000 * 2.5).toISOString() },
   { id: 'inq2', userId: 'user1', userNickname: '유니티장인', title: '게시글 오류 신고', content: '특정 게시글에서 이미지가 깨져 보입니다. 확인 부탁드립니다. (게시글 ID: postX)', createdAt: new Date(Date.now() - 86400000 * 1).toISOString(), status: 'Pending' },
 ];
+
