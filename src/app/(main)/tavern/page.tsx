@@ -72,7 +72,7 @@ const PostItem = ({ post, isAdmin, router }: { post: Post, isAdmin: boolean, rou
             author.rank === 3 && 'rank-3-badge'
           )}
         >
-          {isAuthorCategoryTopRanker && <CategoryIcon category={post.mainCategory} className="h-3 w-3" />}
+          {authorHasCategoryPresence && <CategoryIcon category={post.mainCategory} className="h-3 w-3" />}
           <span className={cn(
             "font-semibold",
             author.rank === 1 && 'rank-1-text',
@@ -84,7 +84,7 @@ const PostItem = ({ post, isAdmin, router }: { post: Post, isAdmin: boolean, rou
         </div>
       );
     }
-    if (isAuthorCategoryTopRanker) {
+    if (isAuthorCategoryTopRanker) { // This handles cases where user is category top ranker but NOT global top ranker
       return (
         <span className={cn(
           "category-rank-nickname text-xs px-1.5 py-0.5 inline-flex items-center gap-1",
@@ -98,7 +98,7 @@ const PostItem = ({ post, isAdmin, router }: { post: Post, isAdmin: boolean, rou
         </span>
       );
     }
-    if (authorHasCategoryPresence) {
+    if (authorHasCategoryPresence) { // This handles cases where user has category presence but is not a top ranker globally or in category
          return (
             <span className="text-xs inline-flex items-center gap-1">
                 <CategoryIcon category={post.mainCategory} className="h-3 w-3" />
@@ -106,7 +106,7 @@ const PostItem = ({ post, isAdmin, router }: { post: Post, isAdmin: boolean, rou
             </span>
          );
     }
-    return <span className="text-xs">{authorDisplayName}</span>;
+    return <span className="text-xs">{authorDisplayName}</span>; // Default for users with no special rank or category presence
   };
 
   return (
@@ -490,4 +490,5 @@ export default function TavernPage() {
     </div>
   );
 }
+
 

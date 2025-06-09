@@ -111,7 +111,7 @@ const CommentEntry = ({ comment, currentUser, postMainCategory, onAddReply, onEd
             author.rank === 3 && 'rank-3-badge'
           )}
         >
-          {isAuthorCategoryTopRanker && <CategoryIcon category={postMainCategory} className="h-3.5 w-3.5" />}
+          {authorHasCategoryPresence && <CategoryIcon category={postMainCategory} className="h-3.5 w-3.5" />}
           <p className={cn(
             "text-sm font-semibold",
             author.rank === 1 && 'rank-1-text',
@@ -123,7 +123,7 @@ const CommentEntry = ({ comment, currentUser, postMainCategory, onAddReply, onEd
         </div>
       );
     }
-    if (isAuthorCategoryTopRanker) {
+    if (isAuthorCategoryTopRanker) { // This handles cases where user is category top ranker but NOT global top ranker
       return (
         <span className={cn(
           "category-rank-nickname text-sm inline-flex items-center gap-1",
@@ -137,7 +137,7 @@ const CommentEntry = ({ comment, currentUser, postMainCategory, onAddReply, onEd
         </span>
       );
     }
-    if (authorHasCategoryPresence) {
+    if (authorHasCategoryPresence) { // This handles cases where user has category presence but is not a top ranker globally or in category
          return (
             <p className="text-sm font-medium text-foreground inline-flex items-center gap-1">
                 <CategoryIcon category={postMainCategory} className="h-3.5 w-3.5" />
@@ -145,7 +145,7 @@ const CommentEntry = ({ comment, currentUser, postMainCategory, onAddReply, onEd
             </p>
          );
     }
-    return <p className="text-sm font-medium text-foreground">{comment.authorNickname}</p>;
+    return <p className="text-sm font-medium text-foreground">{comment.authorNickname}</p>; // Default for users with no special rank or category presence
   };
 
 
@@ -386,4 +386,5 @@ export default function CommentSection({ postId, initialComments, postMainCatego
     </Card>
   );
 }
+
 
