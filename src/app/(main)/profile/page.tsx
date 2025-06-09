@@ -168,7 +168,7 @@ export default function ProfilePage() {
     headerContainerClass = "admin-badge-bg admin-badge-border";
   } else if (user.rank > 0 && user.rank <= 3) { 
     headerNicknameClass = cn(headerNicknameClass, user.rank === 1 ? "text-rank-gold" : user.rank === 2 ? "text-rank-silver" : "text-rank-bronze");
-    headerRankText = `종합 ${user.rank}위`; // Explicitly set rank text
+    headerRankText = `종합 ${user.rank}위`;
     headerRankClass = user.rank === 1 ? "text-rank-gold" : user.rank === 2 ? "text-rank-silver" : "text-rank-bronze";
     headerContainerClass = cn(
       user.rank === 1 && 'rank-1-badge',
@@ -339,38 +339,35 @@ export default function ProfilePage() {
           </CardHeader>
           <CardContent>
             <div className="space-y-3 max-h-[500px] overflow-y-auto p-1">
-              {mockUsers.filter(u => u.username !== 'WANGJUNLAND' && u.rank > 0).sort((a, b) => a.rank - b.rank).map((rankerData) => { 
-                const isTopGlobalRanker = rankerData.rank > 0 && rankerData.rank <= 3;
+              {mockUsers.filter(u => u.username !== 'WANGJUNLAND' && u.rank > 0).sort((a, b) => a.rank - b.rank).map((rankerUser) => { 
+                let finalNicknameTextClass = "text-foreground";
+                let finalItemContainerClass = "default-rank-item-bg";
 
-                let itemContainerClass = "default-rank-item-bg";
-                let nicknameTextClass = "text-foreground";
-
-                if (isTopGlobalRanker) {
-                  if (rankerData.rank === 1) {itemContainerClass = 'rank-1-badge'; nicknameTextClass = 'text-rank-gold';}
-                  else if (rankerData.rank === 2) {itemContainerClass = 'rank-2-badge'; nicknameTextClass = 'text-rank-silver';}
-                  else {itemContainerClass = 'rank-3-badge'; nicknameTextClass = 'text-rank-bronze';}
+                if (rankerUser.rank > 0 && rankerUser.rank <= 3) {
+                  finalItemContainerClass = cn(rankerUser.rank === 1 && 'rank-1-badge', rankerUser.rank === 2 && 'rank-2-badge', rankerUser.rank === 3 && 'rank-3-badge');
+                  finalNicknameTextClass = rankerUser.rank === 1 ? 'text-rank-gold' : rankerUser.rank === 2 ? 'text-rank-silver' : 'text-rank-bronze';
                 }
 
                 return (
-                  <div key={rankerData.id} className={cn("flex items-center justify-between p-3 rounded-lg border", 
-                    itemContainerClass,
-                    rankerData.id === user.id && !itemContainerClass.startsWith('rank-') ? 'bg-primary/10 border-primary shadow-md' : 'border-border'
+                  <div key={rankerUser.id} className={cn("flex items-center justify-between p-3 rounded-lg border", 
+                    finalItemContainerClass,
+                    rankerUser.id === user.id && !finalItemContainerClass.startsWith('rank-') ? 'bg-primary/10 border-primary shadow-md' : 'border-border'
                   )}>
                     <div className="flex items-center gap-3">
                       <span className={cn("font-bold text-lg w-8 text-center", 
-                          isTopGlobalRanker ? nicknameTextClass : "text-muted-foreground" // Apply gradient to rank number if top 3
+                          (rankerUser.rank > 0 && rankerUser.rank <=3) ? finalNicknameTextClass : "text-muted-foreground"
                       )}>
-                          {rankerData.rank > 0 ? `${rankerData.rank}.` : <Star className="h-5 w-5 inline text-yellow-400" />}
+                          {rankerUser.rank > 0 ? `${rankerUser.rank}.` : <Star className="h-5 w-5 inline text-yellow-400" />}
                       </span>
                       <Avatar className="h-10 w-10 border-2 border-accent/50">
-                        <Image src={rankerData.avatar || `https://placehold.co/40x40.png?text=${rankerData.nickname.substring(0,1)}`} alt={rankerData.nickname} width={40} height={40} className="rounded-full" data-ai-hint="fantasy character icon" />
-                        <AvatarFallback className="bg-muted text-muted-foreground">{rankerData.nickname.substring(0,1)}</AvatarFallback>
+                        <Image src={rankerUser.avatar || `https://placehold.co/40x40.png?text=${rankerUser.nickname.substring(0,1)}`} alt={rankerUser.nickname} width={40} height={40} className="rounded-full" data-ai-hint="fantasy character icon" />
+                        <AvatarFallback className="bg-muted text-muted-foreground">{rankerUser.nickname.substring(0,1)}</AvatarFallback>
                       </Avatar>
-                      <span className={cn("font-medium", nicknameTextClass)}>
-                        {rankerData.nickname}
+                      <span className={cn("font-medium", finalNicknameTextClass)}>
+                        {rankerUser.nickname}
                       </span>
                     </div>
-                    <span className="text-sm font-semibold text-accent">{rankerData.score.toLocaleString()} 점</span>
+                    <span className="text-sm font-semibold text-accent">{rankerUser.score.toLocaleString()} 점</span>
                   </div>
                 );
               })}
