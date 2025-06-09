@@ -86,6 +86,7 @@ export default function HomePage() {
     if (activeRankingTab === 'Global') {
       return users.sort((a, b) => b.score - a.score).slice(0, RANKERS_TO_SHOW);
     }
+    // For category tabs
     return users
       .filter(u => u.categoryStats && u.categoryStats[activeRankingTab] && u.categoryStats[activeRankingTab]!.score > 0)
       .sort((a, b) => (b.categoryStats![activeRankingTab]!.score || 0) - (a.categoryStats![activeRankingTab]!.score || 0))
@@ -216,8 +217,7 @@ export default function HomePage() {
                         {rankedUsersToDisplay.map((ranker, index) => {
                           const displayRank = index + 1;
                           const isGlobalTop3 = activeRankingTab === 'Global' && displayRank <= 3;
-                          const categoryRank = activeRankingTab !== 'Global' ? ranker.categoryStats?.[activeRankingTab]?.rank : undefined;
-                          const isCategoryTop3 = categoryRank && categoryRank <= 3;
+                          const isCategoryTop3 = activeRankingTab !== 'Global' && displayRank <= 3;
 
                           return (
                             <div key={ranker.id} className="flex items-center justify-between p-2.5 bg-background/30 rounded-lg border border-border/50">
@@ -226,7 +226,10 @@ export default function HomePage() {
                                     isGlobalTop3 && displayRank === 1 && 'rank-1-text',
                                     isGlobalTop3 && displayRank === 2 && 'rank-2-text',
                                     isGlobalTop3 && displayRank === 3 && 'rank-3-text',
-                                    !isGlobalTop3 && "text-muted-foreground"
+                                    isCategoryTop3 && displayRank === 1 && (activeRankingTab === 'Unity' ? 'text-unity-rank' : activeRankingTab === 'Unreal' ? 'text-unreal-rank' : activeRankingTab === 'Godot' ? 'text-godot-rank' : 'text-general-rank'),
+                                    isCategoryTop3 && displayRank === 2 && (activeRankingTab === 'Unity' ? 'text-unity-rank opacity-80' : activeRankingTab === 'Unreal' ? 'text-unreal-rank opacity-80' : activeRankingTab === 'Godot' ? 'text-godot-rank opacity-80' : 'text-general-rank opacity-80'),
+                                    isCategoryTop3 && displayRank === 3 && (activeRankingTab === 'Unity' ? 'text-unity-rank opacity-70' : activeRankingTab === 'Unreal' ? 'text-unreal-rank opacity-70' : activeRankingTab === 'Godot' ? 'text-godot-rank opacity-70' : 'text-general-rank opacity-70'),
+                                    !isGlobalTop3 && !isCategoryTop3 && "text-muted-foreground"
                                 )}>{displayRank}.</span>
                                 <Avatar className="h-8 w-8 border-2 border-accent/70">
                                   <AvatarImage src={ranker.avatar || `https://placehold.co/40x40.png?text=${ranker.nickname.substring(0,1)}`} alt={ranker.nickname} data-ai-hint="fantasy character avatar" />
@@ -236,7 +239,7 @@ export default function HomePage() {
                                     isGlobalTop3 && displayRank === 1 && 'rank-1-badge',
                                     isGlobalTop3 && displayRank === 2 && 'rank-2-badge',
                                     isGlobalTop3 && displayRank === 3 && 'rank-3-badge',
-                                    !isGlobalTop3 && isCategoryTop3 && activeRankingTab !== 'Global' && {
+                                    isCategoryTop3 && { // Apply badge background if in displayed top 3 for category
                                       'category-rank-unity': activeRankingTab === 'Unity',
                                       'category-rank-unreal': activeRankingTab === 'Unreal',
                                       'category-rank-godot': activeRankingTab === 'Godot',
@@ -244,13 +247,13 @@ export default function HomePage() {
                                     }
                                   )}
                                 >
-                                  {activeRankingTab !== 'Global' && isCategoryTop3 && <CategorySpecificIcon category={activeRankingTab} className="h-3.5 w-3.5" />}
+                                  {isCategoryTop3 && <CategorySpecificIcon category={activeRankingTab as PostMainCategory} className="h-3.5 w-3.5" />}
                                   <span className={cn(
                                       "font-semibold",
                                       isGlobalTop3 && displayRank === 1 && 'rank-1-text',
                                       isGlobalTop3 && displayRank === 2 && 'rank-2-text',
                                       isGlobalTop3 && displayRank === 3 && 'rank-3-text',
-                                      !isGlobalTop3 && isCategoryTop3 && activeRankingTab !== 'Global' && {
+                                      isCategoryTop3 && { // Apply text color if in displayed top 3 for category
                                         'text-unity-rank': activeRankingTab === 'Unity',
                                         'text-unreal-rank': activeRankingTab === 'Unreal',
                                         'text-godot-rank': activeRankingTab === 'Godot',
@@ -265,7 +268,7 @@ export default function HomePage() {
                               </div>
                               {isAdmin && (
                                 <span className="text-xs font-semibold text-accent">
-                                  {activeRankingTab === 'Global' ? ranker.score.toLocaleString() : (ranker.categoryStats?.[activeRankingTab]?.score || 0).toLocaleString()} 점
+                                  {activeRankingTab === 'Global' ? ranker.score.toLocaleString() : (ranker.categoryStats?.[activeRankingTab as PostMainCategory]?.score || 0).toLocaleString()} 점
                                 </span>
                               )}
                             </div>
