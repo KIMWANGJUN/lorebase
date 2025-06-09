@@ -59,31 +59,31 @@ body {
     /* Category Specific Icon/Base HSL Colors */
     --unity-icon-color-hsl: 220 10% 70%;
     --unity-bg-light: 220 15% 92%;      
-    --unity-text-light: 220 15% 25%;   
+    --unity-text-light-hsl: 220 15% 25%;   
     --unity-border-light: 220 15% 80%;
     --unity-bg-dark: 220 15% 28%;      
-    --unity-text-dark: 220 15% 88%;   
+    --unity-text-dark-hsl: 220 15% 88%;   
     --unity-border-dark: 220 15% 45%;
     
     --unreal-icon-color-hsl: 0 0% 90%;
     --unreal-bg-light: 0 0% 98%;        
-    --unreal-text-light: 0 0% 10%;      
+    --unreal-text-light-hsl: 0 0% 10%;      
     --unreal-border-light: 0 0% 85%;
     --unreal-bg-dark: 0 0% 15%;        
-    --unreal-text-dark: 0 0% 90%;      
+    --unreal-text-dark-hsl: 0 0% 90%;      
     --unreal-border-dark: 0 0% 30%;
 
     --godot-icon-color-hsl: 200 50% 60%;
     --godot-bg-light: 200 100% 92%;     
-    --godot-text-light: 200 60% 35%;    
+    --godot-text-light-hsl: 200 60% 35%;    
     --godot-border-light: 200 50% 75%;
     --godot-bg-dark: 200 60% 25%;      
-    --godot-text-dark: 200 80% 75%;    
+    --godot-text-dark-hsl: 200 80% 75%;    
     --godot-border-dark: 200 50% 40%;
 
     --general-icon-color-hsl: 30 80% 60%;
-    --general-text-light: 0 0% 100%; 
-    --general-text-dark: 0 0% 100%;
+    --general-text-light-hsl: 0 0% 100%; 
+    --general-text-dark-hsl: 0 0% 100%;
   }
 
   .dark {
@@ -181,41 +181,50 @@ body {
 }
 
 /* Category Specific Background & Default Text Colors for Nickname Containers */
+/* These classes set the BACKGROUND and the DEFAULT TEXT color for items within them */
 .highlight-unity {
   @apply highlight-base;
   background-color: hsl(var(--unity-bg-light));
-  color: hsl(var(--unity-text-light)); /* Default text color for this highlight */
+  color: hsl(var(--unity-text-light-hsl)); /* Default text color for this highlight */
   border-color: hsl(var(--unity-border-light));
 }
 .dark .highlight-unity {
   background-color: hsl(var(--unity-bg-dark));
-  color: hsl(var(--unity-text-dark));
+  color: hsl(var(--unity-text-dark-hsl));
   border-color: hsl(var(--unity-border-dark));
 }
+.text-unity-themed { color: hsl(var(--unity-text-light-hsl)); }
+.dark .text-unity-themed { color: hsl(var(--unity-text-dark-hsl)); }
+
 
 .highlight-unreal {
   @apply highlight-base;
   background-color: hsl(var(--unreal-bg-light));
-  color: hsl(var(--unreal-text-light)); 
+  color: hsl(var(--unreal-text-light-hsl)); 
   border-color: hsl(var(--unreal-border-light));
 }
 .dark .highlight-unreal {
   background-color: hsl(var(--unreal-bg-dark));
-  color: hsl(var(--unreal-text-dark));
+  color: hsl(var(--unreal-text-dark-hsl));
   border-color: hsl(var(--unreal-border-dark));
 }
+.text-unreal-themed { color: hsl(var(--unreal-text-light-hsl)); }
+.dark .text-unreal-themed { color: hsl(var(--unreal-text-dark-hsl)); }
 
 .highlight-godot {
   @apply highlight-base;
   background-color: hsl(var(--godot-bg-light));
-  color: hsl(var(--godot-text-light)); 
+  color: hsl(var(--godot-text-light-hsl)); 
   border-color: hsl(var(--godot-border-light));
 }
 .dark .highlight-godot {
   background-color: hsl(var(--godot-bg-dark));
-  color: hsl(var(--godot-text-dark));
+  color: hsl(var(--godot-text-dark-hsl));
   border-color: hsl(var(--godot-border-dark));
 }
+.text-godot-themed { color: hsl(var(--godot-text-light-hsl)); }
+.dark .text-godot-themed { color: hsl(var(--godot-text-dark-hsl)); }
+
 
 .highlight-general { 
   @apply highlight-base p-0 border-transparent; /* Remove padding for gradient to fill border */
@@ -223,20 +232,22 @@ body {
 .highlight-general-inner { /* Inner div for actual content padding & rainbow gradient BG */
    @apply px-1.5 py-0.5 rounded-[calc(var(--radius)-1px)] /* Inner radius slightly smaller */
           bg-gradient-to-r from-violet-500 via-indigo-500 via-blue-500 via-green-500 via-yellow-500 via-orange-500 to-red-500;
-  color: hsl(var(--general-text-light)); /* Default text color for this highlight */
+  color: hsl(var(--general-text-light-hsl)); /* Default text color for this highlight */
 }
 .dark .highlight-general-inner {
-  color: hsl(var(--general-text-dark));
+  color: hsl(var(--general-text-dark-hsl));
 }
 /* Text inside .highlight-general-inner needs specific styling if not inheriting */
 .highlight-general-inner .nickname-text {
-  color: hsl(var(--general-text-light)) !important; 
+  color: hsl(var(--general-text-light-hsl)) !important; 
   @apply drop-shadow-[0_1px_1px_rgba(0,0,0,0.7)]; 
 }
 .dark .highlight-general-inner .nickname-text {
-  color: hsl(var(--general-text-dark)) !important;
+  color: hsl(var(--general-text-dark-hsl)) !important;
   @apply drop-shadow-[0_1px_1px_rgba(0,0,0,0.7)];
 }
+.text-general-themed { color: hsl(var(--general-text-light-hsl)); @apply drop-shadow-[0_1px_1px_rgba(0,0,0,0.7)]; }
+.dark .text-general-themed { color: hsl(var(--general-text-dark-hsl)); @apply drop-shadow-[0_1px_1px_rgba(0,0,0,0.7)]; }
 
 
 /* Category Icon Colors (standalone icons) */
@@ -255,6 +266,7 @@ body {
 
 /* Nickname Text Styling (Font weight, Opacity) - To be applied to the span containing the nickname */
 /* The actual color will be inherited from the parent container's text color setting or specific text color class */
+/* These are primarily for adjusting emphasis, not for setting base color if a gradient or specific theme color is applied */
 .nickname-text-rank-1 { @apply font-bold opacity-100; }
 .nickname-text-rank-2 { @apply font-semibold opacity-95; }
 .nickname-text-rank-3 { @apply font-semibold opacity-90; }
@@ -270,4 +282,3 @@ body {
   @apply w-full text-center mb-0.5;
 }
     
-```

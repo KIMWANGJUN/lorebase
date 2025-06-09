@@ -121,7 +121,7 @@ export default function ProfilePage() {
     setSelectedDisplayRankState(newDisplayRank);
     if (user) {
       updateUser({ selectedDisplayRank: newDisplayRank });
-      toast({ title: "성공", description: "대표 칭호/하이라이트 설정이 변경되었습니다." });
+      toast({ title: "성공", description: "대표 칭호/하이라이트 설정이 변경되었습니다. (다른 페이지에서 반영됩니다)" });
     }
   };
 
@@ -159,15 +159,16 @@ export default function ProfilePage() {
   let headerNicknameClass = "text-3xl font-bold font-headline";
   let headerRankText = user.rank > 0 ? `종합 ${user.rank}위` : "랭킹 정보 없음";
   let headerRankClass = "text-muted-foreground";
-  let headerContainerClass = ""; // For potential rank badge background on avatar card
+  let headerContainerClass = ""; 
 
   if (isAdmin) {
     headerNicknameClass = cn(headerNicknameClass, "text-admin");
     headerRankText = "관리자";
     headerRankClass = "text-admin";
     headerContainerClass = "admin-badge-bg admin-badge-border";
-  } else if (user.rank > 0 && user.rank <= 3) { // Global Top 3
+  } else if (user.rank > 0 && user.rank <= 3) { 
     headerNicknameClass = cn(headerNicknameClass, user.rank === 1 ? "text-rank-gold" : user.rank === 2 ? "text-rank-silver" : "text-rank-bronze");
+    headerRankText = `종합 ${user.rank}위`; // Explicitly set rank text
     headerRankClass = user.rank === 1 ? "text-rank-gold" : user.rank === 2 ? "text-rank-silver" : "text-rank-bronze";
     headerContainerClass = cn(
       user.rank === 1 && 'rank-1-badge',
@@ -175,8 +176,7 @@ export default function ProfilePage() {
       user.rank === 3 && 'rank-3-badge'
     );
   }
-  // Note: For the avatar header, we simplify and don't show Tetris or Category specific styles directly,
-  // as the primary display is the global rank. User selection will affect other parts of the site.
+ 
 
   return (
     <div className="container mx-auto py-10 px-4">
@@ -358,8 +358,7 @@ export default function ProfilePage() {
                   )}>
                     <div className="flex items-center gap-3">
                       <span className={cn("font-bold text-lg w-8 text-center", 
-                          isTopGlobalRanker && nicknameTextClass, 
-                          !isTopGlobalRanker && "text-muted-foreground"
+                          isTopGlobalRanker ? nicknameTextClass : "text-muted-foreground" // Apply gradient to rank number if top 3
                       )}>
                           {rankerData.rank > 0 ? `${rankerData.rank}.` : <Star className="h-5 w-5 inline text-yellow-400" />}
                       </span>

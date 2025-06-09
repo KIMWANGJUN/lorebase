@@ -65,44 +65,37 @@ const NicknameDisplayForComment: FC<NicknameDisplayForCommentProps> = ({ author,
     itemContainerClass = "admin-badge-bg admin-badge-border px-1.5 py-0.5";
     nicknameTextClass = "text-admin";
     showCategoryIcon = false;
-    titleText = null; // Admin has no specific title here
+    titleText = null; 
   }
   // 2. Global Community Rank Top 3
-  else if (globalRank && globalRank > 0 && globalRank <= 3) {
+  else if (globalRank <= 3) {
     itemContainerClass = cn(globalRank === 1 && 'rank-1-badge', globalRank === 2 && 'rank-2-badge', globalRank === 3 && 'rank-3-badge', "px-1.5 py-0.5");
-    nicknameTextClass = cn(globalRank === 1 && 'text-rank-gold', globalRank === 2 && 'text-rank-silver', globalRank === 3 && 'text-rank-bronze');
-    showCategoryIcon = true; // Global rank might still show category icon
-    titleText = null; // Global rank implies its own prestige, no separate title text needed on the item itself
+    nicknameTextClass = globalRank === 1 ? 'text-rank-gold' : globalRank === 2 ? 'text-rank-silver' : 'text-rank-bronze';
+    showCategoryIcon = true; 
+    titleText = null; 
   }
-  // 3. Tetris Monthly Rank Top 3 (and not Global Top 3)
-  else if (tetrisRank && tetrisRank > 0 && tetrisRank <= 3) {
+  // 3. Tetris Monthly Rank Top 3 (If not Global Top 3)
+  else if (tetrisRank && tetrisRank <= 3) {
     titleText = tetrisTitles[tetrisRank - 1];
-    if (tetrisRank === 1) { titleColorClass = 'text-rank-gold'; nicknameTextClass = 'text-rank-gold'; }
-    else if (tetrisRank === 2) { titleColorClass = 'text-rank-silver'; nicknameTextClass = 'text-rank-silver'; }
-    else { titleColorClass = 'text-rank-bronze'; nicknameTextClass = 'text-rank-bronze'; }
-    
-    if (categoryRankInContext > 0 && categoryRankInContext <= 3) { // If also top in category, use category background
-        itemContainerClass = cn(`highlight-${postMainCategory.toLowerCase()}`, "px-1.5 py-0.5");
-    } else {
-        itemContainerClass = "default-rank-item-bg px-1.5 py-0.5";
-    }
+    titleColorClass = tetrisRank === 1 ? 'text-rank-gold' : tetrisRank === 2 ? 'text-rank-silver' : 'text-rank-bronze';
+    nicknameTextClass = titleColorClass; 
+
+    itemContainerClass = categoryRankInContext <= 3 ? cn(`highlight-${postMainCategory.toLowerCase()}`, "px-1.5 py-0.5") : "default-rank-item-bg px-1.5 py-0.5";
     showCategoryIcon = true;
   }
-  // 4. Category Rank Top 3 (and not Global/Tetris Top 3)
-  else if (categoryRankInContext > 0 && categoryRankInContext <= 3) {
+  // 4. Category Rank Top 3 in current post's main category (If not Global or Tetris Top 3)
+  else if (categoryRankInContext <= 3) {
     titleText = postMainCategory === 'General' ? '일반 & 유머' : postMainCategory;
-    if (categoryRankInContext === 1) titleColorClass = 'text-rank-gold';
-    else if (categoryRankInContext === 2) titleColorClass = 'text-rank-silver';
-    else titleColorClass = 'text-rank-bronze';
+    titleColorClass = categoryRankInContext === 1 ? 'text-rank-gold' : categoryRankInContext === 2 ? 'text-rank-silver' : 'text-rank-bronze';
+    nicknameTextClass = titleColorClass; 
     
     itemContainerClass = cn(`highlight-${postMainCategory.toLowerCase()}`, "px-1.5 py-0.5");
-    nicknameTextClass = cn(`text-category-${postMainCategory.toLowerCase()}`, `nickname-text-rank-${categoryRankInContext}`);
     showCategoryIcon = true;
   }
-  // 5. Category Rank 4-10 (and not any of above)
-  else if (categoryRankInContext > 0 && categoryRankInContext <= 10) {
+  // 5. Category Rank 4-10 in current post's main category
+  else if (categoryRankInContext <= 10) {
     itemContainerClass = "default-rank-item-bg px-1.5 py-0.5";
-    nicknameTextClass = cn(`text-category-${postMainCategory.toLowerCase()}`, `nickname-text-rank-${categoryRankInContext}`);
+    nicknameTextClass = cn(`text-${postMainCategory.toLowerCase()}-themed`, `nickname-text-rank-${categoryRankInContext}`);
     showCategoryIcon = true;
     titleText = null;
   }
@@ -115,7 +108,7 @@ const NicknameDisplayForComment: FC<NicknameDisplayForCommentProps> = ({ author,
   }
   
   const NicknameWrapper = itemContainerClass.includes('highlight-general') && !itemContainerClass.includes('highlight-general-inner') ? 'div' : React.Fragment;
-  const wrapperProps = NicknameWrapper === 'div' ? { className: 'highlight-general-inner' } : {};
+  const wrapperProps = NicknameWrapper === 'div' ? { className: 'highlight-general-inner p-0' } : {};
 
   return (
     <div className="flex flex-col items-start">

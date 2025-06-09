@@ -45,7 +45,7 @@ export default function HomePage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [activeRankingTab, setActiveRankingTab] = useState<PostMainCategory | 'Global'>('Global');
 
-  const allSortedPosts = [...mockPosts].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  const allSortedPosts = [...mockPosts].filter(p => p.authorId !== 'admin').sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
   const effectivePosts = allSortedPosts.slice(0, MAX_PAGES * POSTS_PER_PAGE);
   const totalPages = Math.ceil(effectivePosts.length / POSTS_PER_PAGE);
   const indexOfLastPost = currentPage * POSTS_PER_PAGE;
@@ -156,7 +156,7 @@ export default function HomePage() {
                             <AvatarImage src={`https://placehold.co/40x40.png?text=${rankerData.nickname.substring(0,1)}`} alt={rankerData.nickname} data-ai-hint="gamer avatar" />
                             <AvatarFallback className="text-xs bg-muted text-muted-foreground">{rankerData.nickname.substring(0,1)}</AvatarFallback>
                         </Avatar>
-                        <div className="flex flex-col items-center text-left">
+                        <div className="flex flex-col items-start text-left"> {/* Changed items-center to items-start */}
                           {isTetrisTop3 && tetrisTitles[rankerData.rank - 1] && (
                              <div className="title-container">
                                 <p className={cn("text-[0.7rem] leading-tight font-semibold tracking-tight", titleClass)}>
@@ -268,17 +268,17 @@ export default function HomePage() {
                       <div className="space-y-3">
                         {rankedUsersToDisplay.map((ranker, index) => {
                           const user = mockUsers.find(u => u.id === ranker.id);
-                          if (!user) return null;
+                          if (!user || user.username === 'WANGJUNLAND') return null;
 
                           const displayRankInList = index + 1; 
                           
-                          let itemContainerClass = "default-rank-item-bg p-2.5"; 
+                          let itemContainerClass = "default-rank-item-bg"; 
                           let nicknameTextClass = "text-foreground"; 
                           let titleText: string | null = null;
                           let titleColorClass = "";
                           let showCategoryIcon = false;
                           
-                          const isGlobalTop3 = user.rank > 0 && user.rank <= 3;
+                          const isGlobalTop3 = user.rank <= 3;
                           const isTetrisTop3 = user.tetrisRank && user.tetrisRank <= 3;
                           const categoryStats = activeRankingTab !== 'Global' ? user.categoryStats?.[activeRankingTab] : undefined;
                           const isCategoryTop3 = categoryStats?.rankInCate && categoryStats.rankInCate <= 3;
@@ -286,119 +286,68 @@ export default function HomePage() {
                           
                           let displayRankNumberToShow = 0;
                           let rankNumberColorClass = 'text-muted-foreground';
+                          const userSelectedDisplay = user.selectedDisplayRank || 'default';
 
-                          if (user.selectedDisplayRank && user.selectedDisplayRank !== 'default' && currentUser?.id === user.id) {
-                            // User has a preference, try to honor it
-                            if (user.selectedDisplayRank === 'global' && isGlobalTop3) {
-                                // Display as Global Top 3
-                                itemContainerClass = cn(user.rank === 1 && 'rank-1-badge', user.rank === 2 && 'rank-2-badge', user.rank === 3 && 'rank-3-badge', "p-2.5");
-                                nicknameTextClass = cn(user.rank === 1 && 'text-rank-gold', user.rank === 2 && 'text-rank-silver', user.rank === 3 && 'text-rank-bronze');
+                          // Determine primary display style based on fixed priority or user selection (currently fixed)
+                          if (userSelectedDisplay === 'default') { // Fixed priority
+                            if (isGlobalTop3) {
+                                itemContainerClass = cn(user.rank === 1 && 'rank-1-badge', user.rank === 2 && 'rank-2-badge', user.rank === 3 && 'rank-3-badge');
+                                nicknameTextClass = user.rank === 1 ? 'text-rank-gold' : user.rank === 2 ? 'text-rank-silver' : 'text-rank-bronze';
                                 displayRankNumberToShow = user.rank;
                                 rankNumberColorClass = nicknameTextClass;
-                            } else if (user.selectedDisplayRank === 'tetris' && isTetrisTop3) {
-                                // Display as Tetris Top 3
+                                showCategoryIcon = activeRankingTab !== 'Global'; // Show category icon if on a category tab
+                            } else if (isTetrisTop3) {
                                 titleText = tetrisTitles[user.tetrisRank! - 1];
-                                if (user.tetrisRank === 1) { titleColorClass = 'text-rank-gold'; nicknameTextClass = 'text-rank-gold'; }
-                                else if (user.tetrisRank === 2) { titleColorClass = 'text-rank-silver'; nicknameTextClass = 'text-rank-silver'; }
-                                else { titleColorClass = 'text-rank-bronze'; nicknameTextClass = 'text-rank-bronze'; }
-                                itemContainerClass = isCategoryTop3 && activeRankingTab !== 'Global' ? cn(`highlight-${activeRankingTab.toLowerCase()} p-2.5`) : "default-rank-item-bg p-2.5";
+                                titleColorClass = user.tetrisRank === 1 ? 'text-rank-gold' : user.tetrisRank === 2 ? 'text-rank-silver' : 'text-rank-bronze';
+                                nicknameTextClass = titleColorClass;
+                                itemContainerClass = isCategoryTop3 && activeRankingTab !== 'Global' ? cn(`highlight-${activeRankingTab.toLowerCase()}`) : "default-rank-item-bg";
                                 showCategoryIcon = activeRankingTab !== 'Global';
-                                displayRankNumberToShow = user.tetrisRank;
-                                rankNumberColorClass = nicknameTextClass;
-                            } else if (user.selectedDisplayRank.startsWith('category_')) {
-                                const preferredCat = user.selectedDisplayRank.split('_')[1] as PostMainCategory;
-                                const preferredCatStats = user.categoryStats?.[preferredCat];
-                                if (preferredCatStats?.rankInCate && preferredCatStats.rankInCate <= 3) {
-                                    // Display as Preferred Category Top 3
-                                    titleText = preferredCat === 'General' ? '일반 & 유머' : preferredCat;
-                                    if (preferredCatStats.rankInCate === 1) titleColorClass = 'text-rank-gold';
-                                    else if (preferredCatStats.rankInCate === 2) titleColorClass = 'text-rank-silver';
-                                    else titleColorClass = 'text-rank-bronze';
-                                    itemContainerClass = cn(`highlight-${preferredCat.toLowerCase()} p-2.5`);
-                                    nicknameTextClass = cn(`nickname-text-rank-${preferredCatStats.rankInCate}`);
-                                    showCategoryIcon = true;
-                                    displayRankNumberToShow = preferredCatStats.rankInCate;
-                                    rankNumberColorClass = titleColorClass;
-                                } else if (preferredCatStats?.rankInCate && preferredCatStats.rankInCate <= 10 && activeRankingTab === preferredCat) {
-                                     // Display as Preferred Category Top 4-10 (if current tab matches)
-                                    itemContainerClass = "default-rank-item-bg p-2.5";
-                                    nicknameTextClass = cn(`nickname-text-rank-${preferredCatStats.rankInCate}`);
-                                    showCategoryIcon = true;
-                                    displayRankNumberToShow = preferredCatStats.rankInCate;
-                                    rankNumberColorClass = `text-category-${preferredCat.toLowerCase()}`;
-                                } else { // Fallback to default priority if preference cannot be fully met or current tab is different
-                                     // Default priority logic
-                                    if (isGlobalTop3) {
-                                        itemContainerClass = cn(user.rank === 1 && 'rank-1-badge', user.rank === 2 && 'rank-2-badge', user.rank === 3 && 'rank-3-badge', "p-2.5");
-                                        nicknameTextClass = cn(user.rank === 1 && 'text-rank-gold', user.rank === 2 && 'text-rank-silver', user.rank === 3 && 'text-rank-bronze');
-                                        displayRankNumberToShow = user.rank;
-                                        rankNumberColorClass = nicknameTextClass;
-                                    } else if (isTetrisTop3) {
-                                        titleText = tetrisTitles[user.tetrisRank! - 1];
-                                        if (user.tetrisRank === 1) { titleColorClass = 'text-rank-gold'; nicknameTextClass = 'text-rank-gold'; }
-                                        else if (user.tetrisRank === 2) { titleColorClass = 'text-rank-silver'; nicknameTextClass = 'text-rank-silver'; }
-                                        else { titleColorClass = 'text-rank-bronze'; nicknameTextClass = 'text-rank-bronze'; }
-                                        itemContainerClass = isCategoryTop3 && activeRankingTab !== 'Global' ? cn(`highlight-${activeRankingTab.toLowerCase()} p-2.5`) : "default-rank-item-bg p-2.5";
-                                        showCategoryIcon = activeRankingTab !== 'Global';
-                                        displayRankNumberToShow = user.tetrisRank;
-                                        rankNumberColorClass = nicknameTextClass;
-                                    } else if (isCategoryTop3 && activeRankingTab !== 'Global') {
-                                        titleText = activeRankingTab === 'General' ? '일반 & 유머' : activeRankingTab;
-                                        if (categoryStats.rankInCate === 1) titleColorClass = 'text-rank-gold';
-                                        else if (categoryStats.rankInCate === 2) titleColorClass = 'text-rank-silver';
-                                        else titleColorClass = 'text-rank-bronze';
-                                        itemContainerClass = cn(`highlight-${activeRankingTab.toLowerCase()} p-2.5`);
-                                        nicknameTextClass = cn(`nickname-text-rank-${categoryStats.rankInCate}`);
-                                        showCategoryIcon = true;
-                                        displayRankNumberToShow = categoryStats.rankInCate;
-                                        rankNumberColorClass = titleColorClass;
-                                    } else if (isCategoryTop10 && activeRankingTab !== 'Global') {
-                                        itemContainerClass = "default-rank-item-bg p-2.5";
-                                        nicknameTextClass = cn(`nickname-text-rank-${categoryStats!.rankInCate}`);
-                                        showCategoryIcon = true;
-                                        displayRankNumberToShow = categoryStats!.rankInCate || 0;
-                                        rankNumberColorClass = `text-category-${activeRankingTab.toLowerCase()}`;
-                                    } else {
-                                        // Default, no specific rank styling for this tab
-                                        displayRankNumberToShow = tabValue === 'Global' ? user.rank : (categoryStats?.rankInCate || 0);
-                                    }
-                                }
-                            }
-                          } else { // Default priority logic if no user preference or not current user
-                            if (tabValue === 'Global') {
-                                if (isGlobalTop3) {
-                                    itemContainerClass = cn(user.rank === 1 && 'rank-1-badge', user.rank === 2 && 'rank-2-badge', user.rank === 3 && 'rank-3-badge', "p-2.5");
-                                    nicknameTextClass = cn(user.rank === 1 && 'text-rank-gold', user.rank === 2 && 'text-rank-silver', user.rank === 3 && 'text-rank-bronze');
-                                }
-                                displayRankNumberToShow = user.rank;
-                                rankNumberColorClass = isGlobalTop3 ? nicknameTextClass : 'text-muted-foreground';
-                            } else { // Category Tab
-                                if (isCategoryTop3) {
-                                    titleText = activeRankingTab === 'General' ? '일반 & 유머' : activeRankingTab;
-                                    if (categoryStats.rankInCate === 1) titleColorClass = 'text-rank-gold';
-                                    else if (categoryStats.rankInCate === 2) titleColorClass = 'text-rank-silver';
-                                    else titleColorClass = 'text-rank-bronze';
-                                    itemContainerClass = cn(`highlight-${activeRankingTab.toLowerCase()} p-2.5`);
-                                    nicknameTextClass = cn(`nickname-text-rank-${categoryStats.rankInCate}`); // Text color from highlight class
-                                } else if (isCategoryTop10) {
-                                    itemContainerClass = "default-rank-item-bg p-2.5";
-                                    nicknameTextClass = cn(`nickname-text-rank-${categoryStats!.rankInCate}`); // Text color from highlight class
-                                }
+                                displayRankNumberToShow = activeRankingTab === 'Global' ? user.rank : (categoryStats?.rankInCate || 0); // Show global rank on global, cat rank on cat tab
+                                rankNumberColorClass = titleColorClass; // Tetris rank color for number
+                            } else if (isCategoryTop3 && activeRankingTab !== 'Global') {
+                                titleText = activeRankingTab === 'General' ? '일반 & 유머' : activeRankingTab;
+                                titleColorClass = categoryStats.rankInCate === 1 ? 'text-rank-gold' : categoryStats.rankInCate === 2 ? 'text-rank-silver' : 'text-rank-bronze';
+                                nicknameTextClass = titleColorClass; // Category rank nickname is also gradient
+                                itemContainerClass = cn(`highlight-${activeRankingTab.toLowerCase()}`);
                                 showCategoryIcon = true;
-                                displayRankNumberToShow = categoryStats?.rankInCate || 0;
-                                if (isCategoryTop3) rankNumberColorClass = titleColorClass;
-                                else if (isCategoryTop10) rankNumberColorClass = `text-category-${activeRankingTab.toLowerCase()}`;
-                                else rankNumberColorClass = 'text-muted-foreground';
+                                displayRankNumberToShow = categoryStats.rankInCate;
+                                rankNumberColorClass = titleColorClass;
+                            } else if (isCategoryTop10 && activeRankingTab !== 'Global') {
+                                itemContainerClass = "default-rank-item-bg";
+                                // For Cat 4-10, use category themed solid color
+                                nicknameTextClass = cn(`text-${activeRankingTab.toLowerCase()}-themed`, `nickname-text-rank-${categoryStats!.rankInCate}`);
+                                showCategoryIcon = true;
+                                displayRankNumberToShow = categoryStats!.rankInCate || 0;
+                                rankNumberColorClass = `text-${activeRankingTab.toLowerCase()}-themed`;
+                            } else {
+                                // Default, no specific rank styling for this tab
+                                displayRankNumberToShow = tabValue === 'Global' ? user.rank : (categoryStats?.rankInCate || 0);
+                                nicknameTextClass = 'text-foreground';
+                                showCategoryIcon = activeRankingTab !== 'Global';
                             }
+                          } else {
+                            // Logic for user-selected display rank (to be fully implemented with profile page interaction)
+                            // For now, this branch will behave like 'default' or a simplified version
+                            // This will be expanded when the profile selection is active.
+                            // Fallback to default priority if selected preference isn't met or for simplicity in this phase.
+                            if (isGlobalTop3) {
+                                itemContainerClass = cn(user.rank === 1 && 'rank-1-badge', user.rank === 2 && 'rank-2-badge', user.rank === 3 && 'rank-3-badge');
+                                nicknameTextClass = user.rank === 1 ? 'text-rank-gold' : user.rank === 2 ? 'text-rank-silver' : 'text-rank-bronze';
+                                displayRankNumberToShow = user.rank;
+                                rankNumberColorClass = nicknameTextClass;
+                            } // ... add more specific selectedDisplayRank checks here in the future
+                            else { // Fallback
+                                displayRankNumberToShow = tabValue === 'Global' ? user.rank : (categoryStats?.rankInCate || 0);
+                                nicknameTextClass = 'text-foreground';
+                            }
+                            showCategoryIcon = activeRankingTab !== 'Global';
                           }
                           
-
-                          const NicknameWrapper = activeRankingTab === 'General' && itemContainerClass.includes('highlight-general') ? 'div' : React.Fragment;
-                          const wrapperProps = activeRankingTab === 'General' && itemContainerClass.includes('highlight-general') ? { className: 'highlight-general-inner p-0' } : {};
+                          const NicknameWrapper = itemContainerClass.includes('highlight-general') && !itemContainerClass.includes('highlight-general-inner') ? 'div' : React.Fragment;
+                          const wrapperProps = NicknameWrapper === 'div' ? { className: 'highlight-general-inner p-0' } : {};
                           
-
                           return (
-                            <div key={user.id} className={cn("flex items-center justify-between", itemContainerClass)}>
+                            <div key={user.id} className={cn("flex items-center justify-between p-2.5", itemContainerClass)}>
                                <div className="flex items-center gap-2.5">
                                 <span className={cn("font-bold text-md w-5 text-center shrink-0", rankNumberColorClass)}>
                                   {displayRankNumberToShow > 0 ? `${displayRankNumberToShow}.` : "-"}
