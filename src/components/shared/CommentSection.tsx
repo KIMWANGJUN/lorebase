@@ -17,13 +17,15 @@ import Link from 'next/link';
 const generateId = () => `comment_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
 const MAX_REPLY_DEPTH = 3; 
 
-const getAuthorRankInCategory = (author: UserType | undefined, category: PostMainCategory, allUsers: UserType[]): number | null => {
-  if (!author || !author.categoryStats || !author.categoryStats[category]) {
-    return null;
+const getAuthorRankInCategory = (authorId: string | undefined, category: PostMainCategory, allUsers: UserType[]): number => {
+  if (!authorId) return 0;
+  const author = allUsers.find(u => u.id === authorId);
+  if (!author || author.username === 'WANGJUNLAND' || !author.categoryStats || !author.categoryStats[category]) {
+    return 0;
   }
   const categoryScore = author.categoryStats[category]?.score;
   if (typeof categoryScore !== 'number') {
-    return null;
+    return 0;
   }
 
   const usersInCategory = allUsers
@@ -31,7 +33,7 @@ const getAuthorRankInCategory = (author: UserType | undefined, category: PostMai
     .sort((a, b) => (b.categoryStats![category]!.score || 0) - (a.categoryStats![category]!.score || 0));
 
   const rank = usersInCategory.findIndex(u => u.id === author.id);
-  return rank !== -1 ? rank + 1 : null;
+  return rank !== -1 ? rank + 1 : 0;
 };
 
 const CategoryIcon: FC<{ category: PostMainCategory, className?: string }> = ({ category, className = "h-3.5 w-3.5 shrink-0" }) => {
@@ -53,29 +55,27 @@ const CategoryIcon: FC<{ category: PostMainCategory, className?: string }> = ({ 
 };
 
 interface NicknameDisplayForCommentProps {
-  author?: UserType;
+  authorId: string;
   authorDisplayName: string;
   postMainCategory: PostMainCategory; 
 }
 
-const NicknameDisplayForComment: FC<NicknameDisplayForCommentProps> = ({ author, authorDisplayName, postMainCategory }) => {
+const NicknameDisplayForComment: FC<NicknameDisplayForCommentProps> = ({ authorId, authorDisplayName, postMainCategory }) => {
+  const author = mockUsers.find(u => u.id === authorId);
   if (!author) return <p className="text-sm font-medium text-foreground">{authorDisplayName}</p>;
   
   const isAdminUser = author.username === 'WANGJUNLAND';
   const isGlobalTop3 = !isAdminUser && author.rank > 0 && author.rank <= 3;
 
-  const tetrisRankEntry = mockTetrisRankings.monthly.find(r => r.userId === author.id);
-  const tetrisRankIndex = tetrisRankEntry ? mockTetrisRankings.monthly.indexOf(tetrisRankEntry) : -1;
-  const isTetrisTop3 = !isAdminUser && !isGlobalTop3 && tetrisRankEntry && tetrisRankIndex !== -1 && tetrisRankIndex < 3;
+  const tetrisUser = mockTetrisRankings.monthly.find(tr => tr.userId === author.id);
+  const tetrisRankIndex = tetrisUser ? mockTetrisRankings.monthly.findIndex(r => r.userId === author.id) : -1;
+  const isTetrisTop3 = !isAdminUser && tetrisUser && tetrisRankIndex !== -1 && tetrisRankIndex < 3;
 
-  const authorRankInPostCategory = getAuthorRankInCategory(author, postMainCategory, mockUsers);
-  const isCategoryTop3InPost = !isAdminUser && !isGlobalTop3 && !isTetrisTop3 && authorRankInPostCategory !== null && authorRankInPostCategory <= 3;
-  const isCategoryTop10InPost = !isAdminUser && !isGlobalTop3 && !isTetrisTop3 && authorRankInPostCategory !== null && authorRankInPostCategory <= 10;
+  const authorCatRank = getAuthorRankInCategory(authorId, postMainCategory, mockUsers);
+  const isCategoryTop3 = !isAdminUser && authorCatRank > 0 && authorCatRank <= 3;
+  const isCategoryTop10 = !isAdminUser && authorCatRank > 0 && authorCatRank <= 10;
   
-  const authorHasCategoryPresence = author.categoryStats && author.categoryStats[postMainCategory] && (author.categoryStats[postMainCategory]?.score || 0) > 0;
-
-  let titleText: string | null = null;
-  let titleColorClass = "";
+  const titles: { text: string, colorClass: string }[] = [];
   let itemContainerClass = "default-rank-item-bg"; 
   let nicknameTextClass = "text-foreground"; 
 
@@ -83,65 +83,63 @@ const NicknameDisplayForComment: FC<NicknameDisplayForCommentProps> = ({ author,
     itemContainerClass = "admin-badge-bg admin-badge-border";
     nicknameTextClass = "text-admin";
   } else if (isGlobalTop3) {
-    if (author.rank === 1) itemContainerClass = 'rank-1-badge';
-    else if (author.rank === 2) itemContainerClass = 'rank-2-badge';
-    else if (author.rank === 3) itemContainerClass = 'rank-3-badge';
-    nicknameTextClass = author.rank === 1 ? 'text-rank-gold' : author.rank === 2 ? 'text-rank-silver' : 'text-rank-bronze';
-  } else if (isTetrisTop3) {
-    titleText = tetrisTitles[tetrisRankIndex];
-    titleColorClass = tetrisRankIndex === 0 ? 'text-rank-gold' : tetrisRankIndex === 1 ? 'text-rank-silver' : 'text-rank-bronze';
-    nicknameTextClass = titleColorClass; 
-
-    if (isCategoryTop3InPost) {
-        if (postMainCategory === 'Unity') itemContainerClass = 'highlight-unity';
-        else if (postMainCategory === 'Unreal') itemContainerClass = 'highlight-unreal';
-        else if (postMainCategory === 'Godot') itemContainerClass = 'highlight-godot';
-        else if (postMainCategory === 'General') itemContainerClass = 'highlight-general';
-    }
-  } else if (isCategoryTop3InPost) {
-    titleText = postMainCategory === 'General' ? '일반 & 유머' : postMainCategory;
-    if (authorRankInPostCategory === 1) titleColorClass = 'text-rank-gold';
-    else if (authorRankInPostCategory === 2) titleColorClass = 'text-rank-silver';
-    else if (authorRankInPostCategory === 3) titleColorClass = 'text-rank-bronze';
-
-    if (postMainCategory === 'Unity') itemContainerClass = 'highlight-unity';
-    else if (postMainCategory === 'Unreal') itemContainerClass = 'highlight-unreal';
-    else if (postMainCategory === 'Godot') itemContainerClass = 'highlight-godot';
-    else if (postMainCategory === 'General') itemContainerClass = 'highlight-general';
-    
-    nicknameTextClass = cn(`nickname-text-rank-${authorRankInPostCategory}`, 
-      postMainCategory === 'General' ? 'text-general-text-strong' :
-      postMainCategory === 'Unity' ? 'text-unity-text-strong' :
-      postMainCategory === 'Unreal' ? 'text-unreal-text-strong' :
-      'text-godot-text-strong'
+    itemContainerClass = cn(
+        author.rank === 1 && 'rank-1-badge',
+        author.rank === 2 && 'rank-2-badge',
+        author.rank === 3 && 'rank-3-badge'
     );
-  } else if (isCategoryTop10InPost) {
-     nicknameTextClass = cn(`nickname-text-rank-${authorRankInPostCategory}`,
-      postMainCategory === 'General' ? 'text-general-text-base' :
-      postMainCategory === 'Unity' ? 'text-unity-text-base' :
-      postMainCategory === 'Unreal' ? 'text-unreal-text-base' :
-      'text-godot-text-base'
+    nicknameTextClass = cn(
+        author.rank === 1 && 'text-rank-gold',
+        author.rank === 2 && 'text-rank-silver',
+        author.rank === 3 && 'text-rank-bronze'
     );
   }
   
-  const NicknameWrapper = React.Fragment;
-  const wrapperProps = {};
-  if (postMainCategory === 'General' && itemContainerClass.includes('highlight-general') && !isAdminUser && !isGlobalTop3) {
-    // NicknameWrapper = 'div';
-    // wrapperProps = { className: 'highlight-general-inner p-0' };
+  if (isTetrisTop3) {
+      const tetrisTitleText = tetrisTitles[tetrisRankIndex];
+      let tetrisTitleColor = "";
+      if (tetrisRankIndex === 0) tetrisTitleColor = 'text-rank-gold';
+      else if (tetrisRankIndex === 1) tetrisTitleColor = 'text-rank-silver';
+      else if (tetrisRankIndex === 2) tetrisTitleColor = 'text-rank-bronze';
+      titles.push({ text: tetrisTitleText, colorClass: tetrisTitleColor });
+      if (!isGlobalTop3) nicknameTextClass = tetrisTitleColor;
   }
 
+  if (isCategoryTop3) {
+    const categoryTitleText = postMainCategory === 'General' ? '일반 & 유머' : postMainCategory;
+    let categoryTitleColor = "";
+    if (authorCatRank === 1) categoryTitleColor = 'text-rank-gold';
+    else if (authorCatRank === 2) categoryTitleColor = 'text-rank-silver';
+    else if (authorCatRank === 3) categoryTitleColor = 'text-rank-bronze';
+    titles.push({ text: categoryTitleText, colorClass: categoryTitleColor });
+
+    if (!isGlobalTop3) { 
+      itemContainerClass = cn(`highlight-${postMainCategory.toLowerCase()}`);
+      if(!isTetrisTop3) {
+        nicknameTextClass = cn(`nickname-text-rank-${authorCatRank}`, `text-${postMainCategory.toLowerCase()}-text-strong`);
+      }
+    }
+  } else if (isCategoryTop10 && !isGlobalTop3 && !isTetrisTop3) {
+    nicknameTextClass = cn(`nickname-text-rank-${authorCatRank}`, `text-${postMainCategory.toLowerCase()}-text-base`);
+  }
+  
+  const NicknameWrapper = postMainCategory === 'General' && itemContainerClass.includes('highlight-general') && !isGlobalTop3 ? 'div' : React.Fragment;
+  const wrapperProps = NicknameWrapper === 'div' ? { className: 'highlight-general-inner p-0' } : {};
+
+  if (itemContainerClass.includes('badge') || itemContainerClass.includes('highlight-')) {
+    itemContainerClass = cn(itemContainerClass, 'px-1.5 py-0.5');
+  }
 
   return (
-    <div className="flex flex-col items-start"> {/* Changed to items-start */}
-      {titleText && (
-        <p className={cn("text-[0.7rem] leading-tight font-semibold tracking-tight mb-0.5", titleColorClass)}>
-          {titleText}
+    <div className="flex flex-col items-start">
+      {titles.map((title, idx) => (
+        <p key={idx} className={cn("text-[0.7rem] leading-tight font-semibold tracking-tight", title.colorClass, idx > 0 && "mt-0.5")}>
+          {title.text}
         </p>
-      )}
+      ))}
       <NicknameWrapper {...wrapperProps}>
-        <div className={cn("inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md", itemContainerClass)}>
-            {authorHasCategoryPresence && !isAdminUser && !isGlobalTop3 && (
+        <div className={cn("inline-flex items-center gap-1", itemContainerClass, titles.length > 0 && "mt-0.5")}>
+            {!isAdminUser && author.categoryStats && author.categoryStats[postMainCategory] && (
               <CategoryIcon category={postMainCategory} className="h-3.5 w-3.5" />
             )}
             <span className={cn("text-sm font-medium nickname-text", nicknameTextClass)}>{authorDisplayName}</span>
@@ -218,7 +216,7 @@ const CommentEntry = ({ comment, currentUser, postMainCategory, onAddReply, onEd
         </Avatar>
         <div className="flex-1">
           <div className="flex items-center justify-between">
-            <NicknameDisplayForComment author={author} authorDisplayName={comment.authorNickname} postMainCategory={postMainCategory} />
+            <NicknameDisplayForComment authorId={comment.authorId} authorDisplayName={comment.authorNickname} postMainCategory={postMainCategory} />
             <p className="text-xs text-muted-foreground">
               {formattedDate}
               {comment.isEdited && <span className="ml-1 text-muted-foreground/80">(수정함)</span>}
@@ -447,3 +445,6 @@ export default function CommentSection({ postId, initialComments, postMainCatego
     </Card>
   );
 }
+
+
+    

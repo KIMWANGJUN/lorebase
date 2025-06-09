@@ -41,7 +41,7 @@ const CategorySpecificIcon: React.FC<{ category: PostMainCategory, className?: s
 
 
 export default function HomePage() {
-  const { user: currentUser, isAdmin } = useAuth(); 
+  const { user: currentUser } = useAuth(); 
   const [currentPage, setCurrentPage] = useState(1);
   const [activeRankingTab, setActiveRankingTab] = useState<PostMainCategory | 'Global'>('Global');
 
@@ -83,38 +83,19 @@ export default function HomePage() {
     return pageNumbers;
   };
   
-  const getTopNUsers = useCallback((users: UserType[], category: PostMainCategory | 'Global', count: number): (UserType & { categoryRankInList?: number })[] => {
-    const usersWithValidCategoryStats = users.filter(u => {
-      if (category === 'Global') return true; 
-      return u.categoryStats && u.categoryStats[category] && typeof u.categoryStats[category]?.score === 'number';
-    });
+  const getTopNUsers = useCallback((users: UserType[], category: PostMainCategory | 'Global', count: number): UserType[] => {
+    const usersToRank = users.filter(u => u.username !== 'WANGJUNLAND'); // Exclude admin
 
-    let sortedUsers = [...usersWithValidCategoryStats].sort((a, b) => {
-      if (category === 'Global') {
-        return b.score - a.score;
-      }
-      const scoreA = a.categoryStats?.[category]?.score ?? -1;
-      const scoreB = b.categoryStats?.[category]?.score ?? -1;
-      return scoreB - scoreA;
-    });
-    
-    const adminUser = sortedUsers.find(u => u.username === 'WANGJUNLAND');
-    if (adminUser) {
-        sortedUsers = sortedUsers.filter(u => u.username !== 'WANGJUNLAND');
-        sortedUsers.unshift(adminUser);
+    let sortedUsers;
+    if (category === 'Global') {
+      sortedUsers = [...usersToRank].sort((a, b) => b.score - a.score);
+    } else {
+      sortedUsers = [...usersToRank]
+        .filter(u => u.categoryStats && u.categoryStats[category] && typeof u.categoryStats[category]?.score === 'number')
+        .sort((a, b) => (b.categoryStats![category]!.score || 0) - (a.categoryStats![category]!.score || 0))
+        .map((u, index) => ({ ...u, categoryRankInList: index + 1 }));
     }
-
-    return sortedUsers.slice(0, count).map((u, index) => {
-      let categoryRank = 0;
-      if (category !== 'Global') {
-        const nonAdminIndex = u.username === 'WANGJUNLAND' ? -1 : index - (adminUser && index > 0 ? 1 : 0);
-        categoryRank = nonAdminIndex +1;
-      }
-      return {
-        ...u,
-        categoryRankInList: categoryRank,
-      };
-    });
+    return sortedUsers.slice(0, count);
   }, []);
 
   const rankedUsersToDisplay = useMemo(() => {
@@ -159,29 +140,31 @@ export default function HomePage() {
               <div className="space-y-3">
                 {mockTetrisRankings.monthly.slice(0, RANKERS_TO_SHOW).map((rankerData, index) => {
                   const rank = index + 1;
-                  const isTop3 = rank <= 3;
+                  const isTetrisTop3 = rank <= 3;
                   let titleClass = "";
-                  if (isTop3) {
-                    if (rank === 1) titleClass = 'text-rank-gold';
-                    else if (rank === 2) titleClass = 'text-rank-silver';
-                    else if (rank === 3) titleClass = 'text-rank-bronze';
+                  let nicknameClass = "text-foreground";
+
+                  if (isTetrisTop3) {
+                    if (rank === 1) { titleClass = 'text-rank-gold'; nicknameClass = 'text-rank-gold'; }
+                    else if (rank === 2) { titleClass = 'text-rank-silver'; nicknameClass = 'text-rank-silver'; }
+                    else if (rank === 3) { titleClass = 'text-rank-bronze'; nicknameClass = 'text-rank-bronze'; }
                   }
                   
                   return (
-                    <div key={rankerData.userId || rankerData.nickname} className="flex items-center justify-between p-2.5 default-rank-item-bg">
+                    <div key={rankerData.userId} className="flex items-center justify-between p-2.5 default-rank-item-bg">
                       <div className="flex items-center gap-2">
-                        <span className={cn("font-bold w-5 text-center shrink-0", isTop3 ? titleClass : 'text-muted-foreground')}>{rank}.</span>
+                        <span className={cn("font-bold w-5 text-center shrink-0", isTetrisTop3 ? titleClass : 'text-muted-foreground')}>{rank}.</span>
                         <Avatar className="h-8 w-8 border-2 border-accent/50 shrink-0">
                             <AvatarImage src={`https://placehold.co/40x40.png?text=${rankerData.nickname.substring(0,1)}`} alt={rankerData.nickname} data-ai-hint="gamer avatar" />
                             <AvatarFallback className="text-xs bg-muted text-muted-foreground">{rankerData.nickname.substring(0,1)}</AvatarFallback>
                         </Avatar>
                         <div className="flex flex-col items-center text-left">
-                          {isTop3 && tetrisTitles[rank - 1] && (
+                          {isTetrisTop3 && tetrisTitles[rank - 1] && (
                             <p className={cn("text-[0.7rem] leading-tight font-semibold tracking-tight mb-0.5", titleClass)}>
                               {tetrisTitles[rank - 1]}
                             </p>
                           )}
-                          <span className={cn("text-sm", titleClass || 'text-foreground')}>
+                          <span className={cn("text-sm", nicknameClass)}>
                             {rankerData.nickname}
                           </span>
                         </div>
@@ -283,85 +266,95 @@ export default function HomePage() {
                   <TabsContent key={tabValue} value={tabValue}>
                     {rankedUsersToDisplay.length > 0 ? (
                       <div className="space-y-3">
-                        {rankedUsersToDisplay.map((ranker) => {
-                          const isAdminRanker = ranker.username === 'WANGJUNLAND';
-                          const displayRank = activeRankingTab === 'Global' ? ranker.rank : ranker.categoryRankInList || 0;
+                        {rankedUsersToDisplay.map((ranker, index) => {
+                          const displayRankInList = index + 1; // Rank within the currently displayed list of 20
+                          const actualGlobalRank = ranker.rank; // Actual global rank from user data
+                          const categoryRank = ranker.categoryRankInList || 0; // Actual category rank
+
+                          const isGlobalTop3 = activeRankingTab === 'Global' && actualGlobalRank > 0 && actualGlobalRank <= 3;
                           
-                          const isGlobalTab = activeRankingTab === 'Global';
-                          const isGlobalTop3 = isGlobalTab && ranker.rank > 0 && ranker.rank <= 3;
-                          const isCategoryTop3 = !isGlobalTab && displayRank > 0 && displayRank <= 3;
-                          const isCategoryTop10 = !isGlobalTab && displayRank > 0 && displayRank <= 10;
+                          const tetrisUser = mockTetrisRankings.monthly.find(tr => tr.userId === ranker.id);
+                          const tetrisRankIndex = tetrisUser ? mockTetrisRankings.monthly.indexOf(tetrisUser) : -1;
+                          const isTetrisTop3 = tetrisUser && tetrisRankIndex !== -1 && tetrisRankIndex < 3;
+
+                          const isCategoryTop3 = activeRankingTab !== 'Global' && categoryRank > 0 && categoryRank <= 3;
+                          const isCategoryTop10 = activeRankingTab !== 'Global' && categoryRank > 0 && categoryRank <= 10;
                           
-                          let titleText: string | null = null;
-                          let titleColorClass = "";
                           let itemContainerClass = "default-rank-item-bg p-2.5"; 
                           let nicknameTextClass = "text-foreground"; 
+                          const titles: { text: string, colorClass: string }[] = [];
 
-                          if (isAdminRanker) {
-                            itemContainerClass = "admin-badge-bg admin-badge-border p-2.5";
-                            nicknameTextClass = "text-admin";
-                          } else if (isGlobalTop3) {
-                            if (ranker.rank === 1) itemContainerClass = 'rank-1-badge p-2.5';
-                            else if (ranker.rank === 2) itemContainerClass = 'rank-2-badge p-2.5';
-                            else if (ranker.rank === 3) itemContainerClass = 'rank-3-badge p-2.5';
-                            
-                            nicknameTextClass = ranker.rank === 1 ? 'text-rank-gold' : ranker.rank === 2 ? 'text-rank-silver' : 'text-rank-bronze';
-                          } else if (activeRankingTab !== 'Global') {
-                            const currentCategory = activeRankingTab as PostMainCategory;
-                            if (isCategoryTop3) {
-                                titleText = currentCategory === 'General' ? '일반 & 유머' : currentCategory;
-                                if (displayRank === 1) titleColorClass = 'text-rank-gold';
-                                else if (displayRank === 2) titleColorClass = 'text-rank-silver';
-                                else if (displayRank === 3) titleColorClass = 'text-rank-bronze';
-                                
-                                if (currentCategory === 'Unity') itemContainerClass = 'highlight-unity p-2.5';
-                                else if (currentCategory === 'Unreal') itemContainerClass = 'highlight-unreal p-2.5';
-                                else if (currentCategory === 'Godot') itemContainerClass = 'highlight-godot p-2.5';
-                                else if (currentCategory === 'General') itemContainerClass = 'highlight-general p-2.5'; 
-                                
-                                nicknameTextClass = `nickname-text-rank-${displayRank}`; 
-                                if(currentCategory === 'General') nicknameTextClass = cn(nicknameTextClass, 'text-general-text-strong');
-                                else if (currentCategory === 'Unity') nicknameTextClass = cn(nicknameTextClass, 'text-unity-text-strong');
-                                else if (currentCategory === 'Unreal') nicknameTextClass = cn(nicknameTextClass, 'text-unreal-text-strong');
-                                else if (currentCategory === 'Godot') nicknameTextClass = cn(nicknameTextClass, 'text-godot-text-strong');
-
-                            } else if (isCategoryTop10) {
-                                itemContainerClass = "default-rank-item-bg p-2.5";
-                                if (currentCategory === 'Unity') nicknameTextClass = 'text-unity-text-base';
-                                else if (currentCategory === 'Unreal') nicknameTextClass = 'text-unreal-text-base';
-                                else if (currentCategory === 'Godot') nicknameTextClass = 'text-godot-text-base';
-                                else if (currentCategory === 'General') nicknameTextClass = 'text-general-text-base';
-                                nicknameTextClass = cn(nicknameTextClass, `nickname-text-rank-${displayRank}`);
-                            }
+                          if (isGlobalTop3) {
+                            itemContainerClass = cn(
+                              actualGlobalRank === 1 && 'rank-1-badge',
+                              actualGlobalRank === 2 && 'rank-2-badge',
+                              actualGlobalRank === 3 && 'rank-3-badge',
+                              "p-2.5"
+                            );
+                            nicknameTextClass = cn(
+                              actualGlobalRank === 1 && 'text-rank-gold',
+                              actualGlobalRank === 2 && 'text-rank-silver',
+                              actualGlobalRank === 3 && 'text-rank-bronze'
+                            );
                           }
                           
-                          const NicknameWrapper = activeRankingTab === 'General' && (isCategoryTop3 || isCategoryTop10) && !isGlobalTop3 && !isAdminRanker ? 'div' : React.Fragment;
-                          const wrapperProps = NicknameWrapper === 'div' && activeRankingTab === 'General' && itemContainerClass.includes('highlight-general') ? { className: 'highlight-general-inner p-0' } : {};
+                          if (isTetrisTop3) {
+                              const tetrisTitleText = tetrisTitles[tetrisRankIndex];
+                              let tetrisTitleColor = "";
+                              if (tetrisRankIndex === 0) tetrisTitleColor = 'text-rank-gold';
+                              else if (tetrisRankIndex === 1) tetrisTitleColor = 'text-rank-silver';
+                              else if (tetrisRankIndex === 2) tetrisTitleColor = 'text-rank-bronze';
+                              titles.push({ text: tetrisTitleText, colorClass: tetrisTitleColor });
+                              if (!isGlobalTop3) nicknameTextClass = tetrisTitleColor; // Tetris nickname color if not global top 3
+                          }
 
+                          if (isCategoryTop3 && activeRankingTab !== 'Global') {
+                            const categoryTitleText = activeRankingTab === 'General' ? '일반 & 유머' : activeRankingTab;
+                            let categoryTitleColor = "";
+                            if (categoryRank === 1) categoryTitleColor = 'text-rank-gold';
+                            else if (categoryRank === 2) categoryTitleColor = 'text-rank-silver';
+                            else if (categoryRank === 3) categoryTitleColor = 'text-rank-bronze';
+                            titles.push({ text: categoryTitleText, colorClass: categoryTitleColor });
+
+                            if (!isGlobalTop3 && !isTetrisTop3) { // Only apply cat bg if not global or tetris top 3
+                                itemContainerClass = cn(`highlight-${activeRankingTab.toLowerCase()} p-2.5`);
+                                nicknameTextClass = cn(`nickname-text-rank-${categoryRank}`, `text-${activeRankingTab.toLowerCase()}-text-strong`);
+                            } else if (!isGlobalTop3 && isTetrisTop3) { // Is Tetris top 3 and also Cat top 3
+                                itemContainerClass = cn(`highlight-${activeRankingTab.toLowerCase()} p-2.5`); // Cat bg
+                                // Nickname color already set by Tetris rank
+                            }
+                          } else if (isCategoryTop10 && activeRankingTab !== 'Global' && !isGlobalTop3 && !isTetrisTop3) {
+                            // Category 4-10 (default background, category text color)
+                            nicknameTextClass = cn(`nickname-text-rank-${categoryRank}`, `text-${activeRankingTab.toLowerCase()}-text-base`);
+                          }
+                          
+                          const NicknameWrapper = activeRankingTab === 'General' && itemContainerClass.includes('highlight-general') && !isGlobalTop3 ? 'div' : React.Fragment;
+                          const wrapperProps = NicknameWrapper === 'div' ? { className: 'highlight-general-inner p-0' } : {};
+                          
+                          const displayRankNumber = activeRankingTab === 'Global' ? actualGlobalRank : categoryRank;
 
                           return (
                             <div key={ranker.id} className={cn("flex items-center justify-between", itemContainerClass)}>
                                <div className="flex items-center gap-2.5">
                                 <span className={cn("font-bold text-md w-5 text-center shrink-0", 
-                                    isAdminRanker && "text-primary",
-                                    !isAdminRanker && isGlobalTop3 && nicknameTextClass, // For global top 3, rank number also gets gradient
-                                    !isAdminRanker && !isGlobalTop3 && isCategoryTop3 && titleColorClass, // For category top 3, rank number gets title color
-                                    !isAdminRanker && !isGlobalTop3 && !isCategoryTop3 && "text-muted-foreground"
-                                )}>{isAdminRanker ? <Star className="h-4 w-4 inline-block"/> : displayRank > 0 ? `${displayRank}.` : "-"}</span>
+                                    isGlobalTop3 && nicknameTextClass, 
+                                    !isGlobalTop3 && titles.length > 0 && titles[0].colorClass, // Use first title's color for rank num if not global
+                                    !isGlobalTop3 && titles.length === 0 && "text-muted-foreground"
+                                )}>{displayRankNumber > 0 ? `${displayRankNumber}.` : "-"}</span>
                                 <Avatar className="h-8 w-8 border-2 border-accent/70 shrink-0">
                                   <AvatarImage src={ranker.avatar || `https://placehold.co/40x40.png?text=${ranker.nickname.substring(0,1)}`} alt={ranker.nickname} data-ai-hint="fantasy character avatar" />
                                   <AvatarFallback className="text-xs bg-muted text-muted-foreground">{ranker.nickname.substring(0,1)}</AvatarFallback>
                                 </Avatar>
                                 
-                                <div className="flex flex-col items-center text-left">
-                                  {titleText && (
-                                    <p className={cn("text-[0.7rem] leading-tight font-semibold tracking-tight mb-0.5", titleColorClass)}>
-                                      {titleText}
+                                <div className="flex flex-col items-start text-left">
+                                  {titles.map((title, idx) => (
+                                    <p key={idx} className={cn("text-[0.7rem] leading-tight font-semibold tracking-tight", title.colorClass, idx > 0 && "mt-0.5")}>
+                                      {title.text}
                                     </p>
-                                  )}
+                                  ))}
                                    <NicknameWrapper {...wrapperProps}>
-                                    <div className={cn("flex items-center gap-1.5", NicknameWrapper === 'div' && "p-0")}>
-                                        {!isGlobalTop3 && !isAdminRanker && ranker.categoryStats && ranker.categoryStats[activeRankingTab as PostMainCategory] && (
+                                    <div className={cn("flex items-center gap-1.5", NicknameWrapper === 'div' && "p-0", titles.length > 0 && "mt-0.5")}>
+                                        {activeRankingTab !== 'Global' && ranker.categoryStats && ranker.categoryStats[activeRankingTab as PostMainCategory] && (
                                           <CategorySpecificIcon category={activeRankingTab as PostMainCategory} className="h-4 w-4" />
                                         )}
                                         <span className={cn("text-sm", nicknameTextClass)}>
@@ -371,7 +364,7 @@ export default function HomePage() {
                                    </NicknameWrapper>
                                 </div>
                               </div>
-                              {currentUser?.username === 'WANGJUNLAND' && (
+                              {currentUser?.username === 'WANGJUNLAND' && ( // Only show score to admin
                                 <span className="text-xs font-semibold text-accent shrink-0">
                                   {activeRankingTab === 'Global' ? ranker.score.toLocaleString() : (ranker.categoryStats?.[activeRankingTab as PostMainCategory]?.score || 0).toLocaleString()} 점
                                 </span>
@@ -398,3 +391,6 @@ export default function HomePage() {
     </div>
   );
 }
+
+
+    

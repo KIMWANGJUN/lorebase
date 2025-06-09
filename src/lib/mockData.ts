@@ -9,114 +9,166 @@ const fortyFiveDaysAgo = new Date(Date.now() - 45 * 24 * 60 * 60 * 1000);
 export const mockUsers: User[] = [
   { 
     id: 'admin', username: 'WANGJUNLAND', nickname: 'WANGJUNLAND', email: 'admin@example.com', 
-    score: 99999, rank: 0, avatar: 'https://placehold.co/100x100.png?text=WJ', 
+    score: 99999, rank: 0, // Admin rank is 0, will be filtered out from display lists
+    avatar: 'https://placehold.co/100x100.png?text=WJ', 
     nicknameLastChanged: new Date('2023-01-01'), 
     categoryStats: {
-      Unity: { score: 1000, rank: 1 },
-      Unreal: { score: 1000, rank: 1 },
-      Godot: { score: 1000, rank: 1 },
-      General: { score: 1000, rank: 1 },
+      Unity: { score: 1000, rankInCate: 1 },
+      Unreal: { score: 1000, rankInCate: 1 },
+      Godot: { score: 1000, rankInCate: 1 },
+      General: { score: 1000, rankInCate: 1 },
     }
   },
   { 
     id: 'user1', username: 'unityMaster', nickname: '유니티장인', email: 'unity@example.com', 
-    score: 1250, rank: 1, avatar: 'https://placehold.co/100x100.png?text=U1', 
+    score: 1250, rank: 1, 
+    avatar: 'https://placehold.co/100x100.png?text=U1', 
     nicknameLastChanged: fortyFiveDaysAgo, 
     categoryStats: {
-      Unity: { score: 800, rank: 1 },
-      Unreal: { score: 300, rank: 3 },
-      Godot: { score: 100 },
-      General: { score: 50 },
+      Unity: { score: 800, rankInCate: 1 },
+      Unreal: { score: 300, rankInCate: 3 },
+      Godot: { score: 100, rankInCate: 5 },
+      General: { score: 50, rankInCate: 7 },
     } 
   },
   { 
     id: 'user2', username: 'unrealDev', nickname: '언리얼신', email: 'unreal@example.com', 
-    score: 1100, rank: 2, avatar: 'https://placehold.co/100x100.png?text=U2', 
+    score: 1100, rank: 2, 
+    avatar: 'https://placehold.co/100x100.png?text=U2', 
     nicknameLastChanged: fifteenDaysAgo, 
     categoryStats: {
-      Unity: { score: 200 },
-      Unreal: { score: 750, rank: 1 },
-      Godot: { score: 50 },
-      General: { score: 100, rank: 2 },
+      Unity: { score: 200, rankInCate: 4 },
+      Unreal: { score: 750, rankInCate: 1 },
+      Godot: { score: 50, rankInCate: 6 },
+      General: { score: 100, rankInCate: 2 },
     }
   },
   { 
     id: 'user3', username: 'godotFan', nickname: '고도엔진팬', email: 'godot@example.com', 
-    score: 950, rank: 3, avatar: 'https://placehold.co/100x100.png?text=GF', 
+    score: 950, rank: 3, 
+    avatar: 'https://placehold.co/100x100.png?text=GF', 
     categoryStats: {
-      Unity: { score: 100 },
-      Unreal: { score: 50 },
-      Godot: { score: 700, rank: 1 },
-      General: { score: 100, rank: 3 },
+      Unity: { score: 100, rankInCate: 5 },
+      Unreal: { score: 50, rankInCate: 6 },
+      Godot: { score: 700, rankInCate: 1 },
+      General: { score: 100, rankInCate: 3 },
     }
   },
   { 
     id: 'user4', username: 'indieDreamer', nickname: '인디드리머', email: 'dreamer@example.com',
-    score: 700, rank: 4, avatar: 'https://placehold.co/100x100.png?text=ID', 
+    score: 700, rank: 4, 
+    avatar: 'https://placehold.co/100x100.png?text=ID', 
     nicknameLastChanged: new Date('2024-07-01'), 
     categoryStats: {
-      Unity: { score: 300, rank: 3 }, // Changed to rank 3 for testing title
-      Unreal: { score: 100 },
-      Godot: { score: 150, rank: 3 },
-      General: { score: 150, rank: 1 }, 
+      Unity: { score: 300, rankInCate: 3 },
+      Unreal: { score: 100, rankInCate: 5 },
+      Godot: { score: 150, rankInCate: 3 },
+      General: { score: 150, rankInCate: 1 }, 
     }
   },
   { 
     id: 'user5', username: 'pixelArtist', nickname: '픽셀아티스트', 
-    score: 600, rank: 5, avatar: 'https://placehold.co/100x100.png?text=PA', 
+    score: 600, rank: 5, 
+    avatar: 'https://placehold.co/100x100.png?text=PA', 
     nicknameLastChanged: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000), 
     categoryStats: {
-      Unity: { score: 50, rank: 6 }, // Updated rank based on previous interaction
-      Unreal: { score: 250, rank: 2 },
-      Godot: { score: 200, rank: 2 },
-      General: { score: 100 },
+      Unity: { score: 50, rankInCate: 6 },
+      Unreal: { score: 250, rankInCate: 2 },
+      Godot: { score: 200, rankInCate: 2 },
+      General: { score: 100, rankInCate: 4 },
     }
   },
    { 
     id: 'user6', username: 'generalEnjoyer', nickname: '일반글애호가', email: 'general@example.com',
-    score: 550, rank: 6, avatar: 'https://placehold.co/100x100.png?text=GE', 
+    score: 550, rank: 6, 
+    avatar: 'https://placehold.co/100x100.png?text=GE', 
     nicknameLastChanged: new Date('2024-07-06'),
     categoryStats: {
-      Unity: { score: 10, rank: 7 }, // Added rank for testing
-      Unreal: { score: 20 },
-      Godot: { score: 30 },
-      General: { score: 490, rank: 1 }, 
+      Unity: { score: 10, rankInCate: 7 },
+      Unreal: { score: 20, rankInCate: 8 },
+      Godot: { score: 30, rankInCate: 8 },
+      General: { score: 490, rankInCate: 1 }, 
     }
   },
   { 
     id: 'user7', username: 'unityNewbie', nickname: '유니티뉴비', 
-    score: 400, rank: 7, avatar: 'https://placehold.co/100x100.png?text=UN', 
+    score: 400, rank: 7, 
+    avatar: 'https://placehold.co/100x100.png?text=UN', 
     nicknameLastChanged: new Date('2024-07-07'),
     categoryStats: {
-      Unity: { score: 350, rank: 2 }, 
-      Unreal: { score: 0 },
-      Godot: { score: 0 },
-      General: { score: 50 },
+      Unity: { score: 350, rankInCate: 2 }, 
+      Unreal: { score: 0, rankInCate: 0 }, // rankInCate 0 or undefined for no rank
+      Godot: { score: 0, rankInCate: 0 },
+      General: { score: 50, rankInCate: 6 },
     }
   },
   { 
     id: 'user8', username: 'unrealArtist', nickname: '언리얼아티스트', 
-    score: 300, rank: 8, avatar: 'https://placehold.co/100x100.png?text=UA', 
+    score: 300, rank: 8, 
+    avatar: 'https://placehold.co/100x100.png?text=UA', 
     nicknameLastChanged: new Date('2024-07-08'),
     categoryStats: {
-      Unity: { score: 0 },
-      Unreal: { score: 280, rank: 4 }, // Added rank for testing
-      Godot: { score: 0 },
-      General: { score: 20 },
+      Unity: { score: 0, rankInCate: 0 },
+      Unreal: { score: 280, rankInCate: 4 },
+      Godot: { score: 0, rankInCate: 0 },
+      General: { score: 20, rankInCate: 8 },
     }
   },
+  // User with multiple top ranks
+  {
+    id: 'user9_multi_rank', username: 'multiRanker', nickname: '멀티랭커', email: 'multi@example.com',
+    score: 1050, rank: 2, // Global Rank 2 (will conflict with user2, adjust if needed or ensure distinct scores)
+    avatar: 'https://placehold.co/100x100.png?text=MR',
+    nicknameLastChanged: new Date('2024-06-01'),
+    categoryStats: {
+      Unity: { score: 700, rankInCate: 1 }, // Unity Top 1
+      Unreal: { score: 50, rankInCate: 7 },
+      Godot: { score: 10, rankInCate: 10 },
+      General: { score: 290, rankInCate: 2 }, // General Top 2
+    }
+  },
+  {
+    id: 'user10_tetris_cat_rank', username: 'tetrisCatEnjoyer', nickname: '테트리스냥이',
+    score: 800, rank: 4, // Global Rank 4
+    avatar: 'https://placehold.co/100x100.png?text=TC',
+    categoryStats: {
+        Unity: {score: 600, rankInCate: 1}, // Unity Top 1
+        General: {score: 200, rankInCate: 3}, // General Top 3
+    }
+  }
 ];
+
+// Helper to re-calculate category ranks based on current scores in mockUsers
+// This should be called if scores can change dynamically, or use pre-assigned ranks
+export const assignCategoryRanks = () => {
+  const categories: PostMainCategory[] = ['Unity', 'Unreal', 'Godot', 'General'];
+  categories.forEach(category => {
+    const rankedUsersInCategory = mockUsers
+      .filter(u => u.username !== 'WANGJUNLAND' && u.categoryStats && typeof u.categoryStats[category]?.score === 'number')
+      .sort((a, b) => (b.categoryStats![category]!.score || 0) - (a.categoryStats![category]!.score || 0));
+
+    rankedUsersInCategory.forEach((user, index) => {
+      if (user.categoryStats && user.categoryStats[category]) {
+        user.categoryStats[category]!.rankInCate = index + 1;
+      }
+    });
+  });
+};
+// Call it once to ensure ranks are set based on initial scores
+assignCategoryRanks();
+
 
 export const mockTetrisRankings = {
   monthly: [ 
-    { userId: 'user1', nickname: 'TetrisGod', score: 2500000 }, 
-    { userId: 'user2', nickname: 'ConsistentPlayer', score: 2200000 }, 
-    { userId: 'user3', nickname: 'BlockMaster', score: 1900000 }, 
-    { userId: 'user4', nickname: 'Marathoner', score: 1600000 },
-    { userId: 'user5', nickname: 'TopTier', score: 1400000 },
-    { userId: 'user6', nickname: 'StackerPro', score: 1350000 },
-    { userId: 'user7', nickname: 'ComboKing', score: 1200000 },
-  ]
+    { userId: 'user1', nickname: '유니티장인', score: 2500000 }, // Was TetrisGod
+    { userId: 'user9_multi_rank', nickname: '멀티랭커', score: 2200000 }, // Was ConsistentPlayer
+    { userId: 'user3', nickname: '고도엔진팬', score: 1900000 }, // Was BlockMaster
+    { userId: 'user4', nickname: '인디드리머', score: 1600000 },
+    { userId: 'user5', nickname: '픽셀아티스트', score: 1400000 },
+    { userId: 'user6', nickname: '일반글애호가', score: 1350000 },
+    { userId: 'user7', nickname: '유니티뉴비', score: 1200000 },
+    { userId: 'user10_tetris_cat_rank', nickname: '테트리스냥이', score: 2300000 }, // Added this user
+  ].sort((a,b) => b.score - a.score) // Sort by score to determine Tetris Rank 1,2,3
 };
 
 export const tetrisTitles: string[] = [
@@ -162,8 +214,8 @@ export const mockPosts: Post[] = [
     mainCategory: 'General' as PostMainCategory,
     title: `오래된 일반 게시글 ${i + 1}`,
     content: `이것은 오래된 일반 게시글 내용입니다. (${i + 1})`,
-    authorId: mockUsers[(i + 1) % mockUsers.length].id,
-    authorNickname: mockUsers[(i + 1) % mockUsers.length].nickname,
+    authorId: mockUsers.filter(u => u.id !== 'admin')[(i + 1) % (mockUsers.length -1)].id,
+    authorNickname: mockUsers.filter(u => u.id !== 'admin')[(i + 1) % (mockUsers.length-1)].nickname,
     createdAt: new Date(Date.now() - 86400000 * (7 + i)).toISOString(),
     updatedAt: new Date(Date.now() - 86400000 * (7 + i)).toISOString(),
     type: 'GeneralPost' as PostType,
@@ -178,8 +230,8 @@ export const mockPosts: Post[] = [
     mainCategory: 'Unity' as PostMainCategory,
     title: `오래된 Unity QnA ${i + 1}`,
     content: `Unity 관련 오래된 질문입니다. (${i + 1})`,
-    authorId: mockUsers[(i + 2) % mockUsers.length].id,
-    authorNickname: mockUsers[(i + 2) % mockUsers.length].nickname,
+    authorId: mockUsers.filter(u => u.id !== 'admin')[(i + 2) % (mockUsers.length -1)].id,
+    authorNickname: mockUsers.filter(u => u.id !== 'admin')[(i + 2) % (mockUsers.length-1)].nickname,
     createdAt: new Date(Date.now() - 86400000 * (10 + i)).toISOString(),
     updatedAt: new Date(Date.now() - 86400000 * (10 + i)).toISOString(),
     type: 'QnA' as PostType,
@@ -205,7 +257,7 @@ export const mockComments: Comment[] = [
 
 
 export const mockRankings: RankEntry[] = mockUsers
-  .filter(u => u.username !== 'WANGJUNLAND') 
+  .filter(u => u.username !== 'WANGJUNLAND') // Exclude admin from global ranking list
   .sort((a, b) => b.score - a.score)
   .map((user, index) => ({
     userId: user.id,
@@ -214,22 +266,13 @@ export const mockRankings: RankEntry[] = mockUsers
     rank: index + 1,
     avatar: user.avatar,
   }));
-  
-const adminUser = mockUsers.find(u => u.username === 'WANGJUNLAND');
-if (adminUser) {
-    mockRankings.unshift({ 
-        userId: adminUser.id,
-        nickname: adminUser.nickname,
-        score: adminUser.score,
-        rank: 0, 
-        avatar: adminUser.avatar,
-    });
-}
 
 
 export const mockInquiries: Inquiry[] = [
   { id: 'inq1', userId: 'user4', userNickname: '인디드리머', title: '닉네임 변경 기간 문의', content: '닉네임 변경 후 1개월 제한이 정확히 어떻게 적용되는지 궁금합니다.', createdAt: new Date(Date.now() - 86400000 * 3).toISOString(), status: 'Answered', response: '닉네임 변경 시점으로부터 만 30일 이후에 다시 변경 가능합니다.', respondedAt: new Date(Date.now() - 86400000 * 2.5).toISOString() },
   { id: 'inq2', userId: 'user1', userNickname: '유니티장인', title: '게시글 오류 신고', content: '특정 게시글에서 이미지가 깨져 보입니다. 확인 부탁드립니다. (게시글 ID: postX)', createdAt: new Date(Date.now() - 86400000 * 1).toISOString(), status: 'Pending' },
 ];
+
+    
 
     

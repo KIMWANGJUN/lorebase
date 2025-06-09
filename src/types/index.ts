@@ -1,8 +1,9 @@
+
 export type PostMainCategory = 'Unity' | 'Unreal' | 'Godot' | 'General';
 
 export interface UserCategoryStat {
   score: number;
-  rank?: 1 | 2 | 3; // Only store if top 3 for simplicity in mock, or calculate dynamically
+  rankInCate?: number; // Rank within that specific category (1-based)
 }
 
 export interface User {
@@ -12,7 +13,7 @@ export interface User {
   email?: string;
   avatar?: string;
   score: number; // Global score
-  rank: number; // Global rank: 0 for admin, 1 for 1st, etc.
+  rank: number; // Global rank: 0 for admin (filtered from display), 1 for 1st, etc.
   socialProfiles?: {
     naver?: string;
     google?: string;
@@ -20,9 +21,10 @@ export interface User {
   };
   nicknameLastChanged?: Date;
   isBlocked?: boolean;
-  categoryStats?: { // Category-specific scores and ranks
+  categoryStats?: { 
     [key in PostMainCategory]?: UserCategoryStat;
   };
+  categoryRankInList?: number; // Temporary field for display components, rank in currently sorted list
 }
 
 export interface StarterProject {
@@ -92,7 +94,7 @@ export interface RankEntry {
   userId: string;
   nickname: string;
   score: number;
-  rank: number;
+  rank: number; // This is global rank for the main ranking list
   avatar?: string;
 }
 
@@ -116,3 +118,6 @@ export interface DirectMessage {
   sentAt: string; // ISO Date string
   isRead: boolean;
 }
+
+
+    
