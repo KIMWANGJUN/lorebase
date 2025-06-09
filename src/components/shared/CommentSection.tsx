@@ -37,20 +37,18 @@ const CategoryIcon: FC<{ category: PostMainCategory, className?: string }> = ({ 
 
 interface NicknameDisplayForCommentProps {
   author: UserType;
-  postMainCategory: PostMainCategory; // Category of the post the comment belongs to
+  postMainCategory: PostMainCategory; 
 }
 
 const NicknameDisplayForComment: FC<NicknameDisplayForCommentProps> = ({ author, postMainCategory }) => {
   if (!author) return <p className="text-sm font-medium text-foreground">Unknown User</p>;
   
   let finalContainerClass = "default-rank-item-bg";
-  let determinedNicknameColorClass = "text-foreground";
-  let determinedTitleColorClass = "";
-  let titleElement = null;
-  let showCategoryIconInNickname = true;
-  let nicknameFontWeightClass = "font-normal";
-  let nicknameOpacityClass = "";
-
+  let titleText: string | null = null;
+  let nicknameBaseClasses = "text-sm";
+  
+  let finalNicknameTextClass = "";
+  let finalTitleTextClass = "title-text";
 
   const { 
     rank: globalRank, 
@@ -67,52 +65,46 @@ const NicknameDisplayForComment: FC<NicknameDisplayForCommentProps> = ({ author,
 
   if (username === 'WANGJUNLAND') {
     finalContainerClass = "admin-badge-bg admin-badge-border px-1.5 py-0.5";
-    determinedNicknameColorClass = "text-admin";
-    nicknameFontWeightClass = "font-semibold";
-    showCategoryIconInNickname = false;
+    finalNicknameTextClass = "text-admin";
   } else if ((displayPreference === 'default' || displayPreference === 'global') && globalRank > 0 && globalRank <= 3) {
     finalContainerClass = cn(globalRank === 1 && 'rank-1-badge', globalRank === 2 && 'rank-2-badge', globalRank === 3 && 'rank-3-badge', "px-1.5 py-0.5");
-    const gradientColor = globalRank === 1 ? 'text-rank-gold' : globalRank === 2 ? 'text-rank-silver' : 'text-rank-bronze';
-    determinedNicknameColorClass = gradientColor;
-    nicknameFontWeightClass = "font-semibold";
+    finalNicknameTextClass = globalRank === 1 ? "text-rank-gold" : globalRank === 2 ? "text-rank-silver" : "text-rank-bronze";
   } else if ((displayPreference === 'default' || displayPreference === 'tetris') && tetrisRank && tetrisRank > 0 && tetrisRank <= 3) {
-    const titleText = tetrisTitles[tetrisRank - 1];
-    const gradientColor = tetrisRank === 1 ? 'text-rank-gold' : tetrisRank === 2 ? 'text-rank-silver' : 'text-rank-bronze';
-    determinedTitleColorClass = gradientColor;
-    titleElement = <div className="title-container"><p className={cn("title-text", determinedTitleColorClass)}>{titleText}</p></div>;
-    determinedNicknameColorClass = gradientColor;
-    nicknameFontWeightClass = "font-semibold";
+    const gradientClass = tetrisRank === 1 ? "text-rank-gold" : tetrisRank === 2 ? "text-rank-silver" : "text-rank-bronze";
+    titleText = tetrisTitles[tetrisRank - 1];
+    finalTitleTextClass = cn(finalTitleTextClass, gradientClass);
+    finalNicknameTextClass = gradientClass;
      if ((displayPreference === 'default' || displayPreference === `category_${postMainCategory}`) && rankInCurrentCategory > 0 && rankInCurrentCategory <= 3) {
         finalContainerClass = cn(`highlight-${postMainCategory.toLowerCase()}`, "px-1.5 py-0.5");
     } else {
       finalContainerClass = "default-rank-item-bg px-1.5 py-0.5";
     }
   } else if ((displayPreference === 'default' || displayPreference === `category_${postMainCategory}`) && rankInCurrentCategory > 0 && rankInCurrentCategory <= 3) {
-    const titleText = postMainCategory === 'General' ? '일반 & 유머' : postMainCategory;
-    const gradientColor = rankInCurrentCategory === 1 ? 'text-rank-gold' : rankInCurrentCategory === 2 ? 'text-rank-silver' : 'text-rank-bronze';
-    determinedTitleColorClass = gradientColor;
-    titleElement = <div className="title-container"><p className={cn("title-text", determinedTitleColorClass)}>{titleText}</p></div>;
-    determinedNicknameColorClass = gradientColor;
-    nicknameFontWeightClass = "font-semibold";
+    const gradientClass = rankInCurrentCategory === 1 ? "text-rank-gold" : rankInCurrentCategory === 2 ? "text-rank-silver" : "text-rank-bronze";
+    titleText = postMainCategory === 'General' ? '일반 & 유머' : postMainCategory;
+    finalTitleTextClass = cn(finalTitleTextClass, gradientClass);
+    finalNicknameTextClass = gradientClass;
     finalContainerClass = cn(`highlight-${postMainCategory.toLowerCase()}`, "px-1.5 py-0.5");
   } else if (displayPreference === 'default' && rankInCurrentCategory > 0 && rankInCurrentCategory <= 10) {
-    determinedNicknameColorClass = `text-${postMainCategory.toLowerCase()}-themed`;
-    nicknameFontWeightClass = rankInCurrentCategory <=6 ? "font-medium" : "font-normal";
-    nicknameOpacityClass = `nickname-text-rank-${rankInCurrentCategory}`;
+    finalNicknameTextClass = `text-${postMainCategory.toLowerCase()}-themed nickname-text-rank-${rankInCurrentCategory}`;
     finalContainerClass = "default-rank-item-bg px-1.5 py-0.5";
+  } else {
+    finalNicknameTextClass = "text-foreground";
   }
   
+  const showCategoryIconInNickname = !(username === 'WANGJUNLAND' || ((displayPreference === 'default' || displayPreference === 'global') && globalRank > 0 && globalRank <= 3));
   const NicknameWrapper = finalContainerClass.includes('highlight-general') && !finalContainerClass.includes('highlight-general-inner') ? 'div' : React.Fragment;
   const wrapperProps = NicknameWrapper === 'div' ? { className: 'highlight-general-inner p-0' } : {};
 
   return (
     <div className="flex flex-col items-start">
-      {titleElement}
+      {titleText && <div className="title-container"><p className={finalTitleTextClass}>{titleText}</p></div>}
       <NicknameWrapper {...wrapperProps}>
-        <div className={cn(finalContainerClass, "inline-flex items-center gap-1", titleElement && "mt-0.5", NicknameWrapper === 'div' && "p-0")}>
+        <div className={cn(finalContainerClass, "inline-flex items-center gap-1", titleText && "mt-0.5", NicknameWrapper === 'div' && "p-0")}>
             {showCategoryIconInNickname && postMainCategory && <CategoryIcon category={postMainCategory} className="h-3.5 w-3.5" />}
-            {/* Changed class for nickname span */}
-            <span className={cn("text-sm", nicknameFontWeightClass, determinedNicknameColorClass, nicknameOpacityClass)}>{author.nickname}</span>
+            <span className={cn(nicknameBaseClasses, finalNicknameTextClass, NicknameWrapper === 'div' ? 'text-content-inside-gradient' : '')}>
+              {author.nickname}
+            </span>
         </div>
       </NicknameWrapper>
     </div>

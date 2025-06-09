@@ -16,7 +16,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 
 const POSTS_PER_PAGE = 10;
-const MAX_PAGES = 10; // Max pages to fetch for "latest posts" section for performance
+const MAX_PAGES = 10; 
 const RANKERS_TO_SHOW = 20; 
 
 const CategorySpecificIcon: React.FC<{ category: PostMainCategory, className?: string }> = ({ category, className }) => {
@@ -141,40 +141,35 @@ export default function HomePage() {
                   const user = mockUsers.find(u => u.id === rankerData.userId);
                   const isTetrisTop3 = rankerData.rank <= 3;
                   
-                  let titleElement = null;
-                  let titleColorClass = "";
-                  let nicknameColorClass = "text-foreground"; // Default
-                  let rankNumberColorClass = "text-muted-foreground";
-                  let nicknameBaseClasses = "text-sm";
+                  let titleText = null;
+                  let titleTextClass = "title-text"; // Base class
+                  let nicknameTextClass = "text-sm"; // Base class
+                  let rankNumberClass = "text-muted-foreground";
 
-                  if (isTetrisTop3 && user) {
-                    const rankColor = rankerData.rank === 1 ? "text-rank-gold" : rankerData.rank === 2 ? "text-rank-silver" : "text-rank-bronze";
-                    titleColorClass = rankColor;
-                    nicknameColorClass = rankColor;
-                    rankNumberColorClass = rankColor;
+                  if (isTetrisTop3 && user && rankerData.rank > 0 && rankerData.rank <= 3) {
+                    const rankColorClass = rankerData.rank === 1 ? "text-rank-gold" : rankerData.rank === 2 ? "text-rank-silver" : "text-rank-bronze";
+                    titleTextClass = cn(titleTextClass, rankColorClass);
+                    nicknameTextClass = cn(nicknameTextClass, rankColorClass);
+                    rankNumberClass = rankColorClass;
                     
                     if (tetrisTitles[rankerData.rank - 1]) {
-                      titleElement = (
-                        <div className="title-container">
-                           <p className={cn("title-text", titleColorClass)}>
-                           {tetrisTitles[rankerData.rank - 1]}
-                           </p>
-                       </div>
-                      );
+                      titleText = tetrisTitles[rankerData.rank - 1];
                     }
+                  } else {
+                    nicknameTextClass = cn(nicknameTextClass, "text-foreground"); // Default if not top 3
                   }
                   
                   return (
                     <div key={rankerData.userId} className="flex items-center justify-between p-2.5 default-rank-item-bg">
                       <div className="flex items-center gap-2">
-                        <span className={cn("font-bold w-5 text-center shrink-0", rankNumberColorClass)}>{rankerData.rank}.</span>
+                        <span className={cn("font-bold w-5 text-center shrink-0", rankNumberClass)}>{rankerData.rank}.</span>
                         <Avatar className="h-8 w-8 border-2 border-accent/50 shrink-0">
                             <AvatarImage src={user?.avatar || `https://placehold.co/40x40.png?text=${rankerData.nickname.substring(0,1)}`} alt={rankerData.nickname} data-ai-hint="gamer avatar" />
                             <AvatarFallback className="text-xs bg-muted text-muted-foreground">{rankerData.nickname.substring(0,1)}</AvatarFallback>
                         </Avatar>
                         <div className="flex flex-col items-start text-left">
-                          {titleElement}
-                          <span className={cn(nicknameBaseClasses, nicknameColorClass, titleElement && "mt-0.5")}>
+                          {titleText && <div className="title-container"><p className={titleTextClass}>{titleText}</p></div>}
+                          <span className={cn(nicknameTextClass, titleText && "mt-0.5")}>
                             {rankerData.nickname}
                           </span>
                         </div>
@@ -280,21 +275,20 @@ export default function HomePage() {
                           if (user.username === 'WANGJUNLAND') return null;
                           
                           let finalContainerClass = "default-rank-item-bg";
-                          let titleElement = null;
-                          let determinedNicknameColorClass = "text-foreground"; // Default
-                          let determinedTitleColorClass = "";
-                          let rankNumberColorClass = 'text-muted-foreground';
-                          let showCategoryIcon = false;
-                          let displayRankNumberToShow = 0;
-                          let nicknameFontWeightClass = "font-medium";
-                          let nicknameOpacityClass = "";
+                          let titleText: string | null = null;
+                          let nicknameBaseClasses = "text-sm";
+                          let rankNumberClass = 'text-muted-foreground';
+                          
+                          let finalNicknameTextClass = ""; 
+                          let finalTitleTextClass = "title-text"; 
 
 
                           const { rank: globalRank, tetrisRank, categoryStats, username, selectedDisplayRank } = user;
                           const currentActiveCategory = activeRankingTab !== 'Global' ? activeRankingTab : undefined;
                           const userCatStats = currentActiveCategory && categoryStats?.[currentActiveCategory];
                           const rankInActiveCategory = userCatStats?.rankInCate || 0;
-
+                          let displayRankNumberToShow = 0;
+                          
                           if (tabValue === 'Global') {
                             displayRankNumberToShow = globalRank;
                           } else if (categoryStats && categoryStats[tabValue as PostMainCategory]){
@@ -302,62 +296,46 @@ export default function HomePage() {
                           }
                           
                           let displayPreference = selectedDisplayRank || 'default';
-                          
-                          // 1. 관리자 (항상 최우선, 이미 필터링됨)
-                          // 2. 종합 랭킹 Top 3
-                          if ((displayPreference === 'default' || displayPreference === 'global') && globalRank > 0 && globalRank <= 3) {
+
+                          if (username === 'WANGJUNLAND') {
+                            finalContainerClass = "admin-badge-bg admin-badge-border";
+                            finalNicknameTextClass = "text-admin";
+                          } else if ((displayPreference === 'default' || displayPreference === 'global') && globalRank > 0 && globalRank <= 3) {
                             finalContainerClass = cn(globalRank === 1 && 'rank-1-badge', globalRank === 2 && 'rank-2-badge', globalRank === 3 && 'rank-3-badge');
-                            const gradientColor = globalRank === 1 ? 'text-rank-gold' : globalRank === 2 ? 'text-rank-silver' : 'text-rank-bronze';
-                            determinedNicknameColorClass = gradientColor;
-                            rankNumberColorClass = gradientColor;
-                            nicknameFontWeightClass = "font-semibold";
-                          }
-                          // 3. 테트리스 랭킹 Top 3 (종합 Top 3가 아닐 경우)
-                          else if ((displayPreference === 'default' || displayPreference === 'tetris') && tetrisRank && tetrisRank > 0 && tetrisRank <= 3) {
-                            const titleText = tetrisTitles[tetrisRank - 1];
-                            const gradientColor = tetrisRank === 1 ? 'text-rank-gold' : tetrisRank === 2 ? 'text-rank-silver' : 'text-rank-bronze';
-                            determinedTitleColorClass = gradientColor;
-                            titleElement = <div className="title-container"><p className={cn("title-text", determinedTitleColorClass)}>{titleText}</p></div>;
-                            determinedNicknameColorClass = gradientColor;
-                            rankNumberColorClass = gradientColor;
-                            nicknameFontWeightClass = "font-semibold";
-                            // 배경: 카테고리 Top3 해당 시 카테고리 하이라이트, 아니면 기본
+                            const gradientClass = globalRank === 1 ? "text-rank-gold" : globalRank === 2 ? "text-rank-silver" : "text-rank-bronze";
+                            finalNicknameTextClass = gradientClass;
+                            rankNumberClass = gradientClass;
+                          } else if ((displayPreference === 'default' || displayPreference === 'tetris') && tetrisRank && tetrisRank > 0 && tetrisRank <= 3) {
+                            const gradientClass = tetrisRank === 1 ? "text-rank-gold" : tetrisRank === 2 ? "text-rank-silver" : "text-rank-bronze";
+                            titleText = tetrisTitles[tetrisRank - 1];
+                            finalTitleTextClass = cn(finalTitleTextClass, gradientClass);
+                            finalNicknameTextClass = gradientClass;
+                            rankNumberClass = gradientClass;
                             if (currentActiveCategory && rankInActiveCategory > 0 && rankInActiveCategory <= 3 && (displayPreference === 'default' || displayPreference === `category_${currentActiveCategory}`)) {
                                 finalContainerClass = cn(`highlight-${currentActiveCategory.toLowerCase()}`);
                             }
-                          }
-                          // 4. 카테고리 랭킹 Top 3 (위 둘 다 아닐 경우)
-                          else if (currentActiveCategory && rankInActiveCategory > 0 && rankInActiveCategory <= 3 && (displayPreference === 'default' || displayPreference === `category_${currentActiveCategory}`)) {
-                            const titleText = currentActiveCategory === 'General' ? '일반 & 유머' : currentActiveCategory;
-                            const gradientColor = rankInActiveCategory === 1 ? 'text-rank-gold' : rankInActiveCategory === 2 ? 'text-rank-silver' : 'text-rank-bronze';
-                            determinedTitleColorClass = gradientColor;
-                            titleElement = <div className="title-container"><p className={cn("title-text", determinedTitleColorClass)}>{titleText}</p></div>;
-                            determinedNicknameColorClass = gradientColor;
-                            rankNumberColorClass = gradientColor;
+                          } else if (currentActiveCategory && rankInActiveCategory > 0 && rankInActiveCategory <= 3 && (displayPreference === 'default' || displayPreference === `category_${currentActiveCategory}`)) {
+                            const gradientClass = rankInActiveCategory === 1 ? "text-rank-gold" : rankInActiveCategory === 2 ? "text-rank-silver" : "text-rank-bronze";
+                            titleText = currentActiveCategory === 'General' ? '일반 & 유머' : currentActiveCategory;
+                            finalTitleTextClass = cn(finalTitleTextClass, gradientClass);
+                            finalNicknameTextClass = gradientClass;
+                            rankNumberClass = gradientClass;
                             finalContainerClass = cn(`highlight-${currentActiveCategory.toLowerCase()}`);
-                            nicknameFontWeightClass = "font-semibold";
-                          }
-                          // 5. 카테고리 랭킹 4~10위 (위 모두 아닐 경우)
-                          else if (currentActiveCategory && rankInActiveCategory > 0 && rankInActiveCategory <= 10 && displayPreference === 'default') {
-                            determinedNicknameColorClass = `text-${currentActiveCategory.toLowerCase()}-themed`;
-                            rankNumberColorClass = `text-${currentActiveCategory.toLowerCase()}-themed`;
-                            nicknameFontWeightClass = userCatStats?.rankInCate && userCatStats.rankInCate <=6 ? "font-medium" : "font-normal"; // Example differentiation
-                            nicknameOpacityClass = userCatStats?.rankInCate ? `nickname-text-rank-${userCatStats.rankInCate}` : ""; // Opacity class
-                          }
-                          // 6. 기본
-                          else {
-                            // determinedNicknameColorClass는 이미 "text-foreground"로 초기화됨
+                          } else if (currentActiveCategory && rankInActiveCategory > 0 && rankInActiveCategory <= 10 && displayPreference === 'default') {
+                            finalNicknameTextClass = `text-${currentActiveCategory.toLowerCase()}-themed nickname-text-rank-${rankInActiveCategory}`;
+                            rankNumberClass = `text-${currentActiveCategory.toLowerCase()}-themed`;
+                          } else {
+                            finalNicknameTextClass = "text-foreground";
                           }
                           
-                          showCategoryIcon = activeRankingTab !== 'Global';
-                          
+                          const showCategoryIcon = activeRankingTab !== 'Global';
                           const NicknameWrapper = finalContainerClass.includes('highlight-general') && !finalContainerClass.includes('highlight-general-inner') ? 'div' : React.Fragment;
                           const wrapperProps = NicknameWrapper === 'div' ? { className: 'highlight-general-inner p-0' } : {};
                           
                           return (
                             <div key={user.id} className={cn("flex items-center justify-between p-2.5", finalContainerClass)}>
                                <div className="flex items-center gap-2.5">
-                                <span className={cn("font-bold text-md w-5 text-center shrink-0", rankNumberColorClass)}>
+                                <span className={cn("font-bold text-md w-5 text-center shrink-0", rankNumberClass)}>
                                   {displayRankNumberToShow > 0 ? `${displayRankNumberToShow}.` : "-"}
                                 </span>
                                 <Avatar className="h-8 w-8 border-2 border-accent/70 shrink-0">
@@ -366,13 +344,13 @@ export default function HomePage() {
                                 </Avatar>
                                 
                                 <div className="flex flex-col items-start text-left">
-                                  {titleElement}
+                                  {titleText && <div className="title-container"><p className={finalTitleTextClass}>{titleText}</p></div>}
                                    <NicknameWrapper {...wrapperProps}>
-                                    <div className={cn("flex items-center gap-1.5", NicknameWrapper === 'div' && "p-0", titleElement && "mt-0.5")}>
+                                    <div className={cn("flex items-center gap-1.5", NicknameWrapper === 'div' && "p-0", titleText && "mt-0.5")}>
                                         {showCategoryIcon && activeRankingTab !== 'Global' && (
                                           <CategorySpecificIcon category={activeRankingTab} className="h-4 w-4" />
                                         )}
-                                        <span className={cn("text-sm", nicknameFontWeightClass, determinedNicknameColorClass, nicknameOpacityClass)}>
+                                        <span className={cn(nicknameBaseClasses, finalNicknameTextClass)}>
                                           {user.nickname}
                                         </span>
                                     </div>
