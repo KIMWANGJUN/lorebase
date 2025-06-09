@@ -1,79 +1,65 @@
 
 // src/lib/mockData.ts
-import type { User, StarterProject, AssetInfo, Post, Comment, RankEntry, Inquiry, PostMainCategory, TetrisRanker, DisplayRankType } from '@/types';
+import type { User, StarterProject, AssetInfo, Post, Comment, RankEntry, Inquiry, PostMainCategory, TetrisRanker, DisplayRankType, UserCategoryStat } from '@/types';
 
-const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
-const fifteenDaysAgo = new Date(Date.now() - 15 * 24 * 60 * 60 * 1000);
 const fortyFiveDaysAgo = new Date(Date.now() - 45 * 24 * 60 * 60 * 1000);
+const fifteenDaysAgo = new Date(Date.now() - 15 * 24 * 60 * 60 * 1000);
 
-export const mockUsersData: Omit<User, 'tetrisRank' | 'categoryStats'>[] = [
-  { 
-    id: 'admin', username: 'WANGJUNLAND', nickname: 'WANGJUNLAND', email: 'admin@example.com', 
-    score: 99999, rank: 0, 
-    avatar: 'https://placehold.co/100x100.png?text=WJ', 
-    nicknameLastChanged: new Date('2023-01-01'), 
-    selectedDisplayRank: 'default',
+// Removed 'rank' from the initial data structure. It will be calculated.
+export const mockUsersData: Omit<User, 'rank' | 'tetrisRank' | 'categoryStats' | 'selectedDisplayRank'>[] = [
+  {
+    id: 'admin', username: 'WANGJUNLAND', nickname: 'WANGJUNLAND', email: 'admin@example.com',
+    score: 99999, avatar: 'https://placehold.co/100x100.png?text=WJ',
+    nicknameLastChanged: new Date('2023-01-01'),
   },
-  { 
-    id: 'user1', username: 'unityMaster', nickname: '유니티장인', email: 'unity@example.com', 
-    score: 1250, rank: 1, 
-    avatar: 'https://placehold.co/100x100.png?text=UM', 
-    nicknameLastChanged: fortyFiveDaysAgo, 
-    selectedDisplayRank: 'global',
+  {
+    id: 'user1', username: 'unityMaster', nickname: '유니티장인', email: 'unity@example.com',
+    score: 1250, avatar: 'https://placehold.co/100x100.png?text=UM',
+    nicknameLastChanged: fortyFiveDaysAgo,
   },
-  { 
-    id: 'user2', username: 'unrealDev', nickname: '언리얼신', email: 'unreal@example.com', 
-    score: 1100, rank: 2, 
-    avatar: 'https://placehold.co/100x100.png?text=UD', 
-    nicknameLastChanged: fifteenDaysAgo, 
-    selectedDisplayRank: 'tetris', 
+  {
+    id: 'user2', username: 'unrealDev', nickname: '언리얼신', email: 'unreal@example.com',
+    score: 1100, avatar: 'https://placehold.co/100x100.png?text=UD',
+    nicknameLastChanged: fifteenDaysAgo,
   },
-  { 
-    id: 'user3', username: 'godotFan', nickname: '고도엔진팬', email: 'godot@example.com', 
-    score: 950, rank: 3, 
-    avatar: 'https://placehold.co/100x100.png?text=GF', 
-    selectedDisplayRank: 'category_Godot',
+  {
+    id: 'user3', username: 'godotFan', nickname: '고도엔진팬', email: 'godot@example.com',
+    score: 950, avatar: 'https://placehold.co/100x100.png?text=GF',
   },
-  { 
+  {
     id: 'user4', username: 'indieDreamer', nickname: '인디드리머', email: 'dreamer@example.com',
-    score: 700, rank: 4, 
-    avatar: 'https://placehold.co/100x100.png?text=ID', 
-    nicknameLastChanged: new Date('2024-07-01'), 
+    score: 700, avatar: 'https://placehold.co/100x100.png?text=ID',
+    nicknameLastChanged: new Date('2024-07-01'),
   },
-  { 
-    id: 'user5', username: 'pixelArtist', nickname: '픽셀아티스트', 
-    score: 600, rank: 5, 
-    avatar: 'https://placehold.co/100x100.png?text=PA', 
-    nicknameLastChanged: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000), 
+  {
+    id: 'user5', username: 'pixelArtist', nickname: '픽셀아티스트',
+    score: 600, avatar: 'https://placehold.co/100x100.png?text=PA',
+    nicknameLastChanged: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
   },
-   { 
+  {
     id: 'user6', username: 'generalEnjoyer', nickname: '일반글애호가', email: 'general@example.com',
-    score: 550, rank: 6, 
-    avatar: 'https://placehold.co/100x100.png?text=GE', 
+    score: 550, avatar: 'https://placehold.co/100x100.png?text=GE',
     nicknameLastChanged: new Date('2024-07-06'),
   },
-  { 
-    id: 'user7', username: 'unityNewbie', nickname: '유니티뉴비', 
-    score: 400, rank: 7, 
-    avatar: 'https://placehold.co/100x100.png?text=UN', 
+  {
+    id: 'user7', username: 'unityNewbie', nickname: '유니티뉴비',
+    score: 400, avatar: 'https://placehold.co/100x100.png?text=UN',
     nicknameLastChanged: new Date('2024-07-07'),
   },
-  { 
-    id: 'user8', username: 'unrealArtist', nickname: '언리얼아티스트', 
-    score: 300, rank: 8, 
-    avatar: 'https://placehold.co/100x100.png?text=UA', 
+  {
+    id: 'user8', username: 'unrealArtist', nickname: '언리얼아티스트',
+    score: 300, avatar: 'https://placehold.co/100x100.png?text=UA',
     nicknameLastChanged: new Date('2024-07-08'),
   },
   {
     id: 'user9_multi_rank', username: 'multiRanker', nickname: '멀티랭커', email: 'multi@example.com',
-    score: 1050, rank: 3, // To test global rank 3 overlap
+    score: 1050,
     avatar: 'https://placehold.co/100x100.png?text=MR',
     nicknameLastChanged: new Date('2024-06-01'),
-    selectedDisplayRank: 'category_Unity',
   },
   {
     id: 'user10_tetris_cat_rank', username: 'tetrisCatEnjoyer', nickname: '테트리스냥이',
-    score: 800, rank: 4, 
+    score: 800,
     avatar: 'https://placehold.co/100x100.png?text=TC',
   }
 ];
@@ -84,16 +70,16 @@ export const tetrisTitles: string[] = [
   '"테트리스" 마스터',
 ];
 
-const rawTetrisRankings: Omit<TetrisRanker, 'rank'>[] = [ 
-  { userId: 'user1', nickname: '유니티장인', score: 2500000 },
+const rawTetrisRankings: Omit<TetrisRanker, 'rank'>[] = [
+  { userId: 'user9_multi_rank', nickname: '멀티랭커', score: 2500000 }, // Changed to make multiRanker #1 in Tetris
+  { userId: 'user1', nickname: '유니티장인', score: 2300000 },
   { userId: 'user2', nickname: '언리얼신', score: 2200000 },
   { userId: 'user3', nickname: '고도엔진팬', score: 1900000 },
+  { userId: 'user10_tetris_cat_rank', nickname: '테트리스냥이', score: 1800000 },
   { userId: 'user4', nickname: '인디드리머', score: 1600000 },
   { userId: 'user5', nickname: '픽셀아티스트', score: 1400000 },
   { userId: 'user6', nickname: '일반글애호가', score: 1350000 },
   { userId: 'user7', nickname: '유니티뉴비', score: 1200000 },
-  { userId: 'user9_multi_rank', nickname: '멀티랭커', score: 2300000 }, // multiRanker is #1 in Tetris
-  { userId: 'user10_tetris_cat_rank', nickname: '테트리스냥이', score: 1800000 },
 ];
 
 export const mockTetrisRankings: TetrisRanker[] = rawTetrisRankings
@@ -103,58 +89,85 @@ export const mockTetrisRankings: TetrisRanker[] = rawTetrisRankings
     rank: index + 1,
   }));
 
-const assignInitialCategoryScores = (users: Omit<User, 'tetrisRank' | 'categoryStats'>[]): User[] => {
-  return users.map(u => {
-    let categoryStats: User['categoryStats'] = {
-      Unity: { score: Math.floor(Math.random() * 200) + 10 },
-      Unreal: { score: Math.floor(Math.random() * 200) + 10 },
-      Godot: { score: Math.floor(Math.random() * 200) + 10 },
-      General: { score: Math.floor(Math.random() * 200) + 10 },
-    };
-    // Specific overrides for certain users for testing
-    if (u.id === 'user1') categoryStats = { Unity: { score: 800 }, Unreal: { score: 300 }, Godot: { score: 100 }, General: { score: 50 } };
-    if (u.id === 'user2') categoryStats = { Unity: { score: 200 }, Unreal: { score: 750 }, Godot: { score: 50 }, General: { score: 100 } };
-    if (u.id === 'user3') categoryStats = { Unity: { score: 100 }, Unreal: { score: 50 }, Godot: { score: 700 }, General: { score: 100 } };
-    if (u.id === 'user4') categoryStats = { Unity: { score: 300 }, Unreal: { score: 100 }, Godot: { score: 150 }, General: { score: 150 } };
-    if (u.id === 'user5') categoryStats = { Unity: { score: 50 }, Unreal: { score: 250 }, Godot: { score: 200 }, General: { score: 100 } }; // Unity 6th
-    if (u.id === 'user6') categoryStats = { Unity: { score: 10 }, Unreal: { score: 20 }, Godot: { score: 30 }, General: { score: 490 } };
-    if (u.id === 'user7') categoryStats = { Unity: { score: 350 }, Unreal: { score: 0 }, Godot: { score: 0 }, General: { score: 50 } }; // Unity 2nd
-    if (u.id === 'user8') categoryStats = { Unity: { score: 0 }, Unreal: { score: 280 }, Godot: { score: 0 }, General: { score: 20 } };
-    if (u.id === 'user9_multi_rank') categoryStats = { Unity: { score: 700 }, Unreal: { score: 50 }, Godot: { score: 10 }, General: { score: 290 } }; // Unity 1st, global 3rd
-    if (u.id === 'user10_tetris_cat_rank') categoryStats = { Unity: {score: 150 }, General: {score: 200 }, Unreal: {score: 400 }, Godot: { score: 50 }}; // Unreal 1st
 
-    if (u.id === 'admin') categoryStats = { Unity: { score: 1000 }, Unreal: { score: 1000 }, Godot: { score: 1000 }, General: { score: 1000 } };
-
-
-    const tetrisData = mockTetrisRankings.find(tr => tr.userId === u.id);
-    return {
-      ...u,
-      tetrisRank: tetrisData ? tetrisData.rank : undefined,
-      categoryStats,
-      selectedDisplayRank: u.selectedDisplayRank || 'default', // ensure selectedDisplayRank exists
-    };
-  });
-};
-
-export const assignCategoryRanks = (users: User[]): User[] => {
+const assignCategoryRanks = (users: User[]): User[] => {
   const categories: PostMainCategory[] = ['Unity', 'Unreal', 'Godot', 'General'];
-  
   categories.forEach(category => {
     const rankedUsersInCategory = users
       .filter(u => u.username !== 'WANGJUNLAND' && u.categoryStats && typeof u.categoryStats[category]?.score === 'number')
       .sort((a, b) => (b.categoryStats![category]!.score || 0) - (a.categoryStats![category]!.score || 0));
 
+    let currentRank = 1;
     rankedUsersInCategory.forEach((user, index) => {
+      if (index > 0 && rankedUsersInCategory[index].categoryStats![category]!.score < rankedUsersInCategory[index - 1].categoryStats![category]!.score) {
+        currentRank = index + 1;
+      }
       if (user.categoryStats && user.categoryStats[category]) {
-        user.categoryStats[category]!.rankInCate = index + 1;
+        user.categoryStats[category]!.rankInCate = currentRank;
       }
     });
   });
   return users;
 };
 
-const usersWithInitialScores = assignInitialCategoryScores(mockUsersData);
-export const mockUsers: User[] = assignCategoryRanks(usersWithInitialScores);
+const assignCalculatedRanks = (
+    usersInput: Omit<User, 'rank' | 'tetrisRank' | 'categoryStats' | 'selectedDisplayRank'>[]
+  ): User[] => {
+  
+  const tetrisRankMap = new Map<string, number>();
+  mockTetrisRankings.forEach(tr => tetrisRankMap.set(tr.userId, tr.rank));
+
+  let processedUsers: User[] = usersInput.map(u => {
+    const baseScore = u.score || 0;
+    let categoryStats: User['categoryStats'] = {
+        Unity: { score: Math.floor(Math.random() * 50) + baseScore * 0.1 + (u.username === 'user1' ? 700 : u.username === 'user9_multi_rank' ? 600 : u.username === 'user7' ? 300 : u.username === 'user5' ? 10 : 0 ) },
+        Unreal: { score: Math.floor(Math.random() * 50) + baseScore * 0.1 + (u.username === 'user2' ? 650 : u.username === 'user10_tetris_cat_rank' ? 350 : u.username === 'user8' ? 230 : u.username === 'user5' ? 200 : 0) },
+        Godot: { score: Math.floor(Math.random() * 50) + baseScore * 0.1 + (u.username === 'user3' ? 600 : u.username === 'user5' ? 150 : 0) },
+        General: { score: Math.floor(Math.random() * 50) + baseScore * 0.1 + (u.username === 'user6' ? 440 : u.username === 'user9_multi_rank' ? 240 : 0) },
+    };
+     if (u.username === 'WANGJUNLAND') {
+        categoryStats = { Unity: { score: 1000 }, Unreal: { score: 1000 }, Godot: { score: 1000 }, General: { score: 1000 } };
+    }
+
+
+    return {
+      ...(u as User), // Cast to User, rank will be overwritten
+      id: u.id || u.username,
+      rank: 0, // Placeholder, will be calculated and assigned
+      tetrisRank: tetrisRankMap.get(u.id || u.username) || undefined,
+      categoryStats,
+      selectedDisplayRank: (u as User).selectedDisplayRank || 'default',
+      nicknameLastChanged: u.nicknameLastChanged ? new Date(u.nicknameLastChanged) : undefined,
+    };
+  });
+
+  // Calculate Global Ranks (excluding admin)
+  const nonAdminUsers = processedUsers.filter(u => u.username !== 'WANGJUNLAND');
+  nonAdminUsers.sort((a, b) => b.score - a.score); // Sort by global score
+
+  let currentGlobalRank = 1;
+  for (let i = 0; i < nonAdminUsers.length; i++) {
+    if (i > 0 && nonAdminUsers[i].score < nonAdminUsers[i - 1].score) {
+      currentGlobalRank = i + 1;
+    }
+    nonAdminUsers[i].rank = currentGlobalRank;
+  }
+  
+  processedUsers = processedUsers.map(pu => {
+    const rankedUser = nonAdminUsers.find(nau => nau.id === pu.id);
+    if (rankedUser) {
+      return rankedUser;
+    }
+    // For admin, rank remains 0 or as initially set if not filtered (it is filtered above)
+    if (pu.username === 'WANGJUNLAND') pu.rank = 0;
+    return pu;
+  });
+
+  return assignCategoryRanks(processedUsers);
+};
+
+
+export const mockUsers: User[] = assignCalculatedRanks(mockUsersData);
 
 
 export const mockStarterProjects: StarterProject[] = [
@@ -236,15 +249,21 @@ export const mockComments: Comment[] = [
 
 
 export const mockRankings: RankEntry[] = mockUsers
-  .filter(u => u.username !== 'WANGJUNLAND') 
+  .filter(u => u.username !== 'WANGJUNLAND')
   .sort((a, b) => b.score - a.score)
-  .map((user, index) => ({
-    userId: user.id,
-    nickname: user.nickname,
-    score: user.score,
-    rank: index + 1, 
-    avatar: user.avatar,
-  }));
+  .map((user, index, sortedUsers) => {
+    let rank = index + 1;
+    if (index > 0 && user.score === sortedUsers[index - 1].score) {
+      rank = sortedUsers[index - 1].rank; // Assign same rank for ties
+    }
+    return {
+      userId: user.id,
+      nickname: user.nickname,
+      score: user.score,
+      rank: rank,
+      avatar: user.avatar,
+    }
+  });
 
 
 export const mockInquiries: Inquiry[] = [
