@@ -20,7 +20,7 @@ const MAX_PAGES = 10;
 const RANKERS_TO_SHOW = 10; 
 
 const CategorySpecificIcon: React.FC<{ category: PostMainCategory, className?: string }> = ({ category, className }) => {
-  const defaultClassName = "h-4 w-4";
+  const defaultClassName = "h-4 w-4 shrink-0"; // Added shrink-0
   switch (category) {
     case 'Unity': return <Box className={cn(defaultClassName, "text-purple-400", className)} />;
     case 'Unreal': return <AppWindow className={cn(defaultClassName, "text-sky-400", className)} />;
@@ -31,7 +31,7 @@ const CategorySpecificIcon: React.FC<{ category: PostMainCategory, className?: s
 };
 
 const mockTetrisRankings = {
-  monthly: [ // 주간 랭킹은 제거되었으므로 월간만 남깁니다.
+  monthly: [ 
     { id: 'trm1', nickname: 'TetrisGod', score: 2500000 },
     { id: 'trm2', nickname: 'ConsistentPlayer', score: 2200000 },
     { id: 'trm3', nickname: 'BlockMaster', score: 1900000 },
@@ -147,7 +147,7 @@ export default function HomePage() {
             </CardHeader>
             <CardContent className="p-4">
               <div className="space-y-2">
-                {mockTetrisRankings.monthly.map((ranker, index) => (
+                {mockTetrisRankings.monthly.slice(0, RANKERS_TO_SHOW).map((ranker, index) => (
                   <div key={ranker.id} className="flex items-center justify-between p-2.5 bg-background/30 rounded-lg border border-border/50 text-sm">
                     <div className="flex items-center gap-2">
                       <span className={cn("font-bold w-5 text-center shrink-0", 
@@ -161,9 +161,9 @@ export default function HomePage() {
                         {index < 3 && tetrisTitles[index] && (
                           <p className={cn(
                             "text-[0.65rem] leading-tight font-semibold tracking-tight mb-0.5",
-                            index === 0 && "text-yellow-400", // Gold
-                            index === 1 && "text-slate-300",  // Silver
-                            index === 2 && "text-orange-400"   // Bronze
+                            index === 0 && "text-yellow-400", 
+                            index === 1 && "text-slate-300",  
+                            index === 2 && "text-orange-400"   
                           )}>{tetrisTitles[index]}</p>
                         )}
                         <span className={cn("font-medium", 
@@ -261,7 +261,7 @@ export default function HomePage() {
                   <TabsTrigger value="Unity" className="text-xs px-1 py-1.5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground flex items-center justify-center gap-1"><Box className="h-3.5 w-3.5"/>Unity</TabsTrigger>
                   <TabsTrigger value="Unreal" className="text-xs px-1 py-1.5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground flex items-center justify-center gap-1"><AppWindow className="h-3.5 w-3.5"/>Unreal</TabsTrigger>
                   <TabsTrigger value="Godot" className="text-xs px-1 py-1.5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground flex items-center justify-center gap-1"><PenTool className="h-3.5 w-3.5"/>Godot</TabsTrigger>
-                  <TabsTrigger value="General" className="text-xs px-1 py-1.5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground flex items-center justify-center gap-1"><LayoutGrid className="h-3.5 w-3.5"/>일반</TabsTrigger>
+                  <TabsTrigger value="General" className="text-xs px-1 py-1.5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground flex items-center justify-center gap-1"><LayoutGrid className="h-3.5 w-3.5"/>일반 & 유머</TabsTrigger>
                 </TabsList>
                 
                 {(['Global', 'Unity', 'Unreal', 'Godot', 'General'] as (PostMainCategory | 'Global')[]).map(tabValue => (
@@ -271,14 +271,12 @@ export default function HomePage() {
                         {rankedUsersToDisplay.map((ranker, index) => {
                           const displayRank = index + 1;
                           const isGlobalTop3 = activeRankingTab === 'Global' && displayRank <= 3;
-                          // Corrected: Highlighting is based on the current displayRank (index + 1) within the filtered category list.
                           const isCategoryTop3 = activeRankingTab !== 'Global' && displayRank <= 3;
-
 
                           return (
                             <div key={ranker.id} className="flex items-center justify-between p-2.5 bg-background/30 rounded-lg border border-border/50">
                               <div className="flex items-center gap-2.5">
-                                <span className={cn("font-bold text-md w-5 text-center", 
+                                <span className={cn("font-bold text-md w-5 text-center shrink-0", 
                                     isGlobalTop3 && displayRank === 1 && 'rank-1-text',
                                     isGlobalTop3 && displayRank === 2 && 'rank-2-text',
                                     isGlobalTop3 && displayRank === 3 && 'rank-3-text',
@@ -287,43 +285,54 @@ export default function HomePage() {
                                     isCategoryTop3 && displayRank === 3 && (activeRankingTab === 'Unity' ? 'text-unity-rank opacity-70' : activeRankingTab === 'Unreal' ? 'text-unreal-rank opacity-70' : activeRankingTab === 'Godot' ? 'text-godot-rank opacity-70' : 'text-general-rank opacity-70'),
                                     !isGlobalTop3 && !isCategoryTop3 && "text-muted-foreground"
                                 )}>{displayRank}.</span>
-                                <Avatar className="h-8 w-8 border-2 border-accent/70">
+                                <Avatar className="h-8 w-8 border-2 border-accent/70 shrink-0">
                                   <AvatarImage src={ranker.avatar || `https://placehold.co/40x40.png?text=${ranker.nickname.substring(0,1)}`} alt={ranker.nickname} data-ai-hint="fantasy character avatar" />
                                   <AvatarFallback className="text-xs bg-muted text-muted-foreground">{ranker.nickname.substring(0,1)}</AvatarFallback>
                                 </Avatar>
-                                <div className={cn("font-medium rounded-md px-2 py-0.5 text-sm flex items-center gap-1",
-                                    isGlobalTop3 && displayRank === 1 && 'rank-1-badge',
-                                    isGlobalTop3 && displayRank === 2 && 'rank-2-badge',
-                                    isGlobalTop3 && displayRank === 3 && 'rank-3-badge',
-                                    isCategoryTop3 && { 
-                                      'category-rank-unity': activeRankingTab === 'Unity',
-                                      'category-rank-unreal': activeRankingTab === 'Unreal',
-                                      'category-rank-godot': activeRankingTab === 'Godot',
-                                      'category-rank-general': activeRankingTab === 'General',
-                                    }
+                                
+                                <div className="flex items-center gap-1.5"> {/* Icon and Nickname container */}
+                                  {activeRankingTab !== 'Global' && (
+                                    <CategorySpecificIcon category={activeRankingTab as PostMainCategory} className="h-4 w-4" />
                                   )}
-                                >
-                                  {isCategoryTop3 && <CategorySpecificIcon category={activeRankingTab as PostMainCategory} className="h-3.5 w-3.5" />}
-                                  <span className={cn(
-                                      "font-semibold",
-                                      isGlobalTop3 && displayRank === 1 && 'rank-1-text',
-                                      isGlobalTop3 && displayRank === 2 && 'rank-2-text',
-                                      isGlobalTop3 && displayRank === 3 && 'rank-3-text',
+                                  <div className={cn(
+                                      "font-medium rounded-md px-1.5 py-0.5 text-sm", // Base style for nickname container
+                                      // Global Rank Badge styling
+                                      isGlobalTop3 && displayRank === 1 && 'rank-1-badge',
+                                      isGlobalTop3 && displayRank === 2 && 'rank-2-badge',
+                                      isGlobalTop3 && displayRank === 3 && 'rank-3-badge',
+                                      // Category Rank Badge styling (icon is now separate)
                                       isCategoryTop3 && { 
-                                        'text-unity-rank': activeRankingTab === 'Unity',
-                                        'text-unreal-rank': activeRankingTab === 'Unreal',
-                                        'text-godot-rank': activeRankingTab === 'Godot',
-                                        'text-general-rank': activeRankingTab === 'General',
-                                      },
-                                      !isGlobalTop3 && !isCategoryTop3 && "text-foreground"
+                                        'category-rank-unity': activeRankingTab === 'Unity',
+                                        'category-rank-unreal': activeRankingTab === 'Unreal',
+                                        'category-rank-godot': activeRankingTab === 'Godot',
+                                        'category-rank-general': activeRankingTab === 'General',
+                                      }
                                     )}
                                   >
-                                    {ranker.nickname}
-                                  </span>
+                                    <span className={cn(
+                                        "font-semibold",
+                                        // Global Rank Text styling
+                                        isGlobalTop3 && displayRank === 1 && 'rank-1-text',
+                                        isGlobalTop3 && displayRank === 2 && 'rank-2-text',
+                                        isGlobalTop3 && displayRank === 3 && 'rank-3-text',
+                                        // Category Rank Text styling
+                                        isCategoryTop3 && { 
+                                          'text-unity-rank': activeRankingTab === 'Unity',
+                                          'text-unreal-rank': activeRankingTab === 'Unreal',
+                                          'text-godot-rank': activeRankingTab === 'Godot',
+                                          'text-general-rank': activeRankingTab === 'General',
+                                        },
+                                        // Default text color
+                                        !isGlobalTop3 && !isCategoryTop3 && "text-foreground"
+                                      )}
+                                    >
+                                      {ranker.nickname}
+                                    </span>
+                                  </div>
                                 </div>
                               </div>
                               {isAdmin && (
-                                <span className="text-xs font-semibold text-accent">
+                                <span className="text-xs font-semibold text-accent shrink-0">
                                   {activeRankingTab === 'Global' ? ranker.score.toLocaleString() : (ranker.categoryStats?.[activeRankingTab as PostMainCategory]?.score || 0).toLocaleString()} 점
                                 </span>
                               )}

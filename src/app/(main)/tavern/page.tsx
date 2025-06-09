@@ -22,9 +22,9 @@ import { useAuth } from '@/contexts/AuthContext';
 import { cn } from '@/lib/utils';
 
 const POSTS_PER_PAGE = 10;
-const RANKERS_TO_SHOW_TAVERN = 10; // Changed from 5 to 10
+const RANKERS_TO_SHOW_TAVERN = 10; 
 
-const CategoryIcon: FC<{ category: PostMainCategory, className?: string }> = ({ category, className = "h-4 w-4" }) => {
+const CategoryIcon: FC<{ category: PostMainCategory, className?: string }> = ({ category, className = "h-4 w-4 shrink-0" }) => { // Added shrink-0
   switch (category) {
     case 'Unity': return <Box className={cn(className, "text-purple-500")} />;
     case 'Unreal': return <AppWindow className={cn(className, "text-sky-500")} />;
@@ -209,13 +209,15 @@ const CategoryRankingCard: FC<{ category: PostMainCategory, isAdmin: boolean }> 
       .slice(0, RANKERS_TO_SHOW_TAVERN);
   }, [category]);
 
+  const categoryDisplayName = category === 'General' ? '일반 & 유머' : category;
+
   if (categoryRankers.length === 0) {
     return (
       <Card className="shadow-lg bg-card border-border">
         <CardHeader>
           <CardTitle className="font-headline text-foreground text-lg flex items-center gap-2">
             <CategoryIcon category={category} className="h-5 w-5" />
-            {category} 랭킹 TOP {RANKERS_TO_SHOW_TAVERN}
+            {categoryDisplayName} 랭킹 TOP {RANKERS_TO_SHOW_TAVERN}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -230,7 +232,7 @@ const CategoryRankingCard: FC<{ category: PostMainCategory, isAdmin: boolean }> 
       <CardHeader>
         <CardTitle className="font-headline text-foreground text-lg flex items-center gap-2">
           <CategoryIcon category={category} className="h-5 w-5" />
-          {category} 랭킹 TOP {RANKERS_TO_SHOW_TAVERN}
+          {categoryDisplayName} 랭킹 TOP {RANKERS_TO_SHOW_TAVERN}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
@@ -242,43 +244,50 @@ const CategoryRankingCard: FC<{ category: PostMainCategory, isAdmin: boolean }> 
             <div key={ranker.id} className="flex items-center justify-between p-2.5 bg-background/30 rounded-lg border border-border/50">
               <div className="flex items-center gap-2.5">
                 <span className={cn(
-                  "font-bold text-md w-5 text-center",
+                  "font-bold text-md w-5 text-center shrink-0",
                   isDisplayRankTop3 && displayRank === 1 && (category === 'Unity' ? 'text-unity-rank' : category === 'Unreal' ? 'text-unreal-rank' : category === 'Godot' ? 'text-godot-rank' : 'text-general-rank'),
                   isDisplayRankTop3 && displayRank === 2 && (category === 'Unity' ? 'text-unity-rank opacity-80' : category === 'Unreal' ? 'text-unreal-rank opacity-80' : category === 'Godot' ? 'text-godot-rank opacity-80' : 'text-general-rank opacity-80'),
                   isDisplayRankTop3 && displayRank === 3 && (category === 'Unity' ? 'text-unity-rank opacity-70' : category === 'Unreal' ? 'text-unreal-rank opacity-70' : category === 'Godot' ? 'text-godot-rank opacity-70' : 'text-general-rank opacity-70'),
                   !isDisplayRankTop3 && "text-muted-foreground"
                 )}>{displayRank}.</span>
-                <Avatar className="h-8 w-8 border-2 border-accent/70">
+                <Avatar className="h-8 w-8 border-2 border-accent/70 shrink-0">
                   <Image src={ranker.avatar || `https://placehold.co/40x40.png?text=${ranker.nickname.substring(0,1)}`} alt={ranker.nickname} width={32} height={32} className="rounded-full" data-ai-hint="user avatar"/>
                   <AvatarFallback className="text-xs bg-muted text-muted-foreground">{ranker.nickname.substring(0,1)}</AvatarFallback>
                 </Avatar>
-                <div className={cn("font-medium rounded-md px-2 py-0.5 text-sm flex items-center gap-1",
-                    isDisplayRankTop3 && { 
-                      'category-rank-unity': category === 'Unity',
-                      'category-rank-unreal': category === 'Unreal',
-                      'category-rank-godot': category === 'Godot',
-                      'category-rank-general': category === 'General',
-                    }
-                  )}
-                >
-                  {isDisplayRankTop3 && <CategoryIcon category={category} className="h-3.5 w-3.5" />}
-                  <span className={cn(
-                      "font-semibold",
+                
+                <div className="flex items-center gap-1.5"> {/* Icon and Nickname container */}
+                  <CategoryIcon category={category} className="h-4 w-4" />
+                  <div className={cn(
+                      "font-medium rounded-md px-1.5 py-0.5 text-sm", // Base style for nickname container
+                      // Category Rank Badge styling (icon is now separate)
                       isDisplayRankTop3 && { 
-                        'text-unity-rank': category === 'Unity',
-                        'text-unreal-rank': category === 'Unreal',
-                        'text-godot-rank': category === 'Godot',
-                        'text-general-rank': category === 'General',
-                      },
-                      !isDisplayRankTop3 && "text-foreground"
+                        'category-rank-unity': category === 'Unity',
+                        'category-rank-unreal': category === 'Unreal',
+                        'category-rank-godot': category === 'Godot',
+                        'category-rank-general': category === 'General',
+                      }
                     )}
                   >
-                    {ranker.nickname}
-                  </span>
+                    <span className={cn(
+                        "font-semibold",
+                        // Category Rank Text styling
+                        isDisplayRankTop3 && { 
+                          'text-unity-rank': category === 'Unity',
+                          'text-unreal-rank': category === 'Unreal',
+                          'text-godot-rank': category === 'Godot',
+                          'text-general-rank': category === 'General',
+                        },
+                        // Default text color
+                        !isDisplayRankTop3 && "text-foreground"
+                      )}
+                    >
+                      {ranker.nickname}
+                    </span>
+                  </div>
                 </div>
               </div>
               {isAdmin && (
-                <span className="text-xs font-semibold text-accent">
+                <span className="text-xs font-semibold text-accent shrink-0">
                   {(ranker.categoryStats?.[category]?.score || 0).toLocaleString()} 점
                 </span>
               )}
@@ -293,7 +302,7 @@ const CategoryRankingCard: FC<{ category: PostMainCategory, isAdmin: boolean }> 
 
 export default function TavernPage() {
   const [mainCategory, setMainCategory] = useState<PostMainCategory>('Unity');
-  const [subCategory, setSubCategory] = useState<PostType | 'popular'>('QnA');
+  const [subCategory, setSubCategory] = useState<PostType | 'popular' | 'all'>('QnA'); // Default to 'all' or first relevant sub-tab
   
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
@@ -303,15 +312,23 @@ export default function TavernPage() {
   const handleMainCategoryChange = (newMainCategory: PostMainCategory) => {
     setMainCategory(newMainCategory);
     const currentNewSubTabs = newMainCategory === 'General' ? generalSubTabs : engineSubTabs;
-    if (currentNewSubTabs.length > 0) {
-      const firstValue = currentNewSubTabs[0].value;
-      setSubCategory(firstValue as PostType | 'popular');
-    }
+    // Set subCategory to 'all' or the first available type if not 'popular'
+    const firstSubTab = currentNewSubTabs.find(tab => tab.value !== 'popular');
+    setSubCategory(firstSubTab ? firstSubTab.value : (currentNewSubTabs[0]?.value || 'all'));
     setCurrentPage(1);
   };
+  
+  useEffect(() => { // Ensure subCategory is valid when mainCategory changes
+    const currentNewSubTabs = mainCategory === 'General' ? generalSubTabs : engineSubTabs;
+    if (!currentNewSubTabs.find(tab => tab.value === subCategory)) {
+       const firstSubTab = currentNewSubTabs.find(tab => tab.value !== 'popular');
+       setSubCategory(firstSubTab ? firstSubTab.value : (currentNewSubTabs[0]?.value || 'all'));
+    }
+  }, [mainCategory, subCategory]);
+
 
   const handleSubCategoryChange = (newSubCategoryValue: string) => {
-    setSubCategory(newSubCategoryValue as PostType | 'popular');
+    setSubCategory(newSubCategoryValue as PostType | 'popular'| 'all');
     setCurrentPage(1);
   }
 
@@ -331,8 +348,10 @@ export default function TavernPage() {
 
     if (subCategory === 'popular') {
       posts = posts.sort((a,b) => (b.isPinned ? 1 : 0) - (a.isPinned ? 1 : 0) || b.views - a.views);
-    } else {
+    } else if (subCategory !== 'all') { // Add this condition
       posts = posts.filter(p => p.type === subCategory);
+      posts = posts.sort((a,b) => (b.isPinned ? 1 : 0) - (a.isPinned ? 1 : 0) || new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    } else { // 'all' posts for the main category, sorted by pinned then date
       posts = posts.sort((a,b) => (b.isPinned ? 1 : 0) - (a.isPinned ? 1 : 0) || new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
     }
     return posts;
@@ -419,7 +438,7 @@ export default function TavernPage() {
           <TabsTrigger value="Unity" className="rounded-md px-4 py-1.5 flex items-center justify-center gap-1.5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"><Box className="h-4 w-4" />Unity</TabsTrigger>
           <TabsTrigger value="Unreal" className="rounded-md px-4 py-1.5 flex items-center justify-center gap-1.5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"><AppWindow className="h-4 w-4" />Unreal</TabsTrigger>
           <TabsTrigger value="Godot" className="rounded-md px-4 py-1.5 flex items-center justify-center gap-1.5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"><PenTool className="h-4 w-4" />Godot</TabsTrigger>
-          <TabsTrigger value="General" className="rounded-md px-4 py-1.5 flex items-center justify-center gap-1.5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"><LayoutGrid className="h-4 w-4" />일반</TabsTrigger>
+          <TabsTrigger value="General" className="rounded-md px-4 py-1.5 flex items-center justify-center gap-1.5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"><LayoutGrid className="h-4 w-4" />일반 & 유머</TabsTrigger>
         </TabsList>
       </Tabs>
 
@@ -466,5 +485,3 @@ export default function TavernPage() {
     </div>
   );
 }
-
-
