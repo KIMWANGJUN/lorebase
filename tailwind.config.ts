@@ -1,7 +1,6 @@
 import type {Config} from 'tailwindcss';
 
 export default {
-  darkMode: false, // 'class'에서 false로 변경하여 다크모드 기능 비활성화
   content: [
     './src/pages/**/*.{js,ts,jsx,tsx,mdx}',
     './src/components/**/*.{js,ts,jsx,tsx,mdx}',
@@ -57,7 +56,7 @@ export default {
           '4': 'hsl(var(--chart-4))',
           '5': 'hsl(var(--chart-5))',
         },
-        sidebar: { // 사이드바 관련 색상도 단일 테마 기준으로 남겨둡니다.
+        sidebar: { 
           DEFAULT: 'hsl(var(--sidebar-background))',
           foreground: 'hsl(var(--sidebar-foreground))',
           primary: 'hsl(var(--sidebar-primary))',
