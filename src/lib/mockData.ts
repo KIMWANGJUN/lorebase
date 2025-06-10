@@ -1,12 +1,12 @@
 
 // src/lib/mockData.ts
-import type { User, StarterProject, AssetInfo, Post, Comment, RankEntry, Inquiry, PostMainCategory, TetrisRanker, AchievedRankType, UserCategoryStat } from '@/types';
+import type { User, StarterProject, AssetInfo, Post, Comment, RankEntry, Inquiry, PostMainCategory, TetrisRanker, AchievedRankType, UserCategoryStat, TitleIdentifier, NicknameEffectIdentifier, LogoIdentifier } from '@/types';
 
 const fortyFiveDaysAgo = new Date(Date.now() - 45 * 24 * 60 * 60 * 1000);
 const fifteenDaysAgo = new Date(Date.now() - 15 * 24 * 60 * 60 * 1000);
 
 // 초기 사용자 데이터 (점수 관련 필드는 아래에서 재계산됨)
-export let mockUsersData: Omit<User, 'rank' | 'tetrisRank' | 'categoryStats' | 'selectedDisplayRank' | 'score' | 'postScore'>[] = [
+export let mockUsersData: Omit<User, 'rank' | 'tetrisRank' | 'categoryStats' | 'score' | 'postScore' | 'selectedTitleIdentifier' | 'selectedNicknameEffectIdentifier' | 'selectedLogoIdentifier'>[] = [
   {
     id: 'admin', username: 'WANGJUNLAND', password: 'WJLAND1013$', nickname: 'WANGJUNLAND', email: 'admin@example.com',
     avatar: 'https://placehold.co/100x100.png?text=WJ',
@@ -112,7 +112,6 @@ const calculatePostScore = (post: Omit<Post, 'postScore'>): number => {
 
 // 초기 게시물 데이터 (각 게시물에 postScore 계산하여 추가)
 export let mockPosts: Post[] = [
-  // ... (기존 게시물 데이터는 그대로 유지, 각 post 객체에 postScore가 할당되도록 아래 map 처리)
   { id: 'post_unity_qna1', mainCategory: 'Unity', title: 'Unity Rigidbody 관련 질문입니다.', content: 'Rigidbody.MovePosition과 transform.Translate의 정확한 차이점과 사용 사례가 궁금합니다.', authorId: 'user4', authorNickname: '인디드리머', createdAt: new Date(Date.now() - 86400000 * 3).toISOString(), updatedAt: new Date(Date.now() - 86400000 * 3).toISOString(), type: 'QnA', upvotes: 10, downvotes: 0, views: 120, commentCount: 2, tags: ['Unity', 'Physics', 'Rigidbody'] },
   { id: 'post_unity_knowledge1', mainCategory: 'Unity', title: 'Unity DOTS 사용 후기 공유합니다.', content: '최근에 Unity DOTS를 사용해서 프로젝트를 진행해봤는데, 성능 최적화에 정말 큰 도움이 되었습니다. 처음엔 학습 곡선이 좀 있지만 익숙해지니 좋네요. 다른 분들 경험은 어떠신가요?', authorId: 'user1', authorNickname: '유니티장인', createdAt: new Date(Date.now() - 86400000 * 2).toISOString(), updatedAt: new Date(Date.now() - 86400000 * 2).toISOString(), type: 'Knowledge', upvotes: 25, downvotes: 1, views: 150, commentCount: 7, isPinned: true, tags: ['Unity', 'DOTS', 'Performance'] },
   { id: 'post_unity_devlog1', mainCategory: 'Unity', title: '나만의 2D 플랫포머 개발 일지 #1 - 캐릭터 구현', content: 'Unity로 2D 플랫포머 게임을 만들고 있습니다. 오늘은 기본 캐릭터 움직임과 점프를 구현했습니다!', authorId: 'user5', authorNickname: '픽셀아티스트', createdAt: new Date(Date.now() - 86400000 * 1).toISOString(), updatedAt: new Date(Date.now() - 86400000 * 1).toISOString(), type: 'DevLog', upvotes: 15, downvotes: 0, views: 90, commentCount: 3, tags: ['Unity', '2D', 'Platformer', 'DevLog'] },
@@ -245,7 +244,7 @@ const assignCategoryRanks = (users: User[]): void => {
 
 // 사용자 점수 및 랭킹 최종 계산 및 할당 함수
 const assignCalculatedScoresAndRanks = (
-    usersInput: Omit<User, 'rank' | 'tetrisRank' | 'categoryStats' | 'selectedDisplayRank' | 'score' | 'postScore'>[]
+    usersInput: Omit<User, 'rank' | 'tetrisRank' | 'categoryStats' | 'score' | 'postScore' | 'selectedTitleIdentifier' | 'selectedNicknameEffectIdentifier' | 'selectedLogoIdentifier' >[]
   ): User[] => {
 
   const tetrisRankMap = new Map<string, number>();
@@ -258,13 +257,12 @@ const assignCalculatedScoresAndRanks = (
     };
 
     if (uData.username === 'WANGJUNLAND') {
-      totalUserScore = 999999; // 관리자 예외 점수
+      totalUserScore = 999999; 
       userCategoryScores = { Unity: 10000, Unreal: 10000, Godot: 10000, General: 10000 };
     } else {
       mockPosts.forEach(post => {
         if (post.authorId === uData.id) {
-          // 게시물 점수는 mockPosts 생성 시 이미 계산되었으므로 postScore를 직접 사용
-          const currentPostScore = post.postScore || 0; // Fallback to 0 if undefined
+          const currentPostScore = post.postScore || 0; 
           totalUserScore += currentPostScore;
           if (userCategoryScores[post.mainCategory] !== undefined) {
             userCategoryScores[post.mainCategory] += currentPostScore;
@@ -273,11 +271,8 @@ const assignCalculatedScoresAndRanks = (
       });
     }
     
-    // 테스트 계정 'testwang1'의 경우 기본 점수 0으로 처리 (게시글이 없다면)
     if (uData.username === 'testwang1' && totalUserScore === 0) {
-        // 특별히 점수를 부여하지 않아도, 칭호 선택은 가능해야 함.
-        // 필요하다면 여기에 테스트를 위한 기본 점수를 할당할 수 있음.
-        // totalUserScore = 1; // 예: 목록에 보이도록 최소 점수 부여
+      // testwang1 can have 0 score initially
     }
 
 
@@ -288,6 +283,8 @@ const assignCalculatedScoresAndRanks = (
       General: { score: parseFloat(userCategoryScores.General.toFixed(2)), rankInCate: 0 },
     };
 
+    const typedUData = uData as User; // Cast to User to access new optional fields
+
     return {
       ...uData,
       id: uData.id || uData.username,
@@ -296,7 +293,9 @@ const assignCalculatedScoresAndRanks = (
       rank: 0, 
       tetrisRank: tetrisRankMap.get(uData.id || uData.username) || 0, 
       categoryStats: categoryStatsOutput,
-      selectedDisplayRank: (uData as User).selectedDisplayRank || 'default',
+      selectedTitleIdentifier: typedUData.selectedTitleIdentifier || 'none',
+      selectedNicknameEffectIdentifier: typedUData.selectedNicknameEffectIdentifier || 'none',
+      selectedLogoIdentifier: typedUData.selectedLogoIdentifier || 'none',
       nicknameLastChanged: uData.nicknameLastChanged ? new Date(uData.nicknameLastChanged) : undefined,
       isBlocked: (uData as User).isBlocked || false,
     } as User; 
@@ -311,7 +310,7 @@ const assignCalculatedScoresAndRanks = (
 export let mockUsers: User[] = assignCalculatedScoresAndRanks(mockUsersData);
 
 // 신규 사용자 추가 DTO 및 함수
-export type NewUserDto = Omit<User, 'rank' | 'categoryStats' | 'selectedDisplayRank' | 'tetrisRank' | 'id' | 'score' | 'nicknameLastChanged' | 'isBlocked' | 'avatar' | 'postScore'> & { password?: string };
+export type NewUserDto = Omit<User, 'rank' | 'categoryStats' | 'tetrisRank' | 'id' | 'score' | 'nicknameLastChanged' | 'isBlocked' | 'avatar' | 'postScore' | 'selectedTitleIdentifier' | 'selectedNicknameEffectIdentifier' | 'selectedLogoIdentifier'> & { password?: string };
 
 export const addUser = (newUserData: NewUserDto): { success: boolean, message?: string, user?: User } => {
   if (mockUsers.some(u => u.username === newUserData.username)) {
@@ -324,7 +323,7 @@ export const addUser = (newUserData: NewUserDto): { success: boolean, message?: 
     return { success: false, message: "이미 사용 중인 이메일입니다." };
   }
 
-  const newUserRaw: Omit<User, 'rank' | 'tetrisRank' | 'categoryStats' | 'selectedDisplayRank' | 'score' | 'postScore'> = {
+  const newUserRaw: Omit<User, 'rank' | 'tetrisRank' | 'categoryStats' | 'score' | 'postScore' | 'selectedTitleIdentifier' | 'selectedNicknameEffectIdentifier' | 'selectedLogoIdentifier'> = {
     id: `user${Date.now()}${Math.floor(Math.random() * 1000)}`,
     username: newUserData.username,
     password: newUserData.password,
@@ -335,8 +334,8 @@ export const addUser = (newUserData: NewUserDto): { success: boolean, message?: 
     isBlocked: false,
   };
 
-  mockUsersData.push(newUserRaw);
-  mockUsers = assignCalculatedScoresAndRanks(mockUsersData);
+  mockUsersData.push(newUserRaw); // Add to the raw list
+  mockUsers = assignCalculatedScoresAndRanks(mockUsersData); // Recalculate everything
 
   const addedUser = mockUsers.find(u => u.id === newUserRaw.id);
 
@@ -385,3 +384,4 @@ export const mockInquiries: Inquiry[] = [
   { id: 'inq1', userId: 'user4', userNickname: '인디드리머', title: '닉네임 변경 기간 문의', content: '닉네임 변경 후 1개월 제한이 정확히 어떻게 적용되는지 궁금합니다.', createdAt: new Date(Date.now() - 86400000 * 3).toISOString(), status: 'Answered', response: '닉네임 변경 시점으로부터 만 30일 이후에 다시 변경 가능합니다.', respondedAt: new Date(Date.now() - 86400000 * 2.5).toISOString() },
   { id: 'inq2', userId: 'user1', userNickname: '유니티장인', title: '게시글 오류 신고', content: '특정 게시글에서 이미지가 깨져 보입니다. 확인 부탁드립니다. (게시글 ID: postX)', createdAt: new Date(Date.now() - 86400000 * 1).toISOString(), status: 'Pending' },
 ];
+

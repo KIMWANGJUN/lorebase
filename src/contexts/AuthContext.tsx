@@ -1,7 +1,7 @@
 
 // src/contexts/AuthContext.tsx
 "use client";
-import type { User, NewUserDto as SignupUserDto, AchievedRankType } from '@/types';
+import type { User, NewUserDto as SignupUserDto, TitleIdentifier, NicknameEffectIdentifier, LogoIdentifier } from '@/types';
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { mockUsers, addUser as addUserToMockList } from '@/lib/mockData';
 
@@ -29,8 +29,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       if (parsedUser.nicknameLastChanged && typeof parsedUser.nicknameLastChanged === 'string') {
         parsedUser.nicknameLastChanged = new Date(parsedUser.nicknameLastChanged);
       }
-      // Ensure selectedDisplayRank is part of the parsed user or default it
-      parsedUser.selectedDisplayRank = parsedUser.selectedDisplayRank || 'default';
+      // Ensure new granular preferences are defaulted if not present
+      parsedUser.selectedTitleIdentifier = parsedUser.selectedTitleIdentifier || 'none';
+      parsedUser.selectedNicknameEffectIdentifier = parsedUser.selectedNicknameEffectIdentifier || 'none';
+      parsedUser.selectedLogoIdentifier = parsedUser.selectedLogoIdentifier || 'none';
+      
       setUser(parsedUser);
       setIsAdmin(parsedUser.username === 'WANGJUNLAND');
     }
@@ -48,7 +51,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       if (userToSet.nicknameLastChanged && typeof userToSet.nicknameLastChanged === 'string') {
         userToSet.nicknameLastChanged = new Date(userToSet.nicknameLastChanged);
       }
-      userToSet.selectedDisplayRank = userToSet.selectedDisplayRank || 'default'; // Ensure on login
+      userToSet.selectedTitleIdentifier = userToSet.selectedTitleIdentifier || 'none';
+      userToSet.selectedNicknameEffectIdentifier = userToSet.selectedNicknameEffectIdentifier || 'none';
+      userToSet.selectedLogoIdentifier = userToSet.selectedLogoIdentifier || 'none';
+
       setUser(userToSet);
       setIsAdmin(userToSet.username === 'WANGJUNLAND');
       localStorage.setItem('currentUser', JSON.stringify(userToSet));
@@ -68,7 +74,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const signup = async (userData: SignupUserDto): Promise<{ success: boolean, message?: string }> => {
     setLoading(true);
     await new Promise(resolve => setTimeout(resolve, 300));
-    const result = addUserToMockList(userData);
+    const result = addUserToMockList(userData); // addUserToMockList should handle new fields
     setLoading(false);
     return result;
   };
@@ -81,17 +87,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         finalUpdatedFields.nicknameLastChanged = new Date();
       }
       
-      // Ensure selectedDisplayRank is explicitly handled
-      if (updatedUserPartial.selectedDisplayRank) {
-        finalUpdatedFields.selectedDisplayRank = updatedUserPartial.selectedDisplayRank;
-      }
-
-
       const updatedUserObject: User = {
         ...user,
         ...finalUpdatedFields,
-        // Ensure selectedDisplayRank is always present, defaulting if necessary
-        selectedDisplayRank: finalUpdatedFields.selectedDisplayRank || user.selectedDisplayRank || 'default',
+        selectedTitleIdentifier: finalUpdatedFields.selectedTitleIdentifier || user.selectedTitleIdentifier || 'none',
+        selectedNicknameEffectIdentifier: finalUpdatedFields.selectedNicknameEffectIdentifier || user.selectedNicknameEffectIdentifier || 'none',
+        selectedLogoIdentifier: finalUpdatedFields.selectedLogoIdentifier || user.selectedLogoIdentifier || 'none',
       };
       
       if (updatedUserObject.nicknameLastChanged && typeof updatedUserObject.nicknameLastChanged === 'string') {
@@ -103,7 +104,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
       const userIndex = mockUsers.findIndex(u => u.id === user.id);
       if (userIndex !== -1) {
-        mockUsers[userIndex] = { ...mockUsers[userIndex], ...finalUpdatedFields, selectedDisplayRank: updatedUserObject.selectedDisplayRank };
+        mockUsers[userIndex] = { 
+            ...mockUsers[userIndex], 
+            ...finalUpdatedFields, 
+            selectedTitleIdentifier: updatedUserObject.selectedTitleIdentifier,
+            selectedNicknameEffectIdentifier: updatedUserObject.selectedNicknameEffectIdentifier,
+            selectedLogoIdentifier: updatedUserObject.selectedLogoIdentifier,
+        };
       }
 
       if (updatedUserPartial.username) {

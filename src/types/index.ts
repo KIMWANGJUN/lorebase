@@ -6,9 +6,31 @@ export interface UserCategoryStat {
   rankInCate?: number; // Rank within that specific category (1-based), calculated dynamically
 }
 
-// 사용자가 달성하여 프로필에서 선택할 수 있는 대표 랭크/칭호의 종류
+// 사용자가 달성하여 프로필에서 선택할 수 있는 *개별* 효과의 식별자 타입 정의
+export type TitleIdentifier = 
+  | 'none'
+  | 'tetris_1_title' | 'tetris_2_title' | 'tetris_3_title'
+  | 'category_Unity_1_title' | 'category_Unity_2_title' | 'category_Unity_3_title'
+  | 'category_Unreal_1_title' | 'category_Unreal_2_title' | 'category_Unreal_3_title'
+  | 'category_Godot_1_title' | 'category_Godot_2_title' | 'category_Godot_3_title'
+  | 'category_General_1_title' | 'category_General_2_title' | 'category_General_3_title';
+
+export type NicknameEffectIdentifier =
+  | 'none'
+  | 'global_1_effect' | 'global_2_effect' | 'global_3_effect'
+  | 'tetris_1_effect' | 'tetris_2_effect' | 'tetris_3_effect' // Nickname text only, no wrapper
+  | 'category_Unity_1-3_effect' | 'category_Unity_4-10_effect' | 'category_Unity_11-20_effect'
+  | 'category_Unreal_1-3_effect' | 'category_Unreal_4-10_effect' | 'category_Unreal_11-20_effect'
+  | 'category_Godot_1-3_effect' | 'category_Godot_4-10_effect' | 'category_Godot_11-20_effect'
+  | 'category_General_1-3_effect' | 'category_General_4-10_effect' | 'category_General_11-20_effect';
+
+export type LogoIdentifier = 
+  | 'none'
+  | 'logo_Unity' | 'logo_Unreal' | 'logo_Godot' | 'logo_General';
+
+// 사용자가 달성한 랭크/칭호의 종류 (번들된 효과를 나타내는 기존 타입, 내부 로직에 활용 가능)
 export type AchievedRankType =
-  | 'default' // 시스템 자동 우선순위 적용
+  | 'default' 
   | 'global_1' | 'global_2' | 'global_3'
   | 'tetris_1' | 'tetris_2' | 'tetris_3'
   | 'category_Unity_1-3' | 'category_Unity_4-10' | 'category_Unity_11-20'
@@ -16,15 +38,16 @@ export type AchievedRankType =
   | 'category_Godot_1-3' | 'category_Godot_4-10' | 'category_Godot_11-20'
   | 'category_General_1-3' | 'category_General_4-10' | 'category_General_11-20';
 
+
 export interface User {
   id: string;
-  username: string; // 아이디
-  password?: string; // 사용자 비밀번호 (mock용)
-  nickname: string; // 닉네임
+  username: string; 
+  password?: string; 
+  nickname: string; 
   email?: string;
   avatar?: string;
-  score: number; // Global score (모든 카테고리 게시물 점수 총합)
-  rank: number; // Global rank: 0 for admin (filtered from display), 1 for 1st, etc.
+  score: number; 
+  rank: number; 
   socialProfiles?: {
     naver?: string;
     google?: string;
@@ -35,8 +58,15 @@ export interface User {
   categoryStats?: {
     [key in PostMainCategory]?: UserCategoryStat;
   };
-  selectedDisplayRank?: AchievedRankType; // User's preference for display
-  tetrisRank?: number; // Monthly Tetris rank, 1-based. 0 or undefined if not ranked.
+  tetrisRank?: number; 
+
+  // User's preferred display settings (granular)
+  selectedTitleIdentifier?: TitleIdentifier;
+  selectedNicknameEffectIdentifier?: NicknameEffectIdentifier;
+  selectedLogoIdentifier?: LogoIdentifier;
+
+  // This can be kept for internal logic if needed to determine *earned* bundled ranks
+  achievedDisplayRankBundled?: AchievedRankType; // Example: user might have earned 'global_1' bundle
 }
 
 export interface StarterProject {
@@ -45,9 +75,9 @@ export interface StarterProject {
   name: string;
   description: string;
   imageUrl?: string;
-  downloadUrl: string; // Mock URL
+  downloadUrl: string; 
   version: string;
-  lastUpdatedAt: string; // ISO Date string
+  lastUpdatedAt: string; 
   tags?: string[];
   developerNotes?: string;
 }
@@ -60,7 +90,7 @@ export interface AssetInfo {
   siteUrl: string;
   imageUrl?: string;
   isFree: boolean;
-  updateFrequency?: 'Daily' | 'Weekly' | 'Monthly'; // For free assets
+  updateFrequency?: 'Daily' | 'Weekly' | 'Monthly'; 
   tags?: string[];
 }
 
@@ -71,20 +101,20 @@ export interface Post {
   title: string;
   content: string;
   authorId: string;
-  authorNickname: string; // This might be redundant if we always fetch User object, but keep for now
-  authorAvatar?: string; // Same as above
-  createdAt: string; // ISO Date string
-  updatedAt: string; // ISO Date string
+  authorNickname: string; 
+  authorAvatar?: string; 
+  createdAt: string; 
+  updatedAt: string; 
   mainCategory: PostMainCategory;
   type: PostType;
   upvotes: number;
-  downvotes: number; // Only visible to admin
+  downvotes: number; 
   views: number;
   isPinned?: boolean;
   tags?: string[];
   commentCount: number;
   isEdited?: boolean;
-  postScore?: number; // Calculated score for the post
+  postScore?: number; 
 }
 
 export interface Comment {
@@ -94,20 +124,20 @@ export interface Comment {
   authorNickname: string;
   authorAvatar?: string;
   content: string;
-  createdAt: string; // ISO Date string
-  updatedAt?: string; // ISO Date string for edits
+  createdAt: string; 
+  updatedAt?: string; 
   upvotes: number;
   downvotes: number;
-  parentId?: string; // ID of the comment this is a reply to
-  replies?: Comment[]; // Nested replies for display
+  parentId?: string; 
+  replies?: Comment[]; 
   isEdited?: boolean;
 }
 
-export interface RankEntry { // Used for global ranking list display
+export interface RankEntry { 
   userId: string;
   nickname: string;
   score: number;
-  rank: number; // This is global rank for the main ranking list
+  rank: number; 
   avatar?: string;
 }
 
@@ -117,10 +147,10 @@ export interface Inquiry {
   userNickname: string;
   title: string;
   content: string;
-  createdAt: string; // ISO Date string
+  createdAt: string; 
   status: 'Pending' | 'Answered' | 'Closed';
   response?: string;
-  respondedAt?: string; // ISO Date string
+  respondedAt?: string; 
 }
 
 export interface DirectMessage {
@@ -128,7 +158,7 @@ export interface DirectMessage {
   fromUserId: string;
   toUserId: string;
   content: string;
-  sentAt: string; // ISO Date string
+  sentAt: string; 
   isRead: boolean;
 }
 
@@ -136,5 +166,5 @@ export interface TetrisRanker {
   userId: string;
   nickname: string;
   score: number;
-  rank: number; // Calculated rank within Tetris monthly
+  rank: number; 
 }

@@ -12,9 +12,9 @@ import { Label } from '@/components/ui/label';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Edit3, Mail, MessageSquare, ShieldAlert, UserCog, ShieldCheck, Crown, Users, Gamepad2, Clock, CheckCircle, Wand2 } from 'lucide-react';
+import { Edit3, Mail, MessageSquare, ShieldAlert, UserCog, ShieldCheck, Crown, Users, Gamepad2, Clock, CheckCircle, Wand2, Palette, VenetianMask, Star } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
-import type { User, PostMainCategory, AchievedRankType } from '@/types';
+import type { User, PostMainCategory, AchievedRankType, TitleIdentifier, NicknameEffectIdentifier, LogoIdentifier } from '@/types';
 import { mockPosts, mockInquiries, mockUsers, tetrisTitles } from '@/lib/mockData';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
@@ -31,6 +31,49 @@ const getCategoryDisplayName = (category: PostMainCategory): string => {
   }
 };
 
+// Define option types for selection
+interface SelectOption {
+  value: string;
+  label: string;
+}
+
+const titleOptionsForTest: SelectOption[] = [
+  { value: 'none', label: '칭호 없음' },
+  { value: 'tetris_1_title', label: '테스트: ♛테트리스♕ (금색)' },
+  { value: 'tetris_2_title', label: '테스트: "테트리스" 그랜드 마스터 (은색)' },
+  { value: 'tetris_3_title', label: '테스트: "테트리스" 마스터 (동색)' },
+  ...(['Unity', 'Unreal', 'Godot', 'General'] as PostMainCategory[]).flatMap(cat => 
+    [1, 2, 3].map(rank => ({
+      value: `category_${cat}_${rank}_title` as TitleIdentifier,
+      label: `테스트: ${getCategoryDisplayName(cat)} ${rank}위 칭호 (${rank===1?'금':rank===2?'은':'동'}색)`
+    }))
+  )
+];
+
+const nicknameEffectOptionsForTest: SelectOption[] = [
+  { value: 'none', label: '기본 스타일' },
+  { value: 'global_1_effect', label: '테스트: 종합 1위 효과 (금색 텍스트/배경)' },
+  { value: 'global_2_effect', label: '테스트: 종합 2위 효과 (은색 텍스트/배경)' },
+  { value: 'global_3_effect', label: '테스트: 종합 3위 효과 (동색 텍스트/배경)' },
+  ...(['Unity', 'Unreal', 'Godot', 'General'] as PostMainCategory[]).flatMap(cat => [
+    { value: `category_${cat}_1-3_effect` as NicknameEffectIdentifier, label: `테스트: ${getCategoryDisplayName(cat)} 1-3위 효과 (테마 텍스트/배경)`},
+    { value: `category_${cat}_4-10_effect` as NicknameEffectIdentifier, label: `테스트: ${getCategoryDisplayName(cat)} 4-10위 효과 (테마 텍스트/배경)`},
+    { value: `category_${cat}_11-20_effect` as NicknameEffectIdentifier, label: `테스트: ${getCategoryDisplayName(cat)} 11-20위 효과 (테마 텍스트, 배경X)`},
+  ]),
+  { value: 'tetris_1_effect', label: '테스트: 테트리스 1위 효과 (금색 텍스트, 배경X)' },
+  { value: 'tetris_2_effect', label: '테스트: 테트리스 2위 효과 (은색 텍스트, 배경X)' },
+  { value: 'tetris_3_effect', label: '테스트: 테트리스 3위 효과 (동색 텍스트, 배경X)' },
+];
+
+const logoOptionsForTest: SelectOption[] = [
+  { value: 'none', label: '로고 없음'},
+  { value: 'logo_Unity', label: '테스트: Unity 로고'},
+  { value: 'logo_Unreal', label: '테스트: Unreal 로고'},
+  { value: 'logo_Godot', label: '테스트: Godot 로고'},
+  { value: 'logo_General', label: '테스트: 일반 & 유머 로고'},
+];
+
+
 export default function ProfilePage() {
   const { user, isAdmin, updateUser, loading: authLoading } = useAuth();
   const router = useRouter();
@@ -39,7 +82,10 @@ export default function ProfilePage() {
   const [nickname, setNickname] = useState('');
   const [email, setEmail] = useState('');
   const [isEditingNickname, setIsEditingNickname] = useState(false);
-  const [selectedDisplayRankState, setSelectedDisplayRankState] = useState<AchievedRankType | undefined>(user?.selectedDisplayRank || 'default');
+  
+  const [currentTitle, setCurrentTitle] = useState<TitleIdentifier>('none');
+  const [currentNicknameEffect, setCurrentNicknameEffect] = useState<NicknameEffectIdentifier>('none');
+  const [currentLogo, setCurrentLogo] = useState<LogoIdentifier>('none');
 
   const calculateCanChangeNickname = () => {
     if (!user) return false;
@@ -63,7 +109,9 @@ export default function ProfilePage() {
     } else if (user) {
       setNickname(user.nickname);
       setEmail(user.email || '');
-      setSelectedDisplayRankState(user.selectedDisplayRank || 'default');
+      setCurrentTitle(user.selectedTitleIdentifier || 'none');
+      setCurrentNicknameEffect(user.selectedNicknameEffectIdentifier || 'none');
+      setCurrentLogo(user.selectedLogoIdentifier || 'none');
       setNicknameChangeAllowed(calculateCanChangeNickname());
     }
   }, [user, authLoading, router]);
@@ -119,66 +167,56 @@ export default function ProfilePage() {
     toast({ title: "성공", description: "이메일이 등록/수정되었습니다." });
   };
 
-  const handleDisplayRankChange = (value: string) => {
-    const newDisplayRank = value as AchievedRankType;
-    setSelectedDisplayRankState(newDisplayRank);
-    if (user) {
-      updateUser({ selectedDisplayRank: newDisplayRank });
-      toast({ title: "성공", description: "대표 칭호/하이라이트 설정이 변경되었습니다. 다른 페이지에서 반영됩니다." });
+  const handlePreferenceChange = (type: 'title' | 'nicknameEffect' | 'logo', value: string) => {
+    if (!user) return;
+    let updatePayload: Partial<User> = {};
+    if (type === 'title') {
+      setCurrentTitle(value as TitleIdentifier);
+      updatePayload.selectedTitleIdentifier = value as TitleIdentifier;
+    } else if (type === 'nicknameEffect') {
+      setCurrentNicknameEffect(value as NicknameEffectIdentifier);
+      updatePayload.selectedNicknameEffectIdentifier = value as NicknameEffectIdentifier;
+    } else if (type === 'logo') {
+      setCurrentLogo(value as LogoIdentifier);
+      updatePayload.selectedLogoIdentifier = value as LogoIdentifier;
     }
+    updateUser(updatePayload);
+    toast({ title: "성공", description: "대표 표시 설정이 변경되었습니다. 다른 페이지에서 반영됩니다." });
   };
 
-  const availableDisplayRanks = useMemo(() => {
-    if (!user) return [];
-    const ranks: { value: AchievedRankType; label: string }[] = [{ value: 'default', label: '기본 표시 (시스템 자동 우선순위 적용)' }];
+  // For regular users, dynamically generate options based on earned ranks
+  // This is a simplified version for now, focusing on `testwang1`
+  const getRegularUserOptions = (type: 'title' | 'nicknameEffect' | 'logo'): SelectOption[] => {
+    if (!user) return [{ value: 'none', label: '없음 / 기본' }];
+    
+    const options: SelectOption[] = [{ value: 'none', label: '없음 / 기본' }];
 
-    if (user.username === 'testwang1') {
-        // 테스트 계정: 모든 효과 옵션 제공
-        ranks.push({ value: 'global_1', label: '테스트: 종합 1위 효과 (금)' });
-        ranks.push({ value: 'global_2', label: '테스트: 종합 2위 효과 (은)' });
-        ranks.push({ value: 'global_3', label: '테스트: 종합 3위 효과 (동)' });
-
-        Object.keys(tetrisTitles).forEach(key => {
-            const rank = parseInt(key);
-            if (rank >= 1 && rank <=3) {
-                 ranks.push({ value: `tetris_${rank}` as AchievedRankType, label: `테스트: ${tetrisTitles[rank]} 효과` });
-            }
-        });
-        
-        (['Unity', 'Unreal', 'Godot', 'General'] as PostMainCategory[]).forEach(catKey => {
-            const catDisplayName = getCategoryDisplayName(catKey);
-            ranks.push({ value: `category_${catKey}_1-3` as AchievedRankType, label: `테스트: ${catDisplayName} 1-3위 효과` });
-            ranks.push({ value: `category_${catKey}_4-10` as AchievedRankType, label: `테스트: ${catDisplayName} 4-10위 효과` });
-            ranks.push({ value: `category_${catKey}_11-20` as AchievedRankType, label: `테스트: ${catDisplayName} 11-20위 효과` });
-        });
-        return ranks;
+    // This logic needs to be expanded to check actual earned ranks for each type
+    // For now, it's a placeholder
+    if (type === 'title' && user.tetrisRank && user.tetrisRank > 0 && user.tetrisRank <=3 ) {
+         options.push({ value: `tetris_${user.tetrisRank}_title` as TitleIdentifier, label: `${tetrisTitles[user.tetrisRank]} (테트리스 ${user.tetrisRank}위)`});
     }
+    // Add more logic for global rank titles (if any), category titles etc.
 
-    // 일반 사용자 로직
-    if (user.rank > 0 && user.rank <= 3) {
-      ranks.push({ value: `global_${user.rank}` as AchievedRankType, label: `종합 랭킹 ${user.rank}위 (금/은/동 배경 및 닉네임)` });
+    if (type === 'nicknameEffect' && user.rank > 0 && user.rank <=3) {
+        options.push({ value: `global_${user.rank}_effect` as NicknameEffectIdentifier, label: `종합 ${user.rank}위 스타일`});
     }
+    // Add more logic for category nickname effects etc.
 
-    if (user.tetrisRank && user.tetrisRank > 0 && user.tetrisRank <= 3) {
-        const title = tetrisTitles[user.tetrisRank] || `테트리스 ${user.tetrisRank}위`;
-        ranks.push({ value: `tetris_${user.tetrisRank}` as AchievedRankType, label: `${title} (금/은/동 칭호 및 닉네임)` });
-    }
-
-    (Object.keys(user.categoryStats || {}) as PostMainCategory[]).forEach(catKey => {
-      const stat = user.categoryStats?.[catKey];
-      if (stat && stat.rankInCate && stat.rankInCate > 0) {
-        const catDisplayName = getCategoryDisplayName(catKey);
-        if (stat.rankInCate >= 1 && stat.rankInCate <= 3) {
-          ranks.push({ value: `category_${catKey}_1-3` as AchievedRankType, label: `${catDisplayName} ${stat.rankInCate}위 (카테고리 칭호, 배경, 닉네임, 로고)` });
-        } else if (stat.rankInCate >= 4 && stat.rankInCate <= 10) {
-          ranks.push({ value: `category_${catKey}_4-10` as AchievedRankType, label: `${catDisplayName} ${stat.rankInCate}위 (카테고리 배경, 닉네임, 로고)` });
-        } else if (stat.rankInCate >= 11 && stat.rankInCate <= 20) {
-          ranks.push({ value: `category_${catKey}_11-20` as AchievedRankType, label: `${catDisplayName} ${stat.rankInCate}위 (카테고리 닉네임, 로고)` });
+    if (type === 'logo') {
+        // Example: If user has rank in Unity, allow Unity logo
+        if (user.categoryStats?.Unity?.rankInCate && user.categoryStats.Unity.rankInCate > 0) {
+            options.push({ value: 'logo_Unity', label: 'Unity 로고'});
         }
-      }
-    });
-    return ranks;
-  }, [user]);
+        // Add for other categories
+    }
+    return options;
+  };
+  
+  const currentTitleOptions = user?.username === 'testwang1' ? titleOptionsForTest : getRegularUserOptions('title');
+  const currentNicknameEffectOptions = user?.username === 'testwang1' ? nicknameEffectOptionsForTest : getRegularUserOptions('nicknameEffect');
+  const currentLogoOptions = user?.username === 'testwang1' ? logoOptionsForTest : getRegularUserOptions('logo');
+
 
   if (authLoading || !user) {
     return <div className="container mx-auto py-8 px-4 text-center text-foreground">프로필 정보를 불러오는 중...</div>;
@@ -228,7 +266,7 @@ export default function ProfilePage() {
                 <Tabs defaultValue="info" className="w-full">
                     <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 mb-6 bg-card border-border">
                         <TabsTrigger value="info" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"><UserCog className="inline-block h-4 w-4 mr-1 md:mr-2" />내 정보</TabsTrigger>
-                        <TabsTrigger value="displayRank" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"><Crown className="inline-block h-4 w-4 mr-1 md:mr-2" />대표 칭호</TabsTrigger>
+                        <TabsTrigger value="displayRank" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"><Crown className="inline-block h-4 w-4 mr-1 md:mr-2" />대표 표시</TabsTrigger>
                         <TabsTrigger value="activity" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"><MessageSquare className="inline-block h-4 w-4 mr-1 md:mr-2" />활동</TabsTrigger>
                         <TabsTrigger value="inquiries" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"><ShieldAlert className="inline-block h-4 w-4 mr-1 md:mr-2" />문의함</TabsTrigger>
                     </TabsList>
@@ -273,28 +311,54 @@ export default function ProfilePage() {
                      <TabsContent value="displayRank">
                         <Card className="bg-card border-border">
                           <CardHeader>
-                            <CardTitle className="text-foreground">대표 칭호/하이라이트 설정</CardTitle>
+                            <CardTitle className="text-foreground">대표 표시 설정</CardTitle>
                             <CardDescription className="text-muted-foreground">
-                              여러 랭킹에 해당될 경우, 커뮤니티에 표시될 주요 칭호와 스타일을 선택하세요.
-                              {isAdmin && <span className="text-destructive font-semibold"> (관리자는 이 설정이 적용되지 않습니다.)</span>}
+                              커뮤니티에 표시될 칭호, 닉네임 스타일, 로고를 선택하세요.
+                              {isAdmin && user.username !== 'testwang1' && <span className="text-destructive font-semibold"> (관리자는 이 설정이 적용되지 않습니다.)</span>}
                             </CardDescription>
                           </CardHeader>
                           <CardContent>
-                            {isAdmin && user.username !== 'testwang1' ? ( // 관리자이면서 테스트 계정이 아닌 경우
-                                <p className="text-sm text-muted-foreground">관리자 계정은 칭호/하이라이트 설정을 사용하지 않습니다.</p>
-                            ) : availableDisplayRanks.length > 1 || user.username === 'testwang1' ? ( // 일반 사용자 또는 테스트 계정
-                              <RadioGroup value={selectedDisplayRankState} onValueChange={handleDisplayRankChange}>
-                                {availableDisplayRanks.map(rankOption => (
-                                  <div key={rankOption.value} className="flex items-center space-x-2 py-2">
-                                    <RadioGroupItem value={rankOption.value} id={rankOption.value} />
-                                    <Label htmlFor={rankOption.value} className="font-normal text-foreground">
-                                      {rankOption.label}
-                                    </Label>
-                                  </div>
-                                ))}
-                              </RadioGroup>
-                            ) : ( // 선택 가능한 칭호가 없는 일반 사용자
-                              <p className="text-sm text-muted-foreground">현재 선택 가능한 대표 칭호/하이라이트가 없습니다. (기본 표시만 가능)</p>
+                            {isAdmin && user.username !== 'testwang1' ? (
+                                <p className="text-sm text-muted-foreground">관리자 계정은 대표 표시 설정을 사용하지 않습니다.</p>
+                            ) : (
+                                <Tabs defaultValue="title_tab" className="w-full">
+                                  <TabsList className="grid w-full grid-cols-3 mb-4 bg-muted/50 border-border p-1 rounded-lg">
+                                    <TabsTrigger value="title_tab" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-xs"><VenetianMask className="inline-block h-4 w-4 mr-1"/>칭호</TabsTrigger>
+                                    <TabsTrigger value="nickname_effect_tab" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-xs"><Palette className="inline-block h-4 w-4 mr-1"/>닉네임 스타일</TabsTrigger>
+                                    <TabsTrigger value="logo_tab" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-xs"><Star className="inline-block h-4 w-4 mr-1"/>로고</TabsTrigger>
+                                  </TabsList>
+
+                                  <TabsContent value="title_tab">
+                                    <RadioGroup value={currentTitle} onValueChange={(v) => handlePreferenceChange('title', v)}>
+                                      {currentTitleOptions.map(opt => (
+                                        <div key={opt.value} className="flex items-center space-x-2 py-1.5">
+                                          <RadioGroupItem value={opt.value} id={`title_${opt.value}`} />
+                                          <Label htmlFor={`title_${opt.value}`} className="font-normal text-foreground text-sm">{opt.label}</Label>
+                                        </div>
+                                      ))}
+                                    </RadioGroup>
+                                  </TabsContent>
+                                  <TabsContent value="nickname_effect_tab">
+                                     <RadioGroup value={currentNicknameEffect} onValueChange={(v) => handlePreferenceChange('nicknameEffect', v)}>
+                                      {currentNicknameEffectOptions.map(opt => (
+                                        <div key={opt.value} className="flex items-center space-x-2 py-1.5">
+                                          <RadioGroupItem value={opt.value} id={`effect_${opt.value}`} />
+                                          <Label htmlFor={`effect_${opt.value}`} className="font-normal text-foreground text-sm">{opt.label}</Label>
+                                        </div>
+                                      ))}
+                                    </RadioGroup>
+                                  </TabsContent>
+                                  <TabsContent value="logo_tab">
+                                     <RadioGroup value={currentLogo} onValueChange={(v) => handlePreferenceChange('logo', v)}>
+                                      {currentLogoOptions.map(opt => (
+                                        <div key={opt.value} className="flex items-center space-x-2 py-1.5">
+                                          <RadioGroupItem value={opt.value} id={`logo_${opt.value}`} />
+                                          <Label htmlFor={`logo_${opt.value}`} className="font-normal text-foreground text-sm">{opt.label}</Label>
+                                        </div>
+                                      ))}
+                                    </RadioGroup>
+                                  </TabsContent>
+                                </Tabs>
                             )}
                           </CardContent>
                         </Card>
