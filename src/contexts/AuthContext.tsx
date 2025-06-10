@@ -3,7 +3,7 @@
 "use client";
 import type { User, NewUserDto as SignupUserDto, TitleIdentifier, NicknameEffectIdentifier, LogoIdentifier } from '@/types';
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
-import { mockUsers, addUser as addUserToMockList } from '@/lib/mockData';
+import { mockUsers, addUserToMockList, mockUsersData as initialMockUsersData } from '@/lib/mockData'; // Import initialMockUsersData for re-assigning during login if needed
 
 interface AuthContextType {
   user: User | null;
@@ -29,13 +29,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       if (parsedUser.nicknameLastChanged && typeof parsedUser.nicknameLastChanged === 'string') {
         parsedUser.nicknameLastChanged = new Date(parsedUser.nicknameLastChanged);
       }
-      // Ensure new granular preferences are defaulted if not present
       parsedUser.selectedTitleIdentifier = parsedUser.selectedTitleIdentifier || 'none';
       parsedUser.selectedNicknameEffectIdentifier = parsedUser.selectedNicknameEffectIdentifier || 'none';
       parsedUser.selectedLogoIdentifier = parsedUser.selectedLogoIdentifier || 'none';
+      parsedUser.socialProfiles = parsedUser.socialProfiles || {}; // Ensure socialProfiles exists
       
       setUser(parsedUser);
-      setIsAdmin(parsedUser.username === 'WANGJUNLAND');
+      setIsAdmin(parsedUser.username === 'wangjunland');
     }
     setLoading(false);
   }, []);
@@ -44,7 +44,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setLoading(true);
     await new Promise(resolve => setTimeout(resolve, 300));
 
-    let foundUser = mockUsers.find(u => u.username === username && (username === 'WANGJUNLAND' ? u.password === pass : u.password === pass));
+    // Find user in the current mockUsers array (which is recalculated with ranks)
+    let foundUser = mockUsers.find(u => u.username.toLowerCase() === username.toLowerCase() && u.password === pass);
 
     if (foundUser) {
       const userToSet = {...foundUser};
@@ -54,9 +55,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       userToSet.selectedTitleIdentifier = userToSet.selectedTitleIdentifier || 'none';
       userToSet.selectedNicknameEffectIdentifier = userToSet.selectedNicknameEffectIdentifier || 'none';
       userToSet.selectedLogoIdentifier = userToSet.selectedLogoIdentifier || 'none';
+      userToSet.socialProfiles = userToSet.socialProfiles || {}; // Ensure socialProfiles on login
 
       setUser(userToSet);
-      setIsAdmin(userToSet.username === 'WANGJUNLAND');
+      setIsAdmin(userToSet.username === 'wangjunland');
       localStorage.setItem('currentUser', JSON.stringify(userToSet));
       setLoading(false);
       return true;
@@ -74,7 +76,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const signup = async (userData: SignupUserDto): Promise<{ success: boolean, message?: string }> => {
     setLoading(true);
     await new Promise(resolve => setTimeout(resolve, 300));
-    const result = addUserToMockList(userData); // addUserToMockList should handle new fields
+    // addUserToMockList now correctly initializes new users without email from form
+    // and with empty socialProfiles.
+    const result = addUserToMockList(userData); 
     setLoading(false);
     return result;
   };
@@ -93,6 +97,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         selectedTitleIdentifier: finalUpdatedFields.selectedTitleIdentifier || user.selectedTitleIdentifier || 'none',
         selectedNicknameEffectIdentifier: finalUpdatedFields.selectedNicknameEffectIdentifier || user.selectedNicknameEffectIdentifier || 'none',
         selectedLogoIdentifier: finalUpdatedFields.selectedLogoIdentifier || user.selectedLogoIdentifier || 'none',
+        socialProfiles: finalUpdatedFields.socialProfiles || user.socialProfiles || {}, // Ensure socialProfiles is preserved/updated
       };
       
       if (updatedUserObject.nicknameLastChanged && typeof updatedUserObject.nicknameLastChanged === 'string') {
@@ -110,11 +115,26 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             selectedTitleIdentifier: updatedUserObject.selectedTitleIdentifier,
             selectedNicknameEffectIdentifier: updatedUserObject.selectedNicknameEffectIdentifier,
             selectedLogoIdentifier: updatedUserObject.selectedLogoIdentifier,
+            socialProfiles: updatedUserObject.socialProfiles, // Persist to mockUsers array
         };
       }
+      // Also update the initialMockUsersData if the user exists there to keep source consistent
+      const initialUserIndex = initialMockUsersData.findIndex(u => u.id === user.id);
+      if(initialUserIndex !== -1) {
+        initialMockUsersData[initialUserIndex] = {
+          ...initialMockUsersData[initialUserIndex],
+           ...finalUpdatedFields,
+           // We don't store selected preferences or dynamic ranks in initialMockUsersData
+           // But socialProfiles should be updated if it changes
+           socialProfiles: updatedUserObject.socialProfiles,
+           email: updatedUserObject.email, // if email is updated
+           nickname: updatedUserObject.nickname, // if nickname is updated
+        }
+      }
+
 
       if (updatedUserPartial.username) {
-        setIsAdmin(updatedUserPartial.username === 'WANGJUNLAND');
+        setIsAdmin(updatedUserPartial.username === 'wangjunland');
       }
     }
   };

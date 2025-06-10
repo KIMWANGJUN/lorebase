@@ -13,13 +13,18 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Edit3, Mail, MessageSquare, ShieldAlert, UserCog, ShieldCheck, Crown, Users, Gamepad2, Clock, CheckCircle, Wand2, Palette, VenetianMask, Star, Box, AppWindow, PenTool, LayoutGrid } from 'lucide-react';
+import { Edit3, Mail, MessageSquare, ShieldAlert, UserCog, ShieldCheck, Crown, Users, Gamepad2, Clock, CheckCircle, Wand2, Palette, VenetianMask, Star, Box, AppWindow, PenTool, LayoutGrid, Link2, CheckSquare, Square } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import type { User, PostMainCategory, AchievedRankType, TitleIdentifier, NicknameEffectIdentifier, LogoIdentifier } from '@/types';
 import { mockPosts, mockInquiries, mockUsers, tetrisTitles } from '@/lib/mockData';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
 import NicknameDisplay from '@/components/shared/NicknameDisplay';
+
+// Placeholder icons for social login (can be replaced with actual icons)
+const GoogleIcon = () => <svg className="h-4 w-4" viewBox="0 0 24 24"><path fill="currentColor" d="M21.35 11.1h-9.03v2.79h5.32c-.46 1.65-1.96 2.93-3.98 2.93-2.48 0-4.5-2.01-4.5-4.49s2.02-4.49 4.5-4.49c1.21 0 2.26.44 3.08 1.16l2.13-2.13C15.41 4.46 13.54 3.5 11.32 3.5 7.06 3.5 3.5 7.06 3.5 11.32s3.56 7.82 7.82 7.82c4.07 0 7.49-3.16 7.49-7.49 0-.61-.07-1.21-.19-1.75z"></path></svg>;
+const NaverIcon = () => <svg className="h-4 w-4" viewBox="0 0 24 24"><path fill="#03C75A" d="M16.273 12.845L12.54 7.155H7.045v9.69h5.768l3.733-5.69zM7.045 4.5h9.91v2.655h-4.23L8.502 11.73H7.045V4.5zm0 15h9.91V16.87h-4.23l-4.228-4.575H7.045v7.19z"></path></svg>;
+const KakaoIcon = () => <svg className="h-4 w-4" viewBox="0 0 24 24"><path fill="#FFEB00" d="M12 2C6.48 2 2 5.89 2 10.49c0 2.83 1.71 5.31 4.31 6.78-.19.98-.71 3.42-1.14 4.47-.09.24.06.5.3.59.08.03.16.04.24.04.16 0 .31-.06.43-.18 1.87-1.41 3.29-2.78 4.07-3.68C10.99 18.91 11.5 19 12 19c5.52 0 10-3.89 10-8.51S17.52 2 12 2z"></path></svg>;
 
 
 const getCategoryDisplayName = (category: PostMainCategory | 'Global'): string => {
@@ -53,7 +58,6 @@ const CategorySpecificIcon: React.FC<{ category: PostMainCategory | 'Global', cl
     default: return null;
   }
 };
-
 
 interface SelectOption {
   value: string;
@@ -98,21 +102,19 @@ const logoOptionsForTest: SelectOption[] = [
   { value: 'logo_General', label: '테스트: 일반 & 유머 로고'},
 ];
 
-
 export default function ProfilePage() {
   const { user, isAdmin, updateUser, loading: authLoading } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
 
   const [nickname, setNickname] = useState('');
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState(''); // Email state for profile update
   const [isEditingNickname, setIsEditingNickname] = useState(false);
   
   const [currentTitle, setCurrentTitle] = useState<TitleIdentifier>('none');
   const [currentNicknameEffect, setCurrentNicknameEffect] = useState<NicknameEffectIdentifier>('none');
   const [currentLogo, setCurrentLogo] = useState<LogoIdentifier>('none');
   const [activeRankingTabProfile, setActiveRankingTabProfile] = useState<PostMainCategory | 'Global'>('Global');
-
 
   const calculateCanChangeNickname = () => {
     if (!user) return false;
@@ -129,13 +131,12 @@ export default function ProfilePage() {
     return new Date(new Date(user.nicknameLastChanged).getTime() + (30 * 24 * 60 * 60 * 1000));
   }, [user, isAdmin]);
 
-
   useEffect(() => {
     if (!authLoading && !user) {
       router.push('/login');
     } else if (user) {
       setNickname(user.nickname);
-      setEmail(user.email || '');
+      setEmail(user.email || ''); // Set email from user context
       setCurrentTitle(user.selectedTitleIdentifier || 'none');
       setCurrentNicknameEffect(user.selectedNicknameEffectIdentifier || 'none');
       setCurrentLogo(user.selectedLogoIdentifier || 'none');
@@ -145,12 +146,10 @@ export default function ProfilePage() {
 
   const handleNicknameSave = () => {
     if (!user) return;
-
     if (!isAdmin && !nicknameChangeAllowed) {
       toast({ title: "오류", description: "닉네임은 30일에 한 번만 변경할 수 있습니다.", variant: "destructive"});
       return;
     }
-
     const trimmedNickname = nickname.trim();
     if (!trimmedNickname) {
         toast({ title: "오류", description: "닉네임은 비워둘 수 없습니다.", variant: "destructive"});
@@ -160,13 +159,11 @@ export default function ProfilePage() {
         setIsEditingNickname(false);
         return;
     }
-
-    const isDuplicate = mockUsers.some(u => u.id !== user.id && u.username !== 'WANGJUNLAND' && u.nickname.toLowerCase() === trimmedNickname.toLowerCase());
+    const isDuplicate = mockUsers.some(u => u.id !== user.id && u.username !== 'wangjunland' && u.nickname.toLowerCase() === trimmedNickname.toLowerCase());
     if (isDuplicate) {
         toast({ title: "오류", description: "이미 사용 중인 닉네임입니다.", variant: "destructive"});
         return;
     }
-
     updateUser({ nickname: trimmedNickname });
     setIsEditingNickname(false);
     setNicknameChangeAllowed(calculateCanChangeNickname()); 
@@ -176,20 +173,17 @@ export default function ProfilePage() {
   const handleEmailSave = () => {
     if (!user) return;
     const trimmedEmail = email.trim();
-
     if (trimmedEmail && !/\S+@\S+\.\S+/.test(trimmedEmail)) {
         toast({ title: "오류", description: "유효한 이메일 주소를 입력해주세요.", variant: "destructive"});
         return;
     }
-
     if (trimmedEmail && trimmedEmail !== (user.email || '')) {
-        const isDuplicate = mockUsers.some(u => u.id !== user.id && u.username !== 'WANGJUNLAND' && u.email?.toLowerCase() === trimmedEmail.toLowerCase());
+        const isDuplicate = mockUsers.some(u => u.id !== user.id && u.email?.toLowerCase() === trimmedEmail.toLowerCase());
         if (isDuplicate) {
             toast({ title: "오류", description: "이미 사용 중인 이메일입니다.", variant: "destructive"});
             return;
         }
     }
-
     updateUser({ email: trimmedEmail || undefined });
     toast({ title: "성공", description: "이메일이 등록/수정되었습니다." });
   };
@@ -213,17 +207,13 @@ export default function ProfilePage() {
   
   const getRegularUserOptions = (type: 'title' | 'nicknameEffect' | 'logo'): SelectOption[] => {
     if (!user) return [{ value: 'none', label: '없음 / 기본' }];
-    
     const options: SelectOption[] = [{ value: 'none', label: '없음 / 기본' }];
-
     if (type === 'title' && user.tetrisRank && user.tetrisRank > 0 && user.tetrisRank <=3 ) {
          options.push({ value: `tetris_${user.tetrisRank}_title` as TitleIdentifier, label: `${tetrisTitles[user.tetrisRank]} (테트리스 ${user.tetrisRank}위)`});
     }
-    
     if (type === 'nicknameEffect' && user.rank > 0 && user.rank <=3) {
         options.push({ value: `global_${user.rank}_effect` as NicknameEffectIdentifier, label: `종합 ${user.rank}위 스타일`});
     }
-    
     if (type === 'logo') {
         if (user.categoryStats?.Unity?.rankInCate && user.categoryStats.Unity.rankInCate > 0) {
             options.push({ value: 'logo_Unity', label: 'Unity 로고'});
@@ -245,9 +235,8 @@ export default function ProfilePage() {
   const currentNicknameEffectOptions = user?.username === 'testwang1' ? nicknameEffectOptionsForTest : getRegularUserOptions('nicknameEffect');
   const currentLogoOptions = user?.username === 'testwang1' ? logoOptionsForTest : getRegularUserOptions('logo');
 
-
   const displayedRankersProfile = useMemo(() => {
-    const usersToRank = mockUsers.filter(u => u.username !== 'WANGJUNLAND');
+    const usersToRank = mockUsers.filter(u => u.username !== 'wangjunland');
     if (activeRankingTabProfile === 'Global') {
       return usersToRank
         .filter(u => u.rank > 0)
@@ -261,6 +250,21 @@ export default function ProfilePage() {
     }
   }, [activeRankingTabProfile]);
 
+  const handleSocialLink = (provider: 'google' | 'naver' | 'kakao') => {
+    if (!user) return;
+    const currentSocialProfiles = user.socialProfiles || {};
+    const updatedSocialProfiles = { ...currentSocialProfiles, [provider]: `dummy_${provider}_id_${user.id}` };
+    updateUser({ socialProfiles: updatedSocialProfiles });
+    toast({ title: "연동 성공", description: `${provider.charAt(0).toUpperCase() + provider.slice(1)} 계정이 연동되었습니다.` });
+  };
+
+  const handleSocialUnlink = (provider: 'google' | 'naver' | 'kakao') => {
+    if(!user) return;
+    const currentSocialProfiles = user.socialProfiles || {};
+    const { [provider]: _, ...remainingProfiles } = currentSocialProfiles; // eslint-disable-line @typescript-eslint/no-unused-vars
+    updateUser({ socialProfiles: remainingProfiles });
+    toast({ title: "연동 해제", description: `${provider.charAt(0).toUpperCase() + provider.slice(1)} 계정 연동이 해제되었습니다.`});
+  }
 
   if (authLoading || !user) {
     return <div className="container mx-auto py-8 px-4 text-center text-foreground">프로필 정보를 불러오는 중...</div>;
@@ -271,6 +275,14 @@ export default function ProfilePage() {
 
   const bannerImageUrl = "https://placehold.co/1920x600.png";
   const tabsForRanking: (PostMainCategory | 'Global')[] = ['Global', 'Unity', 'Unreal', 'Godot', 'General'];
+  const profileTabs: {value: string, label: string, icon: React.ElementType}[] = [
+    { value: "info", label: "내 정보", icon: UserCog },
+    { value: "displayRank", label: "대표 표시", icon: Crown },
+    { value: "socialLink", label: "소셜 연동", icon: Link2 },
+    { value: "activity", label: "활동", icon: MessageSquare },
+    { value: "inquiries", label: "문의함", icon: ShieldAlert },
+  ];
+
 
   return (
     <div className="container mx-auto py-10 px-4">
@@ -303,17 +315,18 @@ export default function ProfilePage() {
                 <div className="mt-4 text-center">
                     <p className="text-2xl font-semibold">{user.score.toLocaleString()} 점</p>
                     <p className="text-sm opacity-80">
-                        {user.rank > 0 ? `종합 ${user.rank}위` : (isAdmin ? "" : "랭킹 정보 없음")}
+                        {user.rank > 0 ? `종합 ${user.rank}위` : (isAdmin && user.username === 'wangjunland' ? "" : "랭킹 정보 없음")}
                     </p>
                 </div>
             </div>
             <div className="md:w-2/3 p-8">
                 <Tabs defaultValue="info" className="w-full">
-                    <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 mb-6 bg-card border-border">
-                        <TabsTrigger value="info" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"><UserCog className="inline-block h-4 w-4 mr-1 md:mr-2" />내 정보</TabsTrigger>
-                        <TabsTrigger value="displayRank" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"><Crown className="inline-block h-4 w-4 mr-1 md:mr-2" />대표 표시</TabsTrigger>
-                        <TabsTrigger value="activity" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"><MessageSquare className="inline-block h-4 w-4 mr-1 md:mr-2" />활동</TabsTrigger>
-                        <TabsTrigger value="inquiries" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"><ShieldAlert className="inline-block h-4 w-4 mr-1 md:mr-2" />문의함</TabsTrigger>
+                    <TabsList className="grid w-full grid-cols-3 md:grid-cols-5 mb-6 bg-card border-border">
+                        {profileTabs.map(tab => (
+                             <TabsTrigger key={tab.value} value={tab.value} className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-xs sm:text-sm">
+                                <tab.icon className="inline-block h-3.5 w-3.5 mr-1 md:mr-2" />{tab.label}
+                             </TabsTrigger>
+                        ))}
                     </TabsList>
 
                     <TabsContent value="info">
@@ -345,7 +358,7 @@ export default function ProfilePage() {
                                 <div>
                                     <Label htmlFor="email" className="text-muted-foreground">이메일</Label>
                                     <div className="flex items-center gap-2">
-                                      <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="bg-input border-border text-foreground focus:ring-accent"/>
+                                      <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="bg-input border-border text-foreground focus:ring-accent" placeholder="이메일을 등록해주세요."/>
                                       <Button onClick={handleEmailSave} variant="outline" size="sm" className="border-border text-muted-foreground hover:bg-muted/50 hover:border-accent"><CheckCircle className="h-4 w-4 mr-1"/> 등록/수정</Button>
                                     </div>
                                 </div>
@@ -372,35 +385,19 @@ export default function ProfilePage() {
                                     <TabsTrigger value="nickname_effect_tab" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-xs"><Palette className="inline-block h-4 w-4 mr-1"/>닉네임 스타일</TabsTrigger>
                                     <TabsTrigger value="logo_tab" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-xs"><Star className="inline-block h-4 w-4 mr-1"/>로고</TabsTrigger>
                                   </TabsList>
-
                                   <TabsContent value="title_tab">
                                     <RadioGroup value={currentTitle} onValueChange={(v) => handlePreferenceChange('title', v)}>
-                                      {currentTitleOptions.map(opt => (
-                                        <div key={opt.value} className="flex items-center space-x-2 py-1.5">
-                                          <RadioGroupItem value={opt.value} id={`title_${opt.value}`} />
-                                          <Label htmlFor={`title_${opt.value}`} className="font-normal text-foreground text-sm">{opt.label}</Label>
-                                        </div>
-                                      ))}
+                                      {currentTitleOptions.map(opt => ( <div key={opt.value} className="flex items-center space-x-2 py-1.5"> <RadioGroupItem value={opt.value} id={`title_${opt.value}`} /> <Label htmlFor={`title_${opt.value}`} className="font-normal text-foreground text-sm">{opt.label}</Label> </div> ))}
                                     </RadioGroup>
                                   </TabsContent>
                                   <TabsContent value="nickname_effect_tab">
                                      <RadioGroup value={currentNicknameEffect} onValueChange={(v) => handlePreferenceChange('nicknameEffect', v)}>
-                                      {currentNicknameEffectOptions.map(opt => (
-                                        <div key={opt.value} className="flex items-center space-x-2 py-1.5">
-                                          <RadioGroupItem value={opt.value} id={`effect_${opt.value}`} />
-                                          <Label htmlFor={`effect_${opt.value}`} className="font-normal text-foreground text-sm">{opt.label}</Label>
-                                        </div>
-                                      ))}
+                                      {currentNicknameEffectOptions.map(opt => ( <div key={opt.value} className="flex items-center space-x-2 py-1.5"> <RadioGroupItem value={opt.value} id={`effect_${opt.value}`} /> <Label htmlFor={`effect_${opt.value}`} className="font-normal text-foreground text-sm">{opt.label}</Label> </div> ))}
                                     </RadioGroup>
                                   </TabsContent>
                                   <TabsContent value="logo_tab">
                                      <RadioGroup value={currentLogo} onValueChange={(v) => handlePreferenceChange('logo', v)}>
-                                      {currentLogoOptions.map(opt => (
-                                        <div key={opt.value} className="flex items-center space-x-2 py-1.5">
-                                          <RadioGroupItem value={opt.value} id={`logo_${opt.value}`} />
-                                          <Label htmlFor={`logo_${opt.value}`} className="font-normal text-foreground text-sm">{opt.label}</Label>
-                                        </div>
-                                      ))}
+                                      {currentLogoOptions.map(opt => ( <div key={opt.value} className="flex items-center space-x-2 py-1.5"> <RadioGroupItem value={opt.value} id={`logo_${opt.value}`} /> <Label htmlFor={`logo_${opt.value}`} className="font-normal text-foreground text-sm">{opt.label}</Label> </div>))}
                                     </RadioGroup>
                                   </TabsContent>
                                 </Tabs>
@@ -408,6 +405,36 @@ export default function ProfilePage() {
                           </CardContent>
                         </Card>
                       </TabsContent>
+                    
+                    <TabsContent value="socialLink">
+                        <Card className="bg-card border-border">
+                            <CardHeader><CardTitle className="text-foreground">소셜 계정 연동</CardTitle><CardDescription className="text-muted-foreground">다른 소셜 계정과 현재 계정을 연동하거나 해제합니다.</CardDescription></CardHeader>
+                            <CardContent className="space-y-4">
+                                {(['google', 'naver', 'kakao'] as const).map((provider) => (
+                                    <div key={provider} className="flex items-center justify-between p-3 border border-border rounded-md bg-muted/30">
+                                        <div className="flex items-center gap-2">
+                                            {provider === 'google' && <GoogleIcon />}
+                                            {provider === 'naver' && <NaverIcon />}
+                                            {provider === 'kakao' && <KakaoIcon />}
+                                            <span className="text-sm font-medium text-foreground">
+                                                {provider.charAt(0).toUpperCase() + provider.slice(1)}
+                                            </span>
+                                        </div>
+                                        {user.socialProfiles && user.socialProfiles[provider] ? (
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-sm text-green-400 flex items-center"><CheckSquare className="h-4 w-4 mr-1"/>연동됨</span>
+                                                <Button variant="link" size="sm" className="text-xs text-muted-foreground hover:text-destructive p-0 h-auto" onClick={() => handleSocialUnlink(provider)}>연동 해제</Button>
+                                            </div>
+                                        ) : (
+                                            <Button variant="outline" size="sm" onClick={() => handleSocialLink(provider)} className="border-accent text-accent hover:bg-accent/10">
+                                                <Link2 className="h-4 w-4 mr-1" /> 연동하기
+                                            </Button>
+                                        )}
+                                    </div>
+                                ))}
+                            </CardContent>
+                        </Card>
+                    </TabsContent>
 
                     <TabsContent value="activity">
                          <Card className="bg-card border-border">
@@ -506,5 +533,3 @@ export default function ProfilePage() {
     </div>
   );
 }
-
-    

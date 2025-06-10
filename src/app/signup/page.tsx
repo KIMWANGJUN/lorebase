@@ -18,7 +18,6 @@ import { mockUsers } from '@/lib/mockData'; // For client-side duplication check
 export default function SignupPage() {
   const [username, setUsername] = useState('');
   const [nickname, setNickname] = useState('');
-  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -27,7 +26,6 @@ export default function SignupPage() {
   const [nicknameError, setNicknameError] = useState<string | null>(null);
   const [passwordError, setPasswordError] = useState<string | null>(null);
   const [confirmPasswordError, setConfirmPasswordError] = useState<string | null>(null);
-  const [emailError, setEmailError] = useState<string | null>(null);
 
   const [isUsernameChecked, setIsUsernameChecked] = useState(false);
   const [isUsernameAvailable, setIsUsernameAvailable] = useState(false);
@@ -71,15 +69,6 @@ export default function SignupPage() {
     }
   }, [password, confirmPassword]);
   
-  useEffect(() => {
-    if (email && !/\S+@\S+\.\S+/.test(email)) {
-      setEmailError("유효한 이메일 주소를 입력해주세요.");
-    } else {
-      setEmailError(null);
-    }
-  }, [email]);
-
-
   const handleCheckUsername = () => {
     const validationError = validateUsername(username);
     if (validationError) {
@@ -130,15 +119,13 @@ export default function SignupPage() {
     const currentNicknameError = validateNickname(nickname);
     const currentPasswordError = validatePassword(password);
     const currentConfirmPasswordError = (password !== confirmPassword) ? "비밀번호가 일치하지 않습니다." : null;
-    const currentEmailError = (email && !/\S+@\S+\.\S+/.test(email)) ? "유효한 이메일 주소를 입력해주세요." : null;
 
     setUsernameError(currentUsernameError);
     setNicknameError(currentNicknameError);
     setPasswordError(currentPasswordError);
     setConfirmPasswordError(currentConfirmPasswordError);
-    setEmailError(currentEmailError);
 
-    if (currentUsernameError || currentNicknameError || currentPasswordError || currentConfirmPasswordError || currentEmailError) {
+    if (currentUsernameError || currentNicknameError || currentPasswordError || currentConfirmPasswordError) {
       toast({ title: "입력 오류", description: "입력 내용을 다시 확인해주세요.", variant: "destructive" });
       return;
     }
@@ -157,7 +144,6 @@ export default function SignupPage() {
     const signupData: NewUserDto = {
       username: username.trim(),
       nickname: nickname.trim(),
-      email: email.trim() || undefined,
       password: password,
     };
 
@@ -169,20 +155,19 @@ export default function SignupPage() {
       router.push('/login');
     } else {
       toast({ title: "회원가입 실패", description: result.message || "알 수 없는 오류가 발생했습니다.", variant: "destructive" });
-      // Handle server-side duplication if not caught by client-side check (though less likely with mockData)
       if (result.message?.includes("아이디")) {
         setIsUsernameAvailable(false);
-        setIsUsernameChecked(true); // Mark as checked, but unavailable
+        setIsUsernameChecked(true);
       }
       if (result.message?.includes("닉네임")) {
         setIsNicknameAvailable(false);
-        setIsNicknameChecked(true); // Mark as checked, but unavailable
+        setIsNicknameChecked(true);
       }
     }
   };
   
   const getFeedbackIcon = (isChecked: boolean, isAvailable: boolean, error: string | null) => {
-    if (!isChecked && !error) return null; // Not checked, no initial error
+    if (!isChecked && !error) return null; 
     if (error && (!isChecked || (isChecked && !isAvailable))) return <XCircle className="h-4 w-4 text-destructive" />;
     if (isChecked && isAvailable) return <CheckCircle className="h-4 w-4 text-green-500" />;
     return null;
@@ -200,13 +185,13 @@ export default function SignupPage() {
           <CardDescription>새로운 계정을 만드세요. 규칙을 확인해주세요.</CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-3">
+          <form onSubmit={handleSubmit} className="space-y-4"> {/* Adjusted spacing */}
             <div>
               <Label htmlFor="username">아이디 <span className="text-destructive">*</span></Label>
               <div className="flex items-center gap-2">
                 <div className="relative flex-grow">
                   <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                  <Input id="username" type="text" placeholder="5~20자 영문 소문자, 숫자, _, -" value={username} onChange={(e) => setUsername(e.target.value)} required className="pl-10 pr-8"/>
+                  <Input id="username" type="text" placeholder="5~20자 영문 소문자로 시작, 영문 소문자, 숫자, _, -" value={username} onChange={(e) => setUsername(e.target.value)} required className="pl-10 pr-8"/>
                   <div className="absolute right-2 top-1/2 -translate-y-1/2">
                     {getFeedbackIcon(isUsernameChecked, isUsernameAvailable, usernameError)}
                   </div>
@@ -221,7 +206,7 @@ export default function SignupPage() {
                <div className="flex items-center gap-2">
                 <div className="relative flex-grow">
                   <AtSign className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                  <Input id="nickname" type="text" placeholder="2~14자 한글, 영문, 숫자" value={nickname} onChange={(e) => setNickname(e.target.value)} required className="pl-10 pr-8"/>
+                  <Input id="nickname" type="text" placeholder="2~14자 한글, 영문, 숫자 (공백/특수문자 불가)" value={nickname} onChange={(e) => setNickname(e.target.value)} required className="pl-10 pr-8"/>
                   <div className="absolute right-2 top-1/2 -translate-y-1/2">
                      {getFeedbackIcon(isNicknameChecked, isNicknameAvailable, nicknameError)}
                   </div>
@@ -231,20 +216,11 @@ export default function SignupPage() {
               {nicknameError && <p className="mt-1 text-xs text-destructive">{nicknameError}</p>}
             </div>
 
-             <div>
-              <Label htmlFor="email">이메일 (선택)</Label>
-               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                <Input id="email" type="email" placeholder="이메일 주소" value={email} onChange={(e) => setEmail(e.target.value)} className="pl-10"/>
-              </div>
-              {emailError && <p className="mt-1 text-xs text-destructive">{emailError}</p>}
-            </div>
-
             <div>
               <Label htmlFor="password">비밀번호 <span className="text-destructive">*</span></Label>
               <div className="relative">
                 <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                <Input id="password" type="password" placeholder="8~16자 영문 대소문자, 숫자, 특수문자 조합" value={password} onChange={(e) => setPassword(e.target.value)} required className="pl-10"/>
+                <Input id="password" type="password" placeholder="8~16자 영문 대/소문자, 숫자, 특수문자 조합" value={password} onChange={(e) => setPassword(e.target.value)} required className="pl-10"/>
               </div>
               {passwordError && <p className="mt-1 text-xs text-destructive">{passwordError}</p>}
             </div>
@@ -260,14 +236,13 @@ export default function SignupPage() {
 
             <Button 
               type="submit" 
-              className="w-full bg-gradient-to-r from-primary to-accent text-primary-foreground mt-4" 
+              className="w-full bg-gradient-to-r from-primary to-accent text-primary-foreground mt-6"  // Added mt-6 for spacing
               disabled={
                 isLoading || 
                 !!usernameError || 
                 !!nicknameError || 
                 !!passwordError || 
                 !!confirmPasswordError ||
-                !!emailError ||
                 !isUsernameChecked || !isUsernameAvailable ||
                 !isNicknameChecked || !isNicknameAvailable
               }

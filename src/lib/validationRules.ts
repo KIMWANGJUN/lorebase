@@ -29,6 +29,9 @@ export const validateUsername = (username: string): string | null => {
   if (forbiddenUsernames.includes(username.toLowerCase())) {
     return "사용할 수 없는 아이디입니다.";
   }
+  if (username.startsWith('-') || username.startsWith('_')) {
+    return "아이디는 하이픈(-)이나 언더바(_)로 시작할 수 없습니다.";
+  }
   return null;
 };
 
@@ -66,3 +69,4 @@ export const validateNickname = (nickname: string): string | null => {
   // 여기서는 기본적인 문자 규칙만 검사합니다.
   return null;
 };
+
