@@ -3,7 +3,7 @@
 "use client";
 
 import type { User, PostMainCategory, AchievedRankType } from '@/types';
-import { tetrisTitles } from '@/lib/mockData'; // Assuming tetrisTitles is exported from mockData
+import { tetrisTitles } from '@/lib/mockData'; 
 import { cn } from '@/lib/utils';
 import React, { useMemo } from 'react';
 import { Box, AppWindow, PenTool, LayoutGrid, ShieldCheck } from 'lucide-react';
@@ -11,8 +11,8 @@ import { Box, AppWindow, PenTool, LayoutGrid, ShieldCheck } from 'lucide-react';
 interface NicknameDisplayProps {
   user: User;
   context?: 'postAuthor' | 'commentAuthor' | 'rankingList' | 'sidebarRanking' | 'header';
-  activeCategory?: PostMainCategory;
-  postMainCategoryForAuthor?: PostMainCategory;
+  activeCategory?: PostMainCategory; // For sidebar or category-specific views
+  postMainCategoryForAuthor?: PostMainCategory; // For post author in post detail view
 }
 
 const CategoryIcon: React.FC<{ category: PostMainCategory; className?: string }> = ({ category, className }) => {
@@ -46,105 +46,125 @@ const getCategoryDisplayName = (category: PostMainCategory): string => {
 export default function NicknameDisplay({ user, context, activeCategory, postMainCategoryForAuthor }: NicknameDisplayProps) {
   const displayInfo = useMemo(() => {
     let titleText: string | null = null;
-    let titleClasses: string = "title-text-base"; // Base class for title
-    let nicknameClasses: string = "text-sm font-medium text-foreground"; // Default nickname style
-    let wrapperClasses: string = ""; // For background wrappers
+    let titleClasses: string = "title-text-base"; 
+    let nicknameClasses: string = "text-sm font-medium text-foreground"; 
+    let wrapperClasses: string = ""; 
     let showLogo: PostMainCategory | null = null;
+    let appliedStyle = false;
 
     if (!user) return { titleText, titleClasses, nicknameClasses, wrapperClasses, showLogo, nickname: "Unknown User", isAdmin: false };
 
+    const applyGlobalRankStyle = (rank: number) => {
+        if (rank === 1) { nicknameClasses = "text-gradient-gold"; wrapperClasses = "bg-wrapper-gold"; }
+        else if (rank === 2) { nicknameClasses = "text-gradient-silver"; wrapperClasses = "bg-wrapper-silver"; }
+        else if (rank === 3) { nicknameClasses = "text-gradient-bronze"; wrapperClasses = "bg-wrapper-bronze"; }
+        titleText = null; 
+    };
+    
+    const applyTetrisRankStyle = (rank: number, gameName: string = "테트리스") => {
+        if (rank === 1) { titleText = `♛${gameName}♕`; titleClasses = "text-gradient-gold title-text-base"; nicknameClasses = "text-gradient-gold"; }
+        else if (rank === 2) { titleText = `"${gameName}" 그랜드 마스터`; titleClasses = "text-gradient-silver title-text-base"; nicknameClasses = "text-gradient-silver"; }
+        else if (rank === 3) { titleText = `"${gameName}" 마스터`; titleClasses = "text-gradient-bronze title-text-base"; nicknameClasses = "text-gradient-bronze"; }
+        wrapperClasses = ""; 
+    };
+
+    const applyCategoryRankStyle = (category: PostMainCategory, rank: number) => {
+        showLogo = category;
+        if (rank >= 1 && rank <= 3) {
+            titleText = getCategoryDisplayName(category);
+            if (rank === 1) titleClasses = "text-gradient-gold title-text-base";
+            else if (rank === 2) titleClasses = "text-gradient-silver title-text-base";
+            else if (rank === 3) titleClasses = "text-gradient-bronze title-text-base";
+        } else {
+            titleText = null;
+        }
+
+        if (rank >= 1 && rank <= 10) { // Nickname and Wrapper for 1-10
+            if (category === 'Unity') { nicknameClasses = "text-gradient-unity"; wrapperClasses = "bg-wrapper-unity"; }
+            else if (category === 'Unreal') { nicknameClasses = "text-gradient-unreal"; wrapperClasses = "bg-wrapper-unreal"; }
+            else if (category === 'Godot') { nicknameClasses = "text-gradient-godot"; wrapperClasses = "bg-wrapper-godot"; }
+            else if (category === 'General') { nicknameClasses = "text-gradient-general-rainbow"; wrapperClasses = "bg-wrapper-general-rainbow"; }
+        } else if (rank >= 11 && rank <= 20) { // Text only for 11-20
+             if (category === 'Unity') nicknameClasses = "text-gradient-unity";
+             else if (category === 'Unreal') nicknameClasses = "text-gradient-unreal";
+             else if (category === 'Godot') nicknameClasses = "text-gradient-godot";
+             else if (category === 'General') nicknameClasses = "text-gradient-general-rainbow";
+            wrapperClasses = ""; 
+        }
+    };
+    
+    // 테스트 계정 특별 처리
+    if (user.username === 'testwang1') {
+        const selected = user.selectedDisplayRank || 'default';
+        appliedStyle = true; // 테스트 계정은 항상 이 블록에서 스타일이 결정됨
+
+        if (selected.startsWith('global_')) {
+            applyGlobalRankStyle(parseInt(selected.split('_')[1]));
+        } else if (selected.startsWith('tetris_')) {
+            const rank = parseInt(selected.split('_')[1]);
+            // tetrisTitles에서 실제 게임 이름을 가져오거나, 기본값 사용
+            const gameTitle = tetrisTitles[rank] ? tetrisTitles[rank].replace(/♛|♕|"/g, '').split(' ')[0] : "테트리스";
+            applyTetrisRankStyle(rank, gameTitle);
+        } else if (selected.startsWith('category_')) {
+            const parts = selected.split('_');
+            const cat = parts[1] as PostMainCategory;
+            const tier = parts[2]; // "1-3", "4-10", "11-20"
+            let representativeRank = 0;
+            if (tier === "1-3") representativeRank = 1;
+            else if (tier === "4-10") representativeRank = 4;
+            else if (tier === "11-20") representativeRank = 11;
+            
+            if (representativeRank > 0) {
+                applyCategoryRankStyle(cat, representativeRank);
+            } else { // 안전장치
+                nicknameClasses = "text-sm font-medium text-foreground";
+            }
+        } else { // 'default' 또는 기타 선택
+            nicknameClasses = "text-sm font-medium text-foreground";
+            titleText = null; wrapperClasses = ""; showLogo = null;
+        }
+        return { titleText, titleClasses, nicknameClasses, wrapperClasses, showLogo, nickname: user.nickname, isAdmin: false };
+    }
+
+
     if (user.username === 'WANGJUNLAND') {
       return {
-        titleText: null,
-        titleClasses: "",
-        nicknameClasses: "admin-text text-sm",
-        wrapperClasses: "admin-badge",
-        showLogo: null,
-        nickname: user.nickname,
-        isAdmin: true,
+        titleText: null, titleClasses: "", nicknameClasses: "admin-text text-sm",
+        wrapperClasses: "admin-badge", showLogo: null, nickname: user.nickname, isAdmin: true,
       };
     }
 
     const currentSelectedRank = user.selectedDisplayRank || 'default';
-    let appliedStyle = false;
 
-    const applyGlobalRankStyle = (rank: number) => {
-      if (rank === 1) { nicknameClasses = "text-rank-gold"; wrapperClasses = "bg-rank-gold-wrapper"; }
-      else if (rank === 2) { nicknameClasses = "text-rank-silver"; wrapperClasses = "bg-rank-silver-wrapper"; }
-      else if (rank === 3) { nicknameClasses = "text-rank-bronze"; wrapperClasses = "bg-rank-bronze-wrapper"; }
-      titleText = null; // Global ranks don't have a prefix title by default here
-      appliedStyle = true;
-    };
-
-    const applyTetrisRankStyle = (rank: number) => {
-      titleText = tetrisTitles[rank] || null;
-      if (rank === 1) { titleClasses = "text-rank-gold title-text-base"; nicknameClasses = "text-rank-gold"; }
-      else if (rank === 2) { titleClasses = "text-rank-silver title-text-base"; nicknameClasses = "text-rank-silver"; }
-      else if (rank === 3) { titleClasses = "text-rank-bronze title-text-base"; nicknameClasses = "text-rank-bronze"; }
-      wrapperClasses = ""; // No wrapper for tetris ranks
-      appliedStyle = true;
-    };
-
-    const applyCategoryRankStyle = (category: PostMainCategory, rank: number) => {
-      showLogo = category; // Show logo for all category ranks
-
-      if (rank >= 1 && rank <= 3) { // Top 1-3 in category
-        titleText = getCategoryDisplayName(category);
-        if (rank === 1) titleClasses = "text-rank-gold title-text-base";
-        else if (rank === 2) titleClasses = "text-rank-silver title-text-base";
-        else if (rank === 3) titleClasses = "text-rank-bronze title-text-base";
-      } else {
-        titleText = null; // No title for 4-20
-      }
-
-      // Nickname and Wrapper styles based on rank tier and category
-      if (rank >= 1 && rank <= 10) { // Wrapper for 1-10
-        if (category === 'Unity') { nicknameClasses = "text-unity-gradient"; wrapperClasses = "bg-unity-wrapper"; }
-        else if (category === 'Unreal') { nicknameClasses = "text-unreal-gradient"; wrapperClasses = "bg-unreal-wrapper"; }
-        else if (category === 'Godot') { nicknameClasses = "text-godot-gradient"; wrapperClasses = "bg-godot-wrapper"; }
-        else if (category === 'General') { nicknameClasses = "text-general-gradient"; wrapperClasses = "bg-general-wrapper"; }
-      } else if (rank >= 11 && rank <= 20) { // Text only for 11-20
-        if (category === 'Unity') nicknameClasses = "text-unity-gradient";
-        else if (category === 'Unreal') nicknameClasses = "text-unreal-gradient";
-        else if (category === 'Godot') nicknameClasses = "text-godot-gradient";
-        else if (category === 'General') nicknameClasses = "text-general-gradient";
-        wrapperClasses = ""; // No wrapper for 11-20
-      }
-      appliedStyle = true;
-    };
-    
-    // Priority 1: User's selected display rank
     if (currentSelectedRank !== 'default') {
       const [type, ...rest] = currentSelectedRank.split('_') as [string, string, string?];
       const rankOrCategory = rest[0];
       const rankNum = parseInt(rankOrCategory);
 
       if (type === 'global' && user.rank === rankNum && rankNum <=3) {
-        applyGlobalRankStyle(rankNum);
+        applyGlobalRankStyle(rankNum); appliedStyle = true;
       } else if (type === 'tetris' && user.tetrisRank && user.tetrisRank === rankNum && rankNum <=3) {
-        applyTetrisRankStyle(rankNum);
+        applyTetrisRankStyle(rankNum, tetrisTitles[rankNum]?.replace(/♛|♕|"/g, '').split(' ')[0] || "테트리스"); appliedStyle = true;
       } else if (type === 'category') {
         const cat = rankOrCategory as PostMainCategory;
-        const tier = rest[1]; // "1-3", "4-10", "11-20"
+        const tier = rest[1]; 
         const userCatRank = user.categoryStats?.[cat]?.rankInCate;
         if (userCatRank) {
             if ((tier === "1-3" && userCatRank >= 1 && userCatRank <= 3) ||
               (tier === "4-10" && userCatRank >= 4 && userCatRank <= 10) ||
               (tier === "11-20" && userCatRank >= 11 && userCatRank <= 20)) {
-            applyCategoryRankStyle(cat, userCatRank);
-          }
+              applyCategoryRankStyle(cat, userCatRank); appliedStyle = true;
+            }
         }
       }
     }
 
-    // Priority 2: Default automatic application if no valid selection or 'default'
     if (!appliedStyle) {
       if (user.rank > 0 && user.rank <= 3) {
         applyGlobalRankStyle(user.rank);
       } else if (user.tetrisRank && user.tetrisRank > 0 && user.tetrisRank <= 3) {
-        applyTetrisRankStyle(user.tetrisRank);
+        applyTetrisRankStyle(user.tetrisRank, tetrisTitles[user.tetrisRank]?.replace(/♛|♕|"/g, '').split(' ')[0] || "테트리스");
       } else {
-        // For context-sensitive category styling (e.g., in a Unity board, Unity rank styles are prioritized)
         const categoryForContext = activeCategory || postMainCategoryForAuthor;
         let styledByCategoryContext = false;
 
@@ -156,11 +176,9 @@ export default function NicknameDisplay({ user, context, activeCategory, postMai
           }
         }
         
-        // If not styled by specific context, try to find any other top category rank
         if (!styledByCategoryContext) {
             let bestCat: PostMainCategory | null = null;
             let bestCatRankVal = Infinity;
-
             (['Unity', 'Unreal', 'Godot', 'General'] as PostMainCategory[]).forEach(catKey => {
                 const currentCatRank = user.categoryStats?.[catKey]?.rankInCate;
                 if (currentCatRank && currentCatRank > 0 && currentCatRank <=20 && currentCatRank < bestCatRankVal) {
@@ -175,26 +193,30 @@ export default function NicknameDisplay({ user, context, activeCategory, postMai
       }
     }
     
-    // Simplify for header context
     if (context === 'header') {
-        wrapperClasses = ""; // No wrapper in header
-        if (nicknameClasses.includes("gradient") || nicknameClasses.includes("rank")) {
-            if (user.rank > 0 && user.rank <=3) nicknameClasses = user.rank === 1 ? "text-yellow-400" : user.rank === 2 ? "text-slate-300" : "text-orange-400";
-            else nicknameClasses = "text-foreground";
+        wrapperClasses = ""; 
+        if (nicknameClasses.includes("gradient") || nicknameClasses.includes("rank-")) {
+            if (user.rank > 0 && user.rank <=3) {
+                 if(user.rank === 1) nicknameClasses = "text-gradient-gold";
+                 else if(user.rank === 2) nicknameClasses = "text-gradient-silver";
+                 else nicknameClasses = "text-gradient-bronze";
+            } else if (user.tetrisRank && user.tetrisRank > 0 && user.tetrisRank <=3) {
+                 if(user.tetrisRank === 1) nicknameClasses = "text-gradient-gold";
+                 else if(user.tetrisRank === 2) nicknameClasses = "text-gradient-silver";
+                 else nicknameClasses = "text-gradient-bronze";
+            }
+            else nicknameClasses = "text-foreground"; // Fallback for other gradient cases in header
         }
         nicknameClasses = cn(nicknameClasses, "text-sm font-medium");
         titleText = null; 
         showLogo = null; 
     }
 
-
-    // Default to base font size if no specific style applied, or merge
     if (!nicknameClasses.includes("text-sm") && !nicknameClasses.includes("text-xs")) {
         nicknameClasses = cn("text-sm font-medium", nicknameClasses);
     } else {
-        nicknameClasses = cn("font-medium", nicknameClasses); // Ensure font-medium if size is already there
+        nicknameClasses = cn("font-medium", nicknameClasses); 
     }
-
 
     return { titleText, titleClasses, nicknameClasses, wrapperClasses, showLogo, nickname: user.nickname, isAdmin: false };
   }, [user, user.selectedDisplayRank, activeCategory, postMainCategoryForAuthor, context]);
@@ -210,12 +232,12 @@ export default function NicknameDisplay({ user, context, activeCategory, postMai
   
   const finalWrapperClasses = cn(
     "inline-flex flex-col items-start leading-tight",
-    displayInfo.wrapperClasses // This will add padding and background if present
+    displayInfo.wrapperClasses 
   );
 
   const finalNicknameContainerClasses = cn(
     "flex items-center",
-    displayInfo.showLogo ? "gap-1" : "" // Add gap if logo is present
+    displayInfo.showLogo ? "gap-1" : "" 
   );
 
   return (
@@ -236,4 +258,3 @@ export default function NicknameDisplay({ user, context, activeCategory, postMai
     </div>
   );
 }
-

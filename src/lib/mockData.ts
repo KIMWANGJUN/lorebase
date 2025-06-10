@@ -60,6 +60,15 @@ export let mockUsersData: Omit<User, 'rank' | 'tetrisRank' | 'categoryStats' | '
     id: 'user10_tetris_cat_rank', username: 'tetrisCatEnjoyer', password: 'password123', nickname: '테트리스냥이',
     avatar: 'https://placehold.co/100x100.png?text=TC',
   },
+  {
+    id: 'testwang1_id', 
+    username: 'testwang1', 
+    password: 'testwang1', 
+    nickname: '테스트왕', 
+    email: 'testwang1@example.com',
+    avatar: 'https://placehold.co/100x100.png?text=TW',
+    nicknameLastChanged: new Date(),
+  },
    // 카테고리별 랭커 추가 (4-20위권)
   ...Array.from({ length: 17 }, (_, i) => ({
     id: `user_cat_filler_${i + 1}`,
@@ -101,8 +110,9 @@ const calculatePostScore = (post: Omit<Post, 'postScore'>): number => {
   return parseFloat(score.toFixed(2)); // 소수점 둘째 자리까지
 };
 
-// 초기 게시물 데이터
+// 초기 게시물 데이터 (각 게시물에 postScore 계산하여 추가)
 export let mockPosts: Post[] = [
+  // ... (기존 게시물 데이터는 그대로 유지, 각 post 객체에 postScore가 할당되도록 아래 map 처리)
   { id: 'post_unity_qna1', mainCategory: 'Unity', title: 'Unity Rigidbody 관련 질문입니다.', content: 'Rigidbody.MovePosition과 transform.Translate의 정확한 차이점과 사용 사례가 궁금합니다.', authorId: 'user4', authorNickname: '인디드리머', createdAt: new Date(Date.now() - 86400000 * 3).toISOString(), updatedAt: new Date(Date.now() - 86400000 * 3).toISOString(), type: 'QnA', upvotes: 10, downvotes: 0, views: 120, commentCount: 2, tags: ['Unity', 'Physics', 'Rigidbody'] },
   { id: 'post_unity_knowledge1', mainCategory: 'Unity', title: 'Unity DOTS 사용 후기 공유합니다.', content: '최근에 Unity DOTS를 사용해서 프로젝트를 진행해봤는데, 성능 최적화에 정말 큰 도움이 되었습니다. 처음엔 학습 곡선이 좀 있지만 익숙해지니 좋네요. 다른 분들 경험은 어떠신가요?', authorId: 'user1', authorNickname: '유니티장인', createdAt: new Date(Date.now() - 86400000 * 2).toISOString(), updatedAt: new Date(Date.now() - 86400000 * 2).toISOString(), type: 'Knowledge', upvotes: 25, downvotes: 1, views: 150, commentCount: 7, isPinned: true, tags: ['Unity', 'DOTS', 'Performance'] },
   { id: 'post_unity_devlog1', mainCategory: 'Unity', title: '나만의 2D 플랫포머 개발 일지 #1 - 캐릭터 구현', content: 'Unity로 2D 플랫포머 게임을 만들고 있습니다. 오늘은 기본 캐릭터 움직임과 점프를 구현했습니다!', authorId: 'user5', authorNickname: '픽셀아티스트', createdAt: new Date(Date.now() - 86400000 * 1).toISOString(), updatedAt: new Date(Date.now() - 86400000 * 1).toISOString(), type: 'DevLog', upvotes: 15, downvotes: 0, views: 90, commentCount: 3, tags: ['Unity', '2D', 'Platformer', 'DevLog'] },
@@ -124,7 +134,7 @@ export let mockPosts: Post[] = [
     mainCategory: 'General' as PostMainCategory,
     title: `오래된 일반 게시글 ${i + 1}`,
     content: `이것은 오래된 일반 게시글 내용입니다. (${i + 1})`,
-    authorId: mockUsersData.find(u => u.username === `catFiller${i+1}`)?.id || mockUsersData.filter(u => u.id !== 'admin')[(i + 1) % (mockUsersData.filter(u => u.id !== 'admin' && !u.username.startsWith("catFiller")).length)].id,
+    authorId: mockUsersData.find(u => u.username === `catFiller${i+1}`)?.id || mockUsersData.filter(u => u.id !== 'admin' && !u.username.startsWith("catFiller"))[(i + 1) % (mockUsersData.filter(u => u.id !== 'admin' && !u.username.startsWith("catFiller")).length)].id,
     authorNickname: mockUsersData.find(u => u.username === `catFiller${i+1}`)?.nickname || mockUsersData.filter(u => u.id !== 'admin' && !u.username.startsWith("catFiller"))[(i + 1) % (mockUsersData.filter(u => u.id !== 'admin' && !u.username.startsWith("catFiller")).length)].nickname,
     createdAt: new Date(Date.now() - 86400000 * (7 + i)).toISOString(),
     updatedAt: new Date(Date.now() - 86400000 * (7 + i)).toISOString(),
@@ -183,8 +193,8 @@ export let mockPosts: Post[] = [
     commentCount: 1 + i % 2,
     tags: ['Godot', 'Filler']
   })),
+].map(post => ({ ...post, postScore: calculatePostScore(post) }));
 
-].map(post => ({ ...post, postScore: calculatePostScore(post) })); // 각 게시물에 postScore 계산하여 추가
 
 // 종합 랭킹 계산 함수
 const calculateGlobalRanks = (usersToRank: User[]): void => {
@@ -253,7 +263,8 @@ const assignCalculatedScoresAndRanks = (
     } else {
       mockPosts.forEach(post => {
         if (post.authorId === uData.id) {
-          const currentPostScore = post.postScore !== undefined ? post.postScore : calculatePostScore(post);
+          // 게시물 점수는 mockPosts 생성 시 이미 계산되었으므로 postScore를 직접 사용
+          const currentPostScore = post.postScore || 0; // Fallback to 0 if undefined
           totalUserScore += currentPostScore;
           if (userCategoryScores[post.mainCategory] !== undefined) {
             userCategoryScores[post.mainCategory] += currentPostScore;
@@ -261,6 +272,14 @@ const assignCalculatedScoresAndRanks = (
         }
       });
     }
+    
+    // 테스트 계정 'testwang1'의 경우 기본 점수 0으로 처리 (게시글이 없다면)
+    if (uData.username === 'testwang1' && totalUserScore === 0) {
+        // 특별히 점수를 부여하지 않아도, 칭호 선택은 가능해야 함.
+        // 필요하다면 여기에 테스트를 위한 기본 점수를 할당할 수 있음.
+        // totalUserScore = 1; // 예: 목록에 보이도록 최소 점수 부여
+    }
+
 
     const categoryStatsOutput: User['categoryStats'] = {
       Unity: { score: parseFloat(userCategoryScores.Unity.toFixed(2)), rankInCate: 0 },
@@ -272,15 +291,15 @@ const assignCalculatedScoresAndRanks = (
     return {
       ...uData,
       id: uData.id || uData.username,
-      password: (uData as any).password, // 타입 문제 회피
+      password: (uData as any).password, 
       score: parseFloat(totalUserScore.toFixed(2)),
-      rank: 0, // 나중에 calculateGlobalRanks에서 할당
-      tetrisRank: tetrisRankMap.get(uData.id || uData.username) || 0, // 0 if not ranked
+      rank: 0, 
+      tetrisRank: tetrisRankMap.get(uData.id || uData.username) || 0, 
       categoryStats: categoryStatsOutput,
       selectedDisplayRank: (uData as User).selectedDisplayRank || 'default',
       nicknameLastChanged: uData.nicknameLastChanged ? new Date(uData.nicknameLastChanged) : undefined,
       isBlocked: (uData as User).isBlocked || false,
-    } as User; // Ensure it matches User type
+    } as User; 
   });
 
   calculateGlobalRanks(processedUsers);
@@ -316,9 +335,7 @@ export const addUser = (newUserData: NewUserDto): { success: boolean, message?: 
     isBlocked: false,
   };
 
-  // 새로운 사용자를 mockUsersData에 추가 (점수 없이)
   mockUsersData.push(newUserRaw);
-  // 전체 사용자 목록을 기반으로 점수와 랭킹을 다시 계산
   mockUsers = assignCalculatedScoresAndRanks(mockUsersData);
 
   const addedUser = mockUsers.find(u => u.id === newUserRaw.id);
@@ -354,7 +371,7 @@ export let mockComments: Comment[] = [
 
 export const mockRankings: RankEntry[] = mockUsers
   .filter(u => u.username !== 'WANGJUNLAND' && u.rank > 0)
-  .sort((a, b) => a.rank - b.rank) // rank is already calculated, sort by it
+  .sort((a, b) => a.rank - b.rank) 
   .map((user) => ({
     userId: user.id,
     nickname: user.nickname,

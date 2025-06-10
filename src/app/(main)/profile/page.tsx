@@ -94,7 +94,7 @@ export default function ProfilePage() {
 
     updateUser({ nickname: trimmedNickname });
     setIsEditingNickname(false);
-    setNicknameChangeAllowed(calculateCanChangeNickname()); // Recalculate after change
+    setNicknameChangeAllowed(calculateCanChangeNickname()); 
     toast({ title: "성공", description: "닉네임이 변경되었습니다." });
   };
 
@@ -132,6 +132,29 @@ export default function ProfilePage() {
     if (!user) return [];
     const ranks: { value: AchievedRankType; label: string }[] = [{ value: 'default', label: '기본 표시 (시스템 자동 우선순위 적용)' }];
 
+    if (user.username === 'testwang1') {
+        // 테스트 계정: 모든 효과 옵션 제공
+        ranks.push({ value: 'global_1', label: '테스트: 종합 1위 효과 (금)' });
+        ranks.push({ value: 'global_2', label: '테스트: 종합 2위 효과 (은)' });
+        ranks.push({ value: 'global_3', label: '테스트: 종합 3위 효과 (동)' });
+
+        Object.keys(tetrisTitles).forEach(key => {
+            const rank = parseInt(key);
+            if (rank >= 1 && rank <=3) {
+                 ranks.push({ value: `tetris_${rank}` as AchievedRankType, label: `테스트: ${tetrisTitles[rank]} 효과` });
+            }
+        });
+        
+        (['Unity', 'Unreal', 'Godot', 'General'] as PostMainCategory[]).forEach(catKey => {
+            const catDisplayName = getCategoryDisplayName(catKey);
+            ranks.push({ value: `category_${catKey}_1-3` as AchievedRankType, label: `테스트: ${catDisplayName} 1-3위 효과` });
+            ranks.push({ value: `category_${catKey}_4-10` as AchievedRankType, label: `테스트: ${catDisplayName} 4-10위 효과` });
+            ranks.push({ value: `category_${catKey}_11-20` as AchievedRankType, label: `테스트: ${catDisplayName} 11-20위 효과` });
+        });
+        return ranks;
+    }
+
+    // 일반 사용자 로직
     if (user.rank > 0 && user.rank <= 3) {
       ranks.push({ value: `global_${user.rank}` as AchievedRankType, label: `종합 랭킹 ${user.rank}위 (금/은/동 배경 및 닉네임)` });
     }
@@ -257,9 +280,9 @@ export default function ProfilePage() {
                             </CardDescription>
                           </CardHeader>
                           <CardContent>
-                            {isAdmin ? (
+                            {isAdmin && user.username !== 'testwang1' ? ( // 관리자이면서 테스트 계정이 아닌 경우
                                 <p className="text-sm text-muted-foreground">관리자 계정은 칭호/하이라이트 설정을 사용하지 않습니다.</p>
-                            ) : availableDisplayRanks.length > 1 ? (
+                            ) : availableDisplayRanks.length > 1 || user.username === 'testwang1' ? ( // 일반 사용자 또는 테스트 계정
                               <RadioGroup value={selectedDisplayRankState} onValueChange={handleDisplayRankChange}>
                                 {availableDisplayRanks.map(rankOption => (
                                   <div key={rankOption.value} className="flex items-center space-x-2 py-2">
@@ -270,7 +293,7 @@ export default function ProfilePage() {
                                   </div>
                                 ))}
                               </RadioGroup>
-                            ) : (
+                            ) : ( // 선택 가능한 칭호가 없는 일반 사용자
                               <p className="text-sm text-muted-foreground">현재 선택 가능한 대표 칭호/하이라이트가 없습니다. (기본 표시만 가능)</p>
                             )}
                           </CardContent>
