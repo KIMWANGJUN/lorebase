@@ -71,7 +71,7 @@ const titleOptionsForTest: SelectOption[] = [
   { value: 'tetris_1_title', label: '테스트: ♛테트리스♕ (금색)' },
   { value: 'tetris_2_title', label: '테스트: "테트리스" 그랜드 마스터 (은색)' },
   { value: 'tetris_3_title', label: '테스트: "테트리스" 마스터 (동색)' },
-  ...(['Unity', 'Unreal', 'Godot', 'General'] as PostMainCategory[]).flatMap(cat => 
+  ...(['Unity', 'Unreal', 'Godot', 'General'] as PostMainCategory[]).flatMap(cat =>
     [1, 2, 3].map(rank => ({
       value: `category_${cat}_${rank}_title` as TitleIdentifier,
       label: `테스트: ${getCategoryDisplayName(cat)} ${rank}위 칭호 (${rank===1?'금':rank===2?'은':'동'}색)`
@@ -108,9 +108,9 @@ export default function ProfilePage() {
   const { toast } = useToast();
 
   const [nickname, setNickname] = useState('');
-  const [email, setEmail] = useState(''); // Email state for profile update
+  const [currentEmail, setCurrentEmail] = useState(''); // Renamed from email to avoid conflict
   const [isEditingNickname, setIsEditingNickname] = useState(false);
-  
+
   const [currentTitle, setCurrentTitle] = useState<TitleIdentifier>('none');
   const [currentNicknameEffect, setCurrentNicknameEffect] = useState<NicknameEffectIdentifier>('none');
   const [currentLogo, setCurrentLogo] = useState<LogoIdentifier>('none');
@@ -136,7 +136,7 @@ export default function ProfilePage() {
       router.push('/login');
     } else if (user) {
       setNickname(user.nickname);
-      setEmail(user.email || ''); // Set email from user context
+      setCurrentEmail(user.email || '');
       setCurrentTitle(user.selectedTitleIdentifier || 'none');
       setCurrentNicknameEffect(user.selectedNicknameEffectIdentifier || 'none');
       setCurrentLogo(user.selectedLogoIdentifier || 'none');
@@ -166,13 +166,13 @@ export default function ProfilePage() {
     }
     updateUser({ nickname: trimmedNickname });
     setIsEditingNickname(false);
-    setNicknameChangeAllowed(calculateCanChangeNickname()); 
+    setNicknameChangeAllowed(calculateCanChangeNickname());
     toast({ title: "성공", description: "닉네임이 변경되었습니다." });
   };
 
   const handleEmailSave = () => {
     if (!user) return;
-    const trimmedEmail = email.trim();
+    const trimmedEmail = currentEmail.trim();
     if (trimmedEmail && !/\S+@\S+\.\S+/.test(trimmedEmail)) {
         toast({ title: "오류", description: "유효한 이메일 주소를 입력해주세요.", variant: "destructive"});
         return;
@@ -204,7 +204,7 @@ export default function ProfilePage() {
     updateUser(updatePayload);
     toast({ title: "성공", description: "대표 표시 설정이 변경되었습니다. 다른 페이지에서 반영됩니다." });
   };
-  
+
   const getRegularUserOptions = (type: 'title' | 'nicknameEffect' | 'logo'): SelectOption[] => {
     if (!user) return [{ value: 'none', label: '없음 / 기본' }];
     const options: SelectOption[] = [{ value: 'none', label: '없음 / 기본' }];
@@ -230,7 +230,7 @@ export default function ProfilePage() {
     }
     return options;
   };
-  
+
   const currentTitleOptions = user?.username === 'testwang1' ? titleOptionsForTest : getRegularUserOptions('title');
   const currentNicknameEffectOptions = user?.username === 'testwang1' ? nicknameEffectOptionsForTest : getRegularUserOptions('nicknameEffect');
   const currentLogoOptions = user?.username === 'testwang1' ? logoOptionsForTest : getRegularUserOptions('logo');
@@ -244,8 +244,8 @@ export default function ProfilePage() {
         .slice(0, PROFILE_RANKERS_TO_SHOW);
     } else {
       return usersToRank
-        .filter(u => u.categoryStats?.[activeRankingTabProfile]?.rankInCate && u.categoryStats[activeRankingTabProfile]!.rankInCate! > 0)
-        .sort((a, b) => (a.categoryStats![activeRankingTabProfile]!.rankInCate!) - (b.categoryStats![activeRankingTabProfile]!.rankInCate!))
+        .filter(u => u.categoryStats?.[activeRankingTabProfile as PostMainCategory]?.rankInCate && u.categoryStats[activeRankingTabProfile as PostMainCategory]!.rankInCate! > 0)
+        .sort((a, b) => (a.categoryStats![activeRankingTabProfile as PostMainCategory]!.rankInCate!) - (b.categoryStats![activeRankingTabProfile as PostMainCategory]!.rankInCate!))
         .slice(0, PROFILE_RANKERS_TO_SHOW);
     }
   }, [activeRankingTabProfile]);
@@ -313,10 +313,16 @@ export default function ProfilePage() {
                 </div>
                 <p className="text-sm opacity-80 mt-1">{user.email || "이메일 미등록"}</p>
                 <div className="mt-4 text-center">
-                    <p className="text-2xl font-semibold">{user.score.toLocaleString()} 점</p>
-                    <p className="text-sm opacity-80">
-                        {user.rank > 0 ? `종합 ${user.rank}위` : (isAdmin && user.username === 'wangjunland' ? "" : "랭킹 정보 없음")}
-                    </p>
+                    {isAdmin ? (
+                      <p className="text-2xl font-semibold">관리자</p>
+                    ) : (
+                      <>
+                        <p className="text-2xl font-semibold">{user.score.toLocaleString()} 점</p>
+                        <p className="text-sm opacity-80">
+                            {user.rank > 0 ? `종합 ${user.rank}위` : "랭킹 정보 없음"}
+                        </p>
+                      </>
+                    )}
                 </div>
             </div>
             <div className="md:w-2/3 p-8">
@@ -356,9 +362,9 @@ export default function ProfilePage() {
                                     )}
                                 </div>
                                 <div>
-                                    <Label htmlFor="email" className="text-muted-foreground">이메일</Label>
+                                    <Label htmlFor="profileEmail" className="text-muted-foreground">이메일</Label>
                                     <div className="flex items-center gap-2">
-                                      <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="bg-input border-border text-foreground focus:ring-accent" placeholder="이메일을 등록해주세요."/>
+                                      <Input id="profileEmail" type="email" value={currentEmail} onChange={(e) => setCurrentEmail(e.target.value)} className="bg-input border-border text-foreground focus:ring-accent" placeholder="이메일을 등록해주세요."/>
                                       <Button onClick={handleEmailSave} variant="outline" size="sm" className="border-border text-muted-foreground hover:bg-muted/50 hover:border-accent"><CheckCircle className="h-4 w-4 mr-1"/> 등록/수정</Button>
                                     </div>
                                 </div>
@@ -405,7 +411,7 @@ export default function ProfilePage() {
                           </CardContent>
                         </Card>
                       </TabsContent>
-                    
+
                     <TabsContent value="socialLink">
                         <Card className="bg-card border-border">
                             <CardHeader><CardTitle className="text-foreground">소셜 계정 연동</CardTitle><CardDescription className="text-muted-foreground">다른 소셜 계정과 현재 계정을 연동하거나 해제합니다.</CardDescription></CardHeader>
@@ -518,7 +524,9 @@ export default function ProfilePage() {
                                             </Avatar>
                                             <NicknameDisplay user={rankerUser} context="rankingList" activeCategory={isGlobalTab ? undefined : activeRankingTabProfile as PostMainCategory} />
                                         </div>
-                                        <span className="text-sm font-semibold text-accent shrink-0">{scoreToShow.toLocaleString()} 점</span>
+                                        {isAdmin && (
+                                            <span className="text-sm font-semibold text-accent shrink-0">{scoreToShow.toLocaleString()} 점</span>
+                                        )}
                                     </div>
                                 );
                             })}

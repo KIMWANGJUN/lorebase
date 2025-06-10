@@ -11,10 +11,11 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ChevronLeft, ChevronRight, Box, AppWindow, PenTool, LayoutGrid, Trophy } from 'lucide-react';
 import NicknameDisplay from './NicknameDisplay'; // Make sure this path is correct
 import { cn } from '@/lib/utils';
+import { useAuth } from '@/contexts/AuthContext'; // Import useAuth
 
 interface CategoryRankingSidebarProps {
   category: PostMainCategory;
-  currentUser: User | null; // For potential future use, e.g., highlighting current user
+  // currentUser prop can be removed if we use useAuth hook
 }
 
 const POSTS_PER_PAGE = 10;
@@ -46,8 +47,9 @@ const getCategoryDisplayName = (category: PostMainCategory): string => {
   }
 };
 
-export default function CategoryRankingSidebar({ category, currentUser }: CategoryRankingSidebarProps) {
+export default function CategoryRankingSidebar({ category }: CategoryRankingSidebarProps) {
   const [currentPage, setCurrentPage] = useState(1);
+  const { user: currentUser, isAdmin } = useAuth(); // Get currentUser and isAdmin from AuthContext
 
   const categoryRankers = useMemo(() => {
     return mockUsers
@@ -104,8 +106,7 @@ export default function CategoryRankingSidebar({ category, currentUser }: Catego
                 </Avatar>
                 <NicknameDisplay user={rankerUser} context="sidebarRanking" activeCategory={category} />
               </div>
-              {/* Optional: Display score if admin or for debugging */}
-              {currentUser?.username === 'WANGJUNLAND' && (
+              {isAdmin && (
                 <span className="text-xs font-semibold text-accent shrink-0">
                   {(rankerUser.categoryStats?.[category]?.score || 0).toLocaleString()} 점
                 </span>

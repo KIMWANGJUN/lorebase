@@ -18,7 +18,7 @@ import NicknameDisplay from '@/components/shared/NicknameDisplay';
 
 const POSTS_PER_PAGE = 10;
 const MAX_PAGES = 10;
-const RANKERS_TO_SHOW = 20; 
+const RANKERS_TO_SHOW = 20;
 const COMMUNITY_RANKERS_PER_PAGE = 10;
 
 const CategorySpecificIcon: React.FC<{ category: PostMainCategory, className?: string }> = ({ category, className }) => {
@@ -40,7 +40,7 @@ const CategorySpecificIcon: React.FC<{ category: PostMainCategory, className?: s
 
 
 export default function HomePage() {
-  const { user: currentUser } = useAuth();
+  const { user: currentUser, isAdmin } = useAuth();
   const [currentPage, setCurrentPage] = useState(1);
   const [activeRankingTab, setActiveRankingTab] = useState<PostMainCategory | 'Global'>('Global');
   const [communityRankingCurrentPage, setCommunityRankingCurrentPage] = useState(1);
@@ -104,14 +104,14 @@ export default function HomePage() {
 
   const totalCommunityRankingPages = useMemo(() => {
     if (activeRankingTab === 'Global') {
-        return 1; 
+        return 1;
     }
     return Math.ceil(rankedUsersToDisplay.length / COMMUNITY_RANKERS_PER_PAGE);
   }, [activeRankingTab, rankedUsersToDisplay, COMMUNITY_RANKERS_PER_PAGE]);
 
   const currentCommunityRankersToDisplay = useMemo(() => {
     if (activeRankingTab === 'Global') {
-        return rankedUsersToDisplay; 
+        return rankedUsersToDisplay;
     }
     const startIndex = (communityRankingCurrentPage - 1) * COMMUNITY_RANKERS_PER_PAGE;
     const endIndex = startIndex + COMMUNITY_RANKERS_PER_PAGE;
@@ -175,7 +175,9 @@ export default function HomePage() {
                         </Avatar>
                         <NicknameDisplay user={user} context="rankingList" />
                       </div>
-                      <span className="text-xs font-semibold text-accent shrink-0">{rankerData.score.toLocaleString()} 점</span>
+                      {isAdmin && (
+                        <span className="text-xs font-semibold text-accent shrink-0">{rankerData.score.toLocaleString()} 점</span>
+                      )}
                     </div>
                   );
                 })}
@@ -292,7 +294,7 @@ export default function HomePage() {
                                 </Avatar>
                                 <NicknameDisplay user={user} context="rankingList" activeCategory={tabValue !== 'Global' ? tabValue : undefined} />
                               </div>
-                              {currentUser?.username === 'WANGJUNLAND' && (
+                              {isAdmin && (
                                 <span className="text-xs font-semibold text-accent shrink-0">
                                   {tabValue === 'Global' ? user.score.toLocaleString() : (user.categoryStats?.[tabValue as PostMainCategory]?.score || 0).toLocaleString()} 점
                                 </span>
