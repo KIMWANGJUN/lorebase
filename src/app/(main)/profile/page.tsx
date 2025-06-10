@@ -12,7 +12,8 @@ import { Label } from '@/components/ui/label';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Edit3, Mail, MessageSquare, ShieldAlert, UserCog, ShieldCheck, Crown, Users, Gamepad2, Clock, CheckCircle, Wand2, Palette, VenetianMask, Star } from 'lucide-react';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Edit3, Mail, MessageSquare, ShieldAlert, UserCog, ShieldCheck, Crown, Users, Gamepad2, Clock, CheckCircle, Wand2, Palette, VenetianMask, Star, Box, AppWindow, PenTool, LayoutGrid } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import type { User, PostMainCategory, AchievedRankType, TitleIdentifier, NicknameEffectIdentifier, LogoIdentifier } from '@/types';
 import { mockPosts, mockInquiries, mockUsers, tetrisTitles } from '@/lib/mockData';
@@ -21,8 +22,9 @@ import Image from 'next/image';
 import NicknameDisplay from '@/components/shared/NicknameDisplay';
 
 
-const getCategoryDisplayName = (category: PostMainCategory): string => {
+const getCategoryDisplayName = (category: PostMainCategory | 'Global'): string => {
   switch (category) {
+    case 'Global': return '종합';
     case 'Unity': return 'Unity';
     case 'Unreal': return 'Unreal';
     case 'Godot': return 'Godot';
@@ -31,11 +33,34 @@ const getCategoryDisplayName = (category: PostMainCategory): string => {
   }
 };
 
-// Define option types for selection
+const CategorySpecificIcon: React.FC<{ category: PostMainCategory | 'Global', className?: string }> = ({ category, className }) => {
+  const defaultClassName = "h-4 w-4 shrink-0";
+  let iconColorClass = '';
+  if (category !== 'Global') {
+    iconColorClass =
+        category === 'Unity' ? 'icon-unity' :
+        category === 'Unreal' ? 'icon-unreal' :
+        category === 'Godot' ? 'icon-godot' :
+        'icon-general';
+  }
+
+  switch (category) {
+    case 'Global': return <Users className={cn(defaultClassName, "text-primary", className)} />;
+    case 'Unity': return <Box className={cn(defaultClassName, iconColorClass, className)} />;
+    case 'Unreal': return <AppWindow className={cn(defaultClassName, iconColorClass, className)} />;
+    case 'Godot': return <PenTool className={cn(defaultClassName, iconColorClass, className)} />;
+    case 'General': return <LayoutGrid className={cn(defaultClassName, iconColorClass, className)} />;
+    default: return null;
+  }
+};
+
+
 interface SelectOption {
   value: string;
   label: string;
 }
+
+const PROFILE_RANKERS_TO_SHOW = 50;
 
 const titleOptionsForTest: SelectOption[] = [
   { value: 'none', label: '칭호 없음' },
@@ -86,6 +111,8 @@ export default function ProfilePage() {
   const [currentTitle, setCurrentTitle] = useState<TitleIdentifier>('none');
   const [currentNicknameEffect, setCurrentNicknameEffect] = useState<NicknameEffectIdentifier>('none');
   const [currentLogo, setCurrentLogo] = useState<LogoIdentifier>('none');
+  const [activeRankingTabProfile, setActiveRankingTabProfile] = useState<PostMainCategory | 'Global'>('Global');
+
 
   const calculateCanChangeNickname = () => {
     if (!user) return false;
@@ -183,32 +210,33 @@ export default function ProfilePage() {
     updateUser(updatePayload);
     toast({ title: "성공", description: "대표 표시 설정이 변경되었습니다. 다른 페이지에서 반영됩니다." });
   };
-
-  // For regular users, dynamically generate options based on earned ranks
-  // This is a simplified version for now, focusing on `testwang1`
+  
   const getRegularUserOptions = (type: 'title' | 'nicknameEffect' | 'logo'): SelectOption[] => {
     if (!user) return [{ value: 'none', label: '없음 / 기본' }];
     
     const options: SelectOption[] = [{ value: 'none', label: '없음 / 기본' }];
 
-    // This logic needs to be expanded to check actual earned ranks for each type
-    // For now, it's a placeholder
     if (type === 'title' && user.tetrisRank && user.tetrisRank > 0 && user.tetrisRank <=3 ) {
          options.push({ value: `tetris_${user.tetrisRank}_title` as TitleIdentifier, label: `${tetrisTitles[user.tetrisRank]} (테트리스 ${user.tetrisRank}위)`});
     }
-    // Add more logic for global rank titles (if any), category titles etc.
-
+    
     if (type === 'nicknameEffect' && user.rank > 0 && user.rank <=3) {
         options.push({ value: `global_${user.rank}_effect` as NicknameEffectIdentifier, label: `종합 ${user.rank}위 스타일`});
     }
-    // Add more logic for category nickname effects etc.
-
+    
     if (type === 'logo') {
-        // Example: If user has rank in Unity, allow Unity logo
         if (user.categoryStats?.Unity?.rankInCate && user.categoryStats.Unity.rankInCate > 0) {
             options.push({ value: 'logo_Unity', label: 'Unity 로고'});
         }
-        // Add for other categories
+         if (user.categoryStats?.Unreal?.rankInCate && user.categoryStats.Unreal.rankInCate > 0) {
+            options.push({ value: 'logo_Unreal', label: 'Unreal 로고'});
+        }
+         if (user.categoryStats?.Godot?.rankInCate && user.categoryStats.Godot.rankInCate > 0) {
+            options.push({ value: 'logo_Godot', label: 'Godot 로고'});
+        }
+         if (user.categoryStats?.General?.rankInCate && user.categoryStats.General.rankInCate > 0) {
+            options.push({ value: 'logo_General', label: '일반 & 유머 로고'});
+        }
     }
     return options;
   };
@@ -216,6 +244,22 @@ export default function ProfilePage() {
   const currentTitleOptions = user?.username === 'testwang1' ? titleOptionsForTest : getRegularUserOptions('title');
   const currentNicknameEffectOptions = user?.username === 'testwang1' ? nicknameEffectOptionsForTest : getRegularUserOptions('nicknameEffect');
   const currentLogoOptions = user?.username === 'testwang1' ? logoOptionsForTest : getRegularUserOptions('logo');
+
+
+  const displayedRankersProfile = useMemo(() => {
+    const usersToRank = mockUsers.filter(u => u.username !== 'WANGJUNLAND');
+    if (activeRankingTabProfile === 'Global') {
+      return usersToRank
+        .filter(u => u.rank > 0)
+        .sort((a, b) => a.rank - b.rank)
+        .slice(0, PROFILE_RANKERS_TO_SHOW);
+    } else {
+      return usersToRank
+        .filter(u => u.categoryStats?.[activeRankingTabProfile]?.rankInCate && u.categoryStats[activeRankingTabProfile]!.rankInCate! > 0)
+        .sort((a, b) => (a.categoryStats![activeRankingTabProfile]!.rankInCate!) - (b.categoryStats![activeRankingTabProfile]!.rankInCate!))
+        .slice(0, PROFILE_RANKERS_TO_SHOW);
+    }
+  }, [activeRankingTabProfile]);
 
 
   if (authLoading || !user) {
@@ -226,6 +270,7 @@ export default function ProfilePage() {
   const userInquiries = mockInquiries.filter(iq => iq.userId === user.id);
 
   const bannerImageUrl = "https://placehold.co/1920x600.png";
+  const tabsForRanking: (PostMainCategory | 'Global')[] = ['Global', 'Unity', 'Unreal', 'Godot', 'General'];
 
   return (
     <div className="container mx-auto py-10 px-4">
@@ -252,7 +297,7 @@ export default function ProfilePage() {
                     <AvatarFallback className="text-4xl bg-muted text-muted-foreground">{user.nickname.substring(0, 2).toUpperCase()}</AvatarFallback>
                 </Avatar>
                 <div className="mb-1">
-                    <NicknameDisplay user={user} context="rankingList" />
+                    <NicknameDisplay user={user} context="profileCard" />
                 </div>
                 <p className="text-sm opacity-80 mt-1">{user.email || "이메일 미등록"}</p>
                 <div className="mt-4 text-center">
@@ -407,34 +452,59 @@ export default function ProfilePage() {
             <p className="text-muted-foreground">명예의 전당에 이름을 올려보세요!</p>
         </div>
         <Card className="shadow-lg bg-card border-border">
-          <CardHeader>
-            <CardTitle className="font-headline text-foreground">전체 사용자 순위 (관리자 제외)</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3 max-h-[500px] overflow-y-auto p-1">
-              {mockUsers.filter(u => u.username !== 'WANGJUNLAND' && u.rank > 0).sort((a, b) => a.rank - b.rank).map((rankerUser) => (
-                  <div key={rankerUser.id} className={cn(
-                    "flex items-center justify-between p-3 rounded-lg border bg-card/50 shadow-sm",
-                     rankerUser.id === user.id ? 'border-primary bg-primary/10' : 'border-border'
-                  )}>
-                    <div className="flex items-center gap-3">
-                      <span className="font-bold text-lg w-8 text-center text-muted-foreground">
-                          {rankerUser.rank > 0 ? `${rankerUser.rank}.` : "-"}
-                      </span>
-                      <Avatar className="h-10 w-10 border-2 border-accent/50">
-                        <Image src={rankerUser.avatar || `https://placehold.co/40x40.png?text=${rankerUser.nickname.substring(0,1)}`} alt={rankerUser.nickname} width={40} height={40} className="rounded-full" data-ai-hint="fantasy character icon" />
-                        <AvatarFallback className="bg-muted text-muted-foreground">{rankerUser.nickname.substring(0,1)}</AvatarFallback>
-                      </Avatar>
-                      <NicknameDisplay user={rankerUser} context="rankingList" />
-                    </div>
-                    <span className="text-sm font-semibold text-accent">{rankerUser.score.toLocaleString()} 점</span>
-                  </div>
-                )
-              )}
-            </div>
-          </CardContent>
+            <CardHeader>
+                <Tabs value={activeRankingTabProfile} onValueChange={(value) => setActiveRankingTabProfile(value as PostMainCategory | 'Global')} className="w-full">
+                    <TabsList className="grid w-full grid-cols-3 sm:grid-cols-5 mb-0 bg-card border-border p-1 rounded-lg shadow-inner">
+                        {tabsForRanking.map(tabKey => (
+                            <TabsTrigger
+                                key={tabKey}
+                                value={tabKey}
+                                className="text-xs px-1 py-1.5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground flex items-center justify-center gap-1"
+                            >
+                                <CategorySpecificIcon category={tabKey} /> {getCategoryDisplayName(tabKey)}
+                            </TabsTrigger>
+                        ))}
+                    </TabsList>
+                </Tabs>
+            </CardHeader>
+            <CardContent>
+                <ScrollArea className="h-[600px] w-full">
+                    {displayedRankersProfile.length > 0 ? (
+                        <div className="space-y-3 p-1">
+                            {displayedRankersProfile.map((rankerUser) => {
+                                const isGlobalTab = activeRankingTabProfile === 'Global';
+                                const rankToShow = isGlobalTab ? rankerUser.rank : rankerUser.categoryStats?.[activeRankingTabProfile as PostMainCategory]?.rankInCate || 0;
+                                const scoreToShow = isGlobalTab ? rankerUser.score : rankerUser.categoryStats?.[activeRankingTabProfile as PostMainCategory]?.score || 0;
+
+                                return (
+                                    <div key={rankerUser.id} className={cn(
+                                        "flex items-center justify-between p-3 rounded-lg border bg-card/50 shadow-sm",
+                                        rankerUser.id === user.id ? 'border-primary bg-primary/10' : 'border-border'
+                                    )}>
+                                        <div className="flex items-center gap-3">
+                                            <span className="font-bold text-lg w-8 text-center text-muted-foreground shrink-0">
+                                                {rankToShow > 0 ? `${rankToShow}.` : "-"}
+                                            </span>
+                                            <Avatar className="h-10 w-10 border-2 border-accent/50 shrink-0">
+                                                <Image src={rankerUser.avatar || `https://placehold.co/40x40.png?text=${rankerUser.nickname.substring(0,1)}`} alt={rankerUser.nickname} width={40} height={40} className="rounded-full" data-ai-hint="fantasy character icon" />
+                                                <AvatarFallback className="bg-muted text-muted-foreground">{rankerUser.nickname.substring(0,1)}</AvatarFallback>
+                                            </Avatar>
+                                            <NicknameDisplay user={rankerUser} context="rankingList" activeCategory={isGlobalTab ? undefined : activeRankingTabProfile as PostMainCategory} />
+                                        </div>
+                                        <span className="text-sm font-semibold text-accent shrink-0">{scoreToShow.toLocaleString()} 점</span>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    ) : (
+                         <p className="text-center py-10 text-muted-foreground">선택한 카테고리의 랭커 정보가 없습니다.</p>
+                    )}
+                </ScrollArea>
+            </CardContent>
         </Card>
       </section>
     </div>
   );
 }
+
+    
