@@ -44,164 +44,151 @@ const getCategoryDisplayName = (category: PostMainCategory): string => {
 
 export default function NicknameDisplay({ user, context, activeCategory, postMainCategoryForAuthor }: NicknameDisplayProps) {
   const displayInfo = useMemo(() => {
+    const baseNicknameClass = "text-sm font-medium"; // 기본 닉네임 스타일 (font-medium)
+    const baseTitleClass = "title-text-base"; // from globals.css (text-xs font-semibold)
+
     let titleText: string | null = null;
     let titleClasses: string = "";
-    let nicknameClasses: string = "text-sm font-medium text-foreground";
+    let nicknameClasses: string = cn(baseNicknameClass, "text-foreground"); // 기본값
     let wrapperClasses: string = "";
     let showLogoCategory: PostMainCategory | null = null;
 
     if (!user) return { titleText, titleClasses, nicknameClasses, wrapperClasses, showLogoCategory, nickname: "Unknown User", isAdmin: false };
 
-    const baseNicknameClass = "text-sm font-medium";
-    const baseTitleClass = "title-text-base"; // from globals.css, sets text-xs
-
     if (user.username === 'WANGJUNLAND') {
       return {
-        titleText: null, titleClasses: "", nicknameClasses: cn(baseNicknameClass, "admin-text"),
+        titleText: null, titleClasses: "", nicknameClasses: cn(baseNicknameClass, "admin-text", "font-bold"), // 관리자 텍스트는 이미 globals.css에서 font-semibold 처리, 여기서 font-bold로 강화
         wrapperClasses: "admin-badge", showLogoCategory: null, nickname: user.nickname, isAdmin: true,
       };
     }
     
-    // For testwang1 or regular users with specific preferences
-    if (user.username === 'testwang1' || 
-        user.selectedTitleIdentifier !== 'none' || 
-        user.selectedNicknameEffectIdentifier !== 'none' || 
-        user.selectedLogoIdentifier !== 'none') {
+    // 사용자 선택 우선 처리 (testwang1 포함)
+    const { selectedTitleIdentifier, selectedNicknameEffectIdentifier, selectedLogoIdentifier } = user;
+    const hasSpecificSelection = selectedTitleIdentifier !== 'none' || selectedNicknameEffectIdentifier !== 'none' || selectedLogoIdentifier !== 'none';
 
-        let finalTitleText: string | null = null;
-        let finalTitleClasses: string = "";
-        let finalNicknameClasses: string = cn(baseNicknameClass, "text-foreground"); // Default
-        let finalWrapperClasses: string = "";
-        let finalShowLogoCategory: PostMainCategory | null = null;
-
-        // Determine styles based on selected preferences
-        const { selectedTitleIdentifier, selectedNicknameEffectIdentifier, selectedLogoIdentifier } = user;
-
+    if (user.username === 'testwang1' || hasSpecificSelection) {
         // 1. Apply Title from selectedTitleIdentifier
         if (selectedTitleIdentifier && selectedTitleIdentifier !== 'none') {
             if (selectedTitleIdentifier.startsWith('tetris_')) {
                 const rank = parseInt(selectedTitleIdentifier.split('_')[1]);
                 if (rank >= 1 && rank <= 3) {
-                    finalTitleText = tetrisTitles[rank] || `테트리스 ${rank}위`;
-                    if (rank === 1) finalTitleClasses = cn(baseTitleClass, "text-gradient-gold");
-                    else if (rank === 2) finalTitleClasses = cn(baseTitleClass, "text-gradient-silver");
-                    else if (rank === 3) finalTitleClasses = cn(baseTitleClass, "text-gradient-bronze");
+                    titleText = tetrisTitles[rank] || `테트리스 ${rank}위`;
+                    if (rank === 1) titleClasses = cn(baseTitleClass, "text-gradient-gold");
+                    else if (rank === 2) titleClasses = cn(baseTitleClass, "text-gradient-silver");
+                    else if (rank === 3) titleClasses = cn(baseTitleClass, "text-gradient-bronze");
                 }
             } else if (selectedTitleIdentifier.startsWith('category_')) {
-                const parts = selectedTitleIdentifier.split('_'); // category_Unity_1_title
+                const parts = selectedTitleIdentifier.split('_'); 
                 const cat = parts[1] as PostMainCategory;
-                const rankPart = parts[2]; // "1" from "1_title"
+                const rankPart = parts[2]; 
                 if (rankPart && (rankPart === "1" || rankPart === "2" || rankPart === "3")) {
                     const rank = parseInt(rankPart);
-                    finalTitleText = `${getCategoryDisplayName(cat)} ${rank}위`;
-                    if (rank === 1) finalTitleClasses = cn(baseTitleClass, "text-gradient-gold");
-                    else if (rank === 2) finalTitleClasses = cn(baseTitleClass, "text-gradient-silver");
-                    else if (rank === 3) finalTitleClasses = cn(baseTitleClass, "text-gradient-bronze");
+                    titleText = `${getCategoryDisplayName(cat)} ${rank}위`;
+                    if (rank === 1) titleClasses = cn(baseTitleClass, "text-gradient-gold");
+                    else if (rank === 2) titleClasses = cn(baseTitleClass, "text-gradient-silver");
+                    else if (rank === 3) titleClasses = cn(baseTitleClass, "text-gradient-bronze");
                 }
             }
-            if (!finalTitleText) finalTitleClasses = ""; // Clear if no title text
+            if (!titleText) titleClasses = ""; 
         }
-
 
         // 2. Apply Nickname Effect (Text & Wrapper) from selectedNicknameEffectIdentifier
         if (selectedNicknameEffectIdentifier && selectedNicknameEffectIdentifier !== 'none') {
             if (selectedNicknameEffectIdentifier.startsWith('global_')) {
                 const rank = parseInt(selectedNicknameEffectIdentifier.split('_')[1]);
-                if (rank === 1) { finalNicknameClasses = cn(baseNicknameClass, "text-gradient-gold"); finalWrapperClasses = "bg-wrapper-gold"; }
-                else if (rank === 2) { finalNicknameClasses = cn(baseNicknameClass, "text-gradient-silver"); finalWrapperClasses = "bg-wrapper-silver"; }
-                else if (rank === 3) { finalNicknameClasses = cn(baseNicknameClass, "text-gradient-bronze"); finalWrapperClasses = "bg-wrapper-bronze"; }
+                if (rank === 1) { nicknameClasses = cn(baseNicknameClass, "text-gradient-gold", "font-bold"); wrapperClasses = "bg-wrapper-gold"; }
+                else if (rank === 2) { nicknameClasses = cn(baseNicknameClass, "text-gradient-silver", "font-bold"); wrapperClasses = "bg-wrapper-silver"; }
+                else if (rank === 3) { nicknameClasses = cn(baseNicknameClass, "text-gradient-bronze", "font-bold"); wrapperClasses = "bg-wrapper-bronze"; }
             } else if (selectedNicknameEffectIdentifier.startsWith('category_')) {
-                const parts = selectedNicknameEffectIdentifier.split('_'); // category_Unity_1-3_effect
+                const parts = selectedNicknameEffectIdentifier.split('_'); 
                 const cat = parts[1] as PostMainCategory;
-                const tierEffect = parts[2] + (parts[3] ? `_${parts[3]}` : ""); // "1-3_effect", "4-10_effect", "11-20_effect"
+                const tierEffect = parts[2] + (parts[3] ? `_${parts[3]}` : ""); 
                 
                 const applyWrapper = tierEffect === '1-3_effect' || tierEffect === '4-10_effect';
+                const isTextEffectOnly = tierEffect === '11-20_effect';
                 
-                if (cat === 'Unity') { finalNicknameClasses = cn(baseNicknameClass, "text-gradient-unity"); if(applyWrapper) finalWrapperClasses = "bg-wrapper-unity"; }
-                else if (cat === 'Unreal') { finalNicknameClasses = cn(baseNicknameClass, "text-gradient-unreal"); if(applyWrapper) finalWrapperClasses = "bg-wrapper-unreal"; }
-                else if (cat === 'Godot') { finalNicknameClasses = cn(baseNicknameClass, "text-gradient-godot"); if(applyWrapper) finalWrapperClasses = "bg-wrapper-godot"; }
-                else if (cat === 'General') { finalNicknameClasses = cn(baseNicknameClass, "text-gradient-general-rainbow"); if(applyWrapper) finalWrapperClasses = "bg-wrapper-general-rainbow"; }
+                let categoryTextGradientClass = "";
+                let categoryWrapperClass = "";
+
+                if (cat === 'Unity') { categoryTextGradientClass = "text-gradient-unity"; if(applyWrapper) categoryWrapperClass = "bg-wrapper-unity"; }
+                else if (cat === 'Unreal') { categoryTextGradientClass = "text-gradient-unreal"; if(applyWrapper) categoryWrapperClass = "bg-wrapper-unreal"; }
+                else if (cat === 'Godot') { categoryTextGradientClass = "text-gradient-godot"; if(applyWrapper) categoryWrapperClass = "bg-wrapper-godot"; }
+                else if (cat === 'General') { categoryTextGradientClass = "text-gradient-general-rainbow"; if(applyWrapper) categoryWrapperClass = "bg-wrapper-general-rainbow"; }
+                
+                nicknameClasses = cn(baseNicknameClass, categoryTextGradientClass); // 기본적으로 font-semibold가 그라데이션 클래스에 있음
+                if (applyWrapper || isTextEffectOnly) { // 카테고리 효과는 기본적으로 font-semibold 유지 (요청 시 변경 가능)
+                     wrapperClasses = categoryWrapperClass; // 11-20위는 wrapper X (categoryWrapperClass가 ""임)
+                }
+
             } else if (selectedNicknameEffectIdentifier.startsWith('tetris_')) {
                 const rank = parseInt(selectedNicknameEffectIdentifier.split('_')[1]);
-                if (rank === 1) finalNicknameClasses = cn(baseNicknameClass, "text-gradient-gold");
-                else if (rank === 2) finalNicknameClasses = cn(baseNicknameClass, "text-gradient-silver");
-                else if (rank === 3) finalNicknameClasses = cn(baseNicknameClass, "text-gradient-bronze");
-                // No wrapper for tetris effects for nickname
+                // 테트리스 닉네임 효과는 텍스트 그라데이션만 (font-semibold 유지), 래퍼 없음
+                if (rank === 1) nicknameClasses = cn(baseNicknameClass, "text-gradient-gold");
+                else if (rank === 2) nicknameClasses = cn(baseNicknameClass, "text-gradient-silver");
+                else if (rank === 3) nicknameClasses = cn(baseNicknameClass, "text-gradient-bronze");
             }
+        } else { // selectedNicknameEffectIdentifier === 'none'
+            nicknameClasses = cn(baseNicknameClass, "text-foreground"); // 명시적으로 'none'이면 기본 스타일
         }
+
 
         // 3. Apply Logo from selectedLogoIdentifier
         if (selectedLogoIdentifier && selectedLogoIdentifier !== 'none') {
             if (selectedLogoIdentifier.startsWith('logo_')) {
-                finalShowLogoCategory = selectedLogoIdentifier.split('_')[1] as PostMainCategory;
+                showLogoCategory = selectedLogoIdentifier.split('_')[1] as PostMainCategory;
             }
         }
-
-        // If user is testwang1, these are the final styles.
-        // For regular users, these selected styles take precedence if they are not 'none'.
-        // If a regular user selected 'none' for all, the rank-based logic below will apply.
-        if (user.username === 'testwang1' || 
-            (selectedTitleIdentifier !== 'none' || selectedNicknameEffectIdentifier !== 'none' || selectedLogoIdentifier !== 'none')
-        ) {
-             // Ensure default nickname color if no specific effect applied it
-            if (finalNicknameClasses === cn(baseNicknameClass, "text-foreground") && selectedNicknameEffectIdentifier === 'none') {
-                 finalNicknameClasses = cn(baseNicknameClass, "text-foreground");
-            }
-
-            return { 
-                titleText: finalTitleText, 
-                titleClasses: finalTitleClasses ? finalTitleClasses : "", 
-                nicknameClasses: finalNicknameClasses, 
-                wrapperClasses: finalWrapperClasses, 
-                showLogoCategory: finalShowLogoCategory, 
-                nickname: user.nickname, 
-                isAdmin: false 
-            };
+        
+        if (context === 'header' || context === 'profileCard') {
+          wrapperClasses = ""; 
+          if(context === 'header') {
+            titleText = null; titleClasses = ""; 
+            showLogoCategory = null; 
+          }
         }
+        if (!titleText) titleClasses = "";
+
+        return { 
+            titleText, titleClasses, nicknameClasses, wrapperClasses, showLogoCategory, 
+            nickname: user.nickname, isAdmin: false 
+        };
     }
     
     // Default Rank-Based Styling (applies if user is not testwang1 AND all selected preferences are 'none')
-    titleText = null; // Reset for rank-based logic
-    titleClasses = "";
-    nicknameClasses = cn(baseNicknameClass, "text-foreground");
-    wrapperClasses = "";
-    showLogoCategory = null;
-
-    if (user.rank > 0 && user.rank <= 3) { // Global Rank (highest priority for default styling)
-        if (user.rank === 1) { nicknameClasses = cn(baseNicknameClass, "text-gradient-gold"); wrapperClasses = "bg-wrapper-gold"; }
-        else if (user.rank === 2) { nicknameClasses = cn(baseNicknameClass, "text-gradient-silver"); wrapperClasses = "bg-wrapper-silver"; }
-        else if (user.rank === 3) { nicknameClasses = cn(baseNicknameClass, "text-gradient-bronze"); wrapperClasses = "bg-wrapper-bronze"; }
-    } else if (user.tetrisRank && user.tetrisRank > 0 && user.tetrisRank <= 3) { // Tetris Rank (second priority)
+    // 순서: 종합 랭킹 > 테트리스 랭킹 > 카테고리 랭킹
+    if (user.rank > 0 && user.rank <= 3) { // Global Rank
+        if (user.rank === 1) { nicknameClasses = cn(baseNicknameClass, "text-gradient-gold", "font-bold"); wrapperClasses = "bg-wrapper-gold"; }
+        else if (user.rank === 2) { nicknameClasses = cn(baseNicknameClass, "text-gradient-silver", "font-bold"); wrapperClasses = "bg-wrapper-silver"; }
+        else if (user.rank === 3) { nicknameClasses = cn(baseNicknameClass, "text-gradient-bronze", "font-bold"); wrapperClasses = "bg-wrapper-bronze"; }
+    } else if (user.tetrisRank && user.tetrisRank > 0 && user.tetrisRank <= 3) { // Tetris Rank
         const rank = user.tetrisRank;
         titleText = tetrisTitles[rank] || `테트리스 ${rank}위`;
         if (rank === 1) { titleClasses = cn(baseTitleClass, "text-gradient-gold"); nicknameClasses = cn(baseNicknameClass, "text-gradient-gold"); }
         else if (rank === 2) { titleClasses = cn(baseTitleClass, "text-gradient-silver"); nicknameClasses = cn(baseNicknameClass, "text-gradient-silver"); }
         else if (rank === 3) { titleClasses = cn(baseTitleClass, "text-gradient-bronze"); nicknameClasses = cn(baseNicknameClass, "text-gradient-bronze"); }
-    } else {
-        // Category Rank (lowest priority for default styling, considers context)
+    } else { // Category Rank (컨텍스트에 따라 적용)
         const categoryToConsiderForStyle = activeCategory || postMainCategoryForAuthor;
         if (categoryToConsiderForStyle && user.categoryStats?.[categoryToConsiderForStyle]) {
             const catStat = user.categoryStats[categoryToConsiderForStyle]!;
             const catRank = catStat.rankInCate || 0;
 
             if (catRank > 0 && catRank <= 20) {
-                showLogoCategory = categoryToConsiderForStyle; // Logo for top 20 in this context
+                showLogoCategory = categoryToConsiderForStyle; 
 
-                if (catRank <= 3) { // Title for 1-3 in this context
+                if (catRank <= 3) { 
                     titleText = `${getCategoryDisplayName(categoryToConsiderForStyle)} ${catRank}위`;
                     if (catRank === 1) titleClasses = cn(baseTitleClass, "text-gradient-gold");
                     else if (catRank === 2) titleClasses = cn(baseTitleClass, "text-gradient-silver");
                     else if (catRank === 3) titleClasses = cn(baseTitleClass, "text-gradient-bronze");
                 }
 
-                // Nickname text & wrapper for 1-10 in this context
-                if (catRank <= 10) {
-                    const applyWrapper = true;
+                if (catRank <= 10) { // 1-10위는 래퍼 + 텍스트 효과
+                    const applyWrapper = true; 
                     if (categoryToConsiderForStyle === 'Unity') { nicknameClasses = cn(baseNicknameClass, "text-gradient-unity"); if(applyWrapper) wrapperClasses = "bg-wrapper-unity"; }
                     else if (categoryToConsiderForStyle === 'Unreal') { nicknameClasses = cn(baseNicknameClass, "text-gradient-unreal"); if(applyWrapper) wrapperClasses = "bg-wrapper-unreal"; }
                     else if (categoryToConsiderForStyle === 'Godot') { nicknameClasses = cn(baseNicknameClass, "text-gradient-godot"); if(applyWrapper) wrapperClasses = "bg-wrapper-godot"; }
                     else if (categoryToConsiderForStyle === 'General') { nicknameClasses = cn(baseNicknameClass, "text-gradient-general-rainbow"); if(applyWrapper) wrapperClasses = "bg-wrapper-general-rainbow"; }
-                } else if (catRank <= 20) { // Nickname text only for 11-20 in this context
+                } else if (catRank <= 20) { // 11-20위는 텍스트 효과만
                     if (categoryToConsiderForStyle === 'Unity') nicknameClasses = cn(baseNicknameClass, "text-gradient-unity");
                     else if (categoryToConsiderForStyle === 'Unreal') nicknameClasses = cn(baseNicknameClass, "text-gradient-unreal");
                     else if (categoryToConsiderForStyle === 'Godot') nicknameClasses = cn(baseNicknameClass, "text-gradient-godot");
@@ -211,18 +198,27 @@ export default function NicknameDisplay({ user, context, activeCategory, postMai
         }
     }
     
-    // Context-specific overrides for default styling
     if (context === 'header' || context === 'profileCard') {
-        wrapperClasses = ""; // No wrapper in header or profile card main display
+        wrapperClasses = ""; 
         if(context === 'header') {
-            titleText = null; // No title in header
-            showLogoCategory = null; // No logo in header
+            titleText = null; titleClasses = "";
+            showLogoCategory = null;
         }
     }
-    if (!titleText) titleClasses = ""; // Ensure titleClasses is empty if no titleText
+    if (!titleText) titleClasses = "";
 
     return { titleText, titleClasses, nicknameClasses, wrapperClasses, showLogoCategory, nickname: user.nickname, isAdmin: false };
   }, [user, user.selectedTitleIdentifier, user.selectedNicknameEffectIdentifier, user.selectedLogoIdentifier, activeCategory, postMainCategoryForAuthor, context]);
+
+  const finalWrapperClasses = cn(
+    "inline-flex flex-col items-center leading-tight",
+    displayInfo.wrapperClasses 
+  );
+
+  const finalNicknameContainerClasses = cn(
+    "flex items-center", 
+    displayInfo.showLogoCategory ? "gap-1" : ""
+  );
 
   if (displayInfo.isAdmin) {
     return (
@@ -232,16 +228,6 @@ export default function NicknameDisplay({ user, context, activeCategory, postMai
       </span>
     );
   }
-  
-  const finalWrapperClasses = cn(
-    "inline-flex flex-col items-center leading-tight", // Ensure items-center for title and nickname block
-    displayInfo.wrapperClasses 
-  );
-
-  const finalNicknameContainerClasses = cn(
-    "flex items-center", 
-    displayInfo.showLogoCategory ? "gap-1" : ""
-  );
 
   return (
     <div className={finalWrapperClasses}>
@@ -261,5 +247,4 @@ export default function NicknameDisplay({ user, context, activeCategory, postMai
     </div>
   );
 }
-
     

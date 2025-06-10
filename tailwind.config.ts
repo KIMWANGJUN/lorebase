@@ -40,8 +40,10 @@ export default {
 
     // NicknameDisplay에서 동적으로 사용될 수 있는 기본 Tailwind 클래스들
     'text-transparent',
+    // 'bg-clip-text', // This is a CSS property, not a Tailwind class. text-gradient-* handles this.
     'font-semibold',
     'font-medium',
+    'font-bold', // Added for global rankers
     'text-primary',
     'text-foreground',
     'inline-flex',
@@ -58,8 +60,10 @@ export default {
     'h-4',
     'w-4',
     'shrink-0',
-    // 추가적으로 필요할 수 있는 기본 클래스들을 여기에 더 명시할 수 있습니다.
-    // 예: 'p-1.5', 'rounded-md', 'border', 'shadow-md', 'shadow-sm'
+    'border-2', 
+    'border-amber-500/70',
+    'border-slate-500/70',
+    'border-orange-600/70'
   ],
   theme: {
     extend: {
