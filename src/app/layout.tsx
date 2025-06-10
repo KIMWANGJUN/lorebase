@@ -2,7 +2,6 @@ import type { Metadata } from 'next';
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
 import { AuthProvider } from '@/contexts/AuthContext';
-// import { ThemeProvider } from "next-themes"; // 제거
 
 export const metadata: Metadata = {
   title: '인디 게임 개발자 커뮤니티',
@@ -22,7 +21,6 @@ export default function RootLayout({
         <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&display=swap" rel="stylesheet" />
       </head>
       <body className="font-body antialiased">
-        {/* ThemeProvider 제거 */}
           <AuthProvider>
             {children}
             <Toaster />
