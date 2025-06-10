@@ -9,46 +9,34 @@ body {
 
 @layer base {
   :root {
-    /* 단일 테마 (기본: 어두운 판타지 테마 유지 또는 원하는 기본 테마로 설정) */
-    --background: 220 15% 15%; /* Deep Dark Blue/Gray */
-    --foreground: 210 30% 85%; /* Light Cool Gray/Parchment */
-
-    --card: 220 15% 20%; 
+    --background: 220 15% 15%;
+    --foreground: 210 30% 85%;
+    --card: 220 15% 20%;
     --card-foreground: 210 30% 85%;
-    --popover: 220 15% 12%; 
+    --popover: 220 15% 12%;
     --popover-foreground: 210 30% 85%;
-
-    --primary: 260 70% 65%; /* Arcane Purple */
-    --primary-foreground: 0 0% 100%; /* White */
-
-    --secondary: 180 50% 45%; /* Mystical Teal */
-    --secondary-foreground: 220 15% 15%; 
-
-    --muted: 220 10% 30%; 
-    --muted-foreground: 210 20% 65%; 
-
-    --accent: 50 90% 60%; /* Enchanted Gold/Amber */
-    --accent-foreground: 220 15% 15%; 
-    
-    --accent-orange: 30 85% 58%; 
-    --accent-yellow: 50 95% 55%; 
-
-    --destructive: 0 65% 50%; /* Deep Crimson Red */
-    --destructive-foreground: 0 0% 100%; 
-
-    --border: 220 10% 40%; 
-    --input: 220 10% 25%; 
-    --ring: 260 70% 65%; 
-
-    --radius: 0.5rem; 
-
+    --primary: 260 70% 65%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 180 50% 45%;
+    --secondary-foreground: 220 15% 15%;
+    --muted: 220 10% 30%;
+    --muted-foreground: 210 20% 65%;
+    --accent: 50 90% 60%;
+    --accent-foreground: 220 15% 15%;
+    --accent-orange: 30 85% 58%;
+    --accent-yellow: 50 95% 55%;
+    --destructive: 0 65% 50%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 220 10% 40%;
+    --input: 220 10% 25%;
+    --ring: 260 70% 65%;
+    --radius: 0.5rem;
     --chart-1: 260 70% 65%;
     --chart-2: 180 50% 45%;
-    --chart-3: 50 90% 60%; 
-    --chart-4: 30 85% 58%; 
-    --chart-5: 210 30% 70%; 
-
-    --sidebar-background: 220 15% 12%; 
+    --chart-3: 50 90% 60%;
+    --chart-4: 30 85% 58%;
+    --chart-5: 210 30% 70%;
+    --sidebar-background: 220 15% 12%;
     --sidebar-foreground: 210 30% 80%;
     --sidebar-primary: 260 70% 65%;
     --sidebar-primary-foreground: 0 0% 100%;
@@ -57,14 +45,12 @@ body {
     --sidebar-border: 220 10% 35%;
     --sidebar-ring: 260 70% 65%;
 
-    /* 카테고리 아이콘 색상 (단일 테마 기준) */
-    --unity-icon-color-hsl: 220 10% 60%; 
-    --unreal-icon-color-hsl: 0 0% 70%;
-    --godot-icon-color-hsl: 200 50% 50%;
-    --general-icon-color-hsl: 30 80% 55%;
+    /* 카테고리 아이콘 색상 (단일 테마) */
+    --category-icon-unity-hsl: 260 60% 70%; /* Light Purple */
+    --category-icon-unreal-hsl: 200 60% 70%; /* Light Blue */
+    --category-icon-godot-hsl: 150 60% 65%;  /* Light Green/Teal */
+    --category-icon-general-hsl: 40 70% 70%;  /* Light Orange/Yellow */
   }
-
-  /* .dark {...} 블록 제거 */
 }
 
 @layer base {
@@ -72,28 +58,44 @@ body {
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground; /* 테마 변수 적용 */
+    @apply bg-background text-foreground;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
 }
 
-/* 랭킹 관련 시각적 스타일 제거 또는 단순화 */
-/* .text-rank-gold, .text-rank-silver, ... 등 그라데이션 클래스 제거 */
-/* .admin-badge-bg, .rank-1-badge, ... 등 컨테이너 배경 스타일 제거 */
-/* .highlight-unity, .highlight-general-inner, ... 등 카테고리 하이라이트 제거 */
-/* .text-unity-themed, .nickname-text-rank-X, ... 등 특정 텍스트 색상/스타일 제거 */
+@layer components {
+  /* 텍스트 그라데이션 유틸리티 */
+  .text-gradient-gold { @apply font-semibold bg-gradient-to-r from-yellow-300 via-amber-400 to-yellow-500 bg-clip-text text-transparent; }
+  .text-gradient-silver { @apply font-semibold bg-gradient-to-r from-slate-300 via-slate-400 to-slate-500 bg-clip-text text-transparent; }
+  .text-gradient-bronze { @apply font-semibold bg-gradient-to-r from-orange-400 via-yellow-600 to-amber-600 bg-clip-text text-transparent; }
 
-/* 카테고리 아이콘 색상 적용을 위한 단순 클래스 (위의 CSS 변수 사용) */
-.text-unity-icon { color: hsl(var(--unity-icon-color-hsl)); }
-.text-unreal-icon { color: hsl(var(--unreal-icon-color-hsl)); }
-.text-godot-icon { color: hsl(var(--godot-icon-color-hsl)); }
-.text-general-icon { color: hsl(var(--general-icon-color-hsl)); }
+  .text-gradient-unity { @apply font-medium bg-gradient-to-r from-gray-200 via-gray-300 to-purple-300 bg-clip-text text-transparent; }
+  .text-gradient-unreal { @apply font-medium bg-gradient-to-r from-gray-200 via-sky-300 to-blue-400 bg-clip-text text-transparent; }
+  .text-gradient-godot { @apply font-medium bg-gradient-to-r from-sky-200 via-teal-300 to-green-300 bg-clip-text text-transparent; }
+  .text-gradient-general-rainbow { @apply font-medium bg-gradient-to-r from-pink-400 via-purple-400 to-indigo-400 via-blue-400 to-teal-400 via-green-400 to-yellow-400 via-orange-400 to-red-400 bg-clip-text text-transparent; }
+  
+  /* 닉네임 감싸는 배경 그라데이션 유틸리티 */
+  .bg-wrapper-gold { @apply p-1.5 rounded-md bg-gradient-to-br from-yellow-500/20 via-amber-600/20 to-yellow-700/20 border border-amber-500/40 shadow-md; }
+  .bg-wrapper-silver { @apply p-1.5 rounded-md bg-gradient-to-br from-slate-500/20 via-slate-600/20 to-slate-700/20 border border-slate-500/40 shadow-md; }
+  .bg-wrapper-bronze { @apply p-1.5 rounded-md bg-gradient-to-br from-orange-600/20 via-yellow-700/20 to-amber-800/20 border border-orange-600/40 shadow-md; }
 
-/* 칭호 기본 스타일 (필요하다면 유지, 색상은 컴포넌트에서 직접 지정) */
-.title-container { 
-  @apply w-full text-center mb-0.5;
-}
-.title-text { 
- @apply text-[0.7rem] leading-tight tracking-tight font-medium; /* 기본 두께 */
+  .bg-wrapper-unity { @apply p-1.5 rounded-md bg-gradient-to-br from-gray-600/20 via-gray-700/20 to-purple-800/20 border border-purple-600/30 shadow-sm; }
+  .bg-wrapper-unreal { @apply p-1.5 rounded-md bg-gradient-to-br from-neutral-700/30 via-neutral-800/30 to-sky-900/30 border border-sky-700/40 shadow-sm; }
+  .bg-wrapper-godot { @apply p-1.5 rounded-md bg-gradient-to-br from-slate-700/20 via-teal-800/20 to-green-900/20 border border-teal-600/30 shadow-sm; }
+  .bg-wrapper-general-rainbow { @apply p-1.5 rounded-md bg-gradient-to-r from-pink-700/20 via-purple-700/20 to-indigo-700/20 via-blue-700/20 to-teal-700/20 via-green-700/20 to-yellow-700/20 via-orange-700/20 to-red-700/20 border border-purple-500/30 shadow-sm; }
+
+  /* 칭호 스타일 */
+  .title-on-nickname-wrapper { @apply mb-0.5 block w-full text-center; }
+  .title-text-base { @apply text-[0.7rem] leading-tight tracking-tight; } /* 기본 크기 및 정렬 */
+  
+  /* 관리자 뱃지 스타일 */
+  .admin-badge { @apply bg-primary/10 border border-primary/50 rounded-md px-2 py-0.5; }
+  .admin-text { @apply text-primary font-semibold; }
+
+  /* 카테고리 아이콘 색상 */
+  .icon-unity { @apply text-[hsl(var(--category-icon-unity-hsl))]; }
+  .icon-unreal { @apply text-[hsl(var(--category-icon-unreal-hsl))]; }
+  .icon-godot { @apply text-[hsl(var(--category-icon-godot-hsl))]; }
+  .icon-general { @apply text-[hsl(var(--category-icon-general-hsl))]; }
 }

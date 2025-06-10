@@ -7,27 +7,26 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ArrowRight, Code, Compass, Gift, MessageSquare, Users, Star, Wand2, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, ThumbsUp, Trophy, Box, AppWindow, PenTool, LayoutGrid, Crown, Gamepad2, User } from 'lucide-react';
 import Image from 'next/image';
-import { mockUsers, mockPosts, mockTetrisRankings, tetrisTitles } from '@/lib/mockData'; 
+import { mockUsers, mockPosts, mockTetrisRankings, tetrisTitles } from '@/lib/mockData';
 import { cn } from '@/lib/utils';
 import React, { useState, useMemo, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import type { User as UserType, PostMainCategory, DisplayRankType } from '@/types'; 
+import type { User as UserType, PostMainCategory, AchievedRankType } from '@/types';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import NicknameDisplay from '@/components/shared/NicknameDisplay';
 
 
 const POSTS_PER_PAGE = 10;
-const MAX_PAGES = 10; 
-const RANKERS_TO_SHOW = 20; 
+const MAX_PAGES = 10;
+const RANKERS_TO_SHOW = 20;
 
 const CategorySpecificIcon: React.FC<{ category: PostMainCategory, className?: string }> = ({ category, className }) => {
   const defaultClassName = "h-3.5 w-3.5 shrink-0";
-  // CSS 변수를 활용한 색상 적용으로 변경
-  const iconColorClass = 
-    category === 'Unity' ? 'text-unity-icon' :
-    category === 'Unreal' ? 'text-unreal-icon' :
-    category === 'Godot' ? 'text-godot-icon' :
-    category === 'General' ? 'text-general-icon' :
-    'text-muted-foreground';
+  const iconColorClass =
+    category === 'Unity' ? 'icon-unity' :
+    category === 'Unreal' ? 'icon-unreal' :
+    category === 'Godot' ? 'icon-godot' :
+    'icon-general';
 
   switch (category) {
     case 'Unity': return <Box className={cn(defaultClassName, iconColorClass, className)} />;
@@ -40,7 +39,7 @@ const CategorySpecificIcon: React.FC<{ category: PostMainCategory, className?: s
 
 
 export default function HomePage() {
-  const { user: currentUser } = useAuth(); 
+  const { user: currentUser } = useAuth();
   const [currentPage, setCurrentPage] = useState(1);
   const [activeRankingTab, setActiveRankingTab] = useState<PostMainCategory | 'Global'>('Global');
 
@@ -59,7 +58,7 @@ export default function HomePage() {
 
   const renderPageNumbers = () => {
     const pageNumbers = [];
-    const maxPagesToShow = 5; 
+    const maxPagesToShow = 5;
     let startPage = Math.max(1, currentPage - Math.floor(maxPagesToShow / 2));
     let endPage = Math.min(totalPages, startPage + maxPagesToShow - 1);
     if (endPage - startPage + 1 < maxPagesToShow) {
@@ -81,9 +80,9 @@ export default function HomePage() {
     }
     return pageNumbers;
   };
-  
+
   const getTopNUsers = useCallback((users: UserType[], category: PostMainCategory | 'Global', count: number): UserType[] => {
-    const usersToRank = users.filter(u => u.username !== 'WANGJUNLAND'); 
+    const usersToRank = users.filter(u => u.username !== 'WANGJUNLAND');
 
     let sortedUsers;
     if (category === 'Global') {
@@ -112,11 +111,11 @@ export default function HomePage() {
               </CardTitle>
             </CardHeader>
             <CardContent className="flex flex-col items-center justify-center p-4">
-              <Image 
-                src="https://placehold.co/600x400.png" 
-                alt="Tetris Game Placeholder" 
-                width={600} 
-                height={400} 
+              <Image
+                src="https://placehold.co/600x400.png"
+                alt="Tetris Game Placeholder"
+                width={600}
+                height={400}
                 className="rounded-lg shadow-md border border-border"
                 data-ai-hint="tetris game screen"
               />
@@ -138,34 +137,19 @@ export default function HomePage() {
               <div className="space-y-3">
                 {mockTetrisRankings.slice(0, RANKERS_TO_SHOW).map((rankerData) => {
                   const user = mockUsers.find(u => u.id === rankerData.userId);
-                  // 랭킹 하이라이트 제거, 기본 스타일로 표시
-                  const nicknameSpanClasses = "text-sm text-foreground font-medium";
+                  if (!user) return null;
+
                   const rankNumberClasses = "font-bold w-5 text-center shrink-0 text-muted-foreground";
-                  const titleTextClasses = "title-text text-muted-foreground"; // 기본 칭호 색상
-                  
-                  let titleElement = null;
-                  if (rankerData.rank > 0 && rankerData.rank <= 3 && tetrisTitles[rankerData.rank - 1]) {
-                     titleElement = (
-                       <div className="title-container">
-                         <p className={titleTextClasses}>{tetrisTitles[rankerData.rank - 1]}</p>
-                       </div>
-                     );
-                  }
-                  
+
                   return (
                     <div key={rankerData.userId} className="flex items-center justify-between p-2.5 bg-card/50 border-border/70 rounded-md shadow-sm">
                       <div className="flex items-center gap-2">
                         <span className={rankNumberClasses}>{rankerData.rank}.</span>
                         <Avatar className="h-8 w-8 border-2 border-accent/50 shrink-0">
-                            <AvatarImage src={user?.avatar || `https://placehold.co/40x40.png?text=${rankerData.nickname.substring(0,1)}`} alt={rankerData.nickname} data-ai-hint="gamer avatar" />
+                            <AvatarImage src={user.avatar || `https://placehold.co/40x40.png?text=${rankerData.nickname.substring(0,1)}`} alt={rankerData.nickname} data-ai-hint="gamer avatar" />
                             <AvatarFallback className="text-xs bg-muted text-muted-foreground">{rankerData.nickname.substring(0,1)}</AvatarFallback>
                         </Avatar>
-                        <div className="flex flex-col items-start text-left">
-                          {titleElement}
-                          <span className={nicknameSpanClasses}>
-                            {rankerData.nickname}
-                          </span>
-                        </div>
+                        <NicknameDisplay user={user} context="rankingList" />
                       </div>
                       <span className="text-xs font-semibold text-accent shrink-0">{rankerData.score.toLocaleString()} 점</span>
                     </div>
@@ -259,30 +243,19 @@ export default function HomePage() {
                   <TabsTrigger value="Godot" className="text-xs px-1 py-1.5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground flex items-center justify-center gap-1"><PenTool className="h-3.5 w-3.5"/>Godot</TabsTrigger>
                   <TabsTrigger value="General" className="text-xs px-1 py-1.5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground flex items-center justify-center gap-1"><LayoutGrid className="h-3.5 w-3.5"/>일반 & 유머</TabsTrigger>
                 </TabsList>
-                
+
                 {(['Global', 'Unity', 'Unreal', 'Godot', 'General'] as (PostMainCategory | 'Global')[]).map(tabValue => (
                   <TabsContent key={tabValue} value={tabValue}>
                     {rankedUsersToDisplay.length > 0 ? (
                       <div className="space-y-3">
                         {rankedUsersToDisplay.map((user) => {
                           if (user.username === 'WANGJUNLAND' && tabValue !== 'Global') return null;
-                          
-                          // 랭킹 하이라이트 제거, 기본 스타일로 표시
-                          const nicknameTextClasses = "text-sm text-foreground font-medium";
+
                           const rankNumberTextClasses = "font-bold text-md w-5 text-center shrink-0 text-muted-foreground";
                           const itemContainerClasses = "flex items-center justify-between p-2.5 bg-card/50 border-border/70 rounded-md shadow-sm";
-                          
-                          const { rank: globalRank, tetrisRank, categoryStats, username, selectedDisplayRank, nickname } = user;
-                          const currentActiveCategory = activeRankingTab !== 'Global' ? activeRankingTab : undefined;
-                          const userCatStats = currentActiveCategory && categoryStats?.[currentActiveCategory];
-                          
-                          let displayRankNumberToShow = 0;
-                          if (tabValue === 'Global') {
-                            displayRankNumberToShow = globalRank;
-                          } else if (categoryStats && categoryStats[tabValue as PostMainCategory]){
-                            displayRankNumberToShow = categoryStats[tabValue as PostMainCategory]?.rankInCate || 0;
-                          }
-                          
+
+                          const displayRankNumberToShow = tabValue === 'Global' ? user.rank : user.categoryStats?.[tabValue as PostMainCategory]?.rankInCate || 0;
+
                           return (
                             <div key={user.id} className={itemContainerClasses}>
                                <div className="flex items-center gap-2.5">
@@ -290,24 +263,14 @@ export default function HomePage() {
                                   {displayRankNumberToShow > 0 ? `${displayRankNumberToShow}.` : "-"}
                                 </span>
                                 <Avatar className="h-8 w-8 border-2 border-accent/70 shrink-0">
-                                  <AvatarImage src={user.avatar || `https://placehold.co/40x40.png?text=${nickname.substring(0,1)}`} alt={nickname} data-ai-hint="fantasy character avatar" />
-                                  <AvatarFallback className="text-xs bg-muted text-muted-foreground">{nickname.substring(0,1)}</AvatarFallback>
+                                  <AvatarImage src={user.avatar || `https://placehold.co/40x40.png?text=${user.nickname.substring(0,1)}`} alt={user.nickname} data-ai-hint="fantasy character avatar" />
+                                  <AvatarFallback className="text-xs bg-muted text-muted-foreground">{user.nickname.substring(0,1)}</AvatarFallback>
                                 </Avatar>
-                                
-                                <div className="flex flex-col items-start text-left">
-                                   <div className="flex items-center gap-1.5">
-                                        {activeRankingTab !== 'Global' && (
-                                          <CategorySpecificIcon category={activeRankingTab} className="h-4 w-4" />
-                                        )}
-                                        <span className={nicknameTextClasses}>
-                                          {nickname}
-                                        </span>
-                                   </div>
-                                </div>
+                                <NicknameDisplay user={user} context="rankingList" activeCategory={tabValue !== 'Global' ? tabValue : undefined} />
                               </div>
-                              {currentUser?.username === 'WANGJUNLAND' && ( 
+                              {currentUser?.username === 'WANGJUNLAND' && (
                                 <span className="text-xs font-semibold text-accent shrink-0">
-                                  {activeRankingTab === 'Global' ? user.score.toLocaleString() : (userCatStats?.score || 0).toLocaleString()} 점
+                                  {tabValue === 'Global' ? user.score.toLocaleString() : (user.categoryStats?.[tabValue as PostMainCategory]?.score || 0).toLocaleString()} 점
                                 </span>
                               )}
                             </div>
@@ -332,5 +295,3 @@ export default function HomePage() {
     </div>
   );
 }
-
-    

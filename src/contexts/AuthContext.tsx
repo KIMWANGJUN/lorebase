@@ -1,17 +1,17 @@
 
 // src/contexts/AuthContext.tsx
 "use client";
-import type { User, NewUserDto as SignupUserDto } from '@/types'; // Changed import name
+import type { User, NewUserDto as SignupUserDto, AchievedRankType } from '@/types';
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
-import { mockUsers, addUser as addUserToMockList } from '@/lib/mockData'; // Using mockUsers for initial data
+import { mockUsers, addUser as addUserToMockList } from '@/lib/mockData';
 
 interface AuthContextType {
   user: User | null;
   isAdmin: boolean;
   login: (username: string, pass: string) => Promise<boolean>;
   logout: () => void;
-  signup: (userData: SignupUserDto) => Promise<{ success: boolean, message?: string }>; // Added signup
-  updateUser: (updatedUser: Partial<User>) => void;
+  signup: (userData: SignupUserDto) => Promise<{ success: boolean, message?: string }>;
+  updateUser: (updatedUserPartial: Partial<User>) => void;
   loading: boolean;
 }
 
@@ -26,9 +26,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const storedUser = localStorage.getItem('currentUser');
     if (storedUser) {
       const parsedUser: User = JSON.parse(storedUser);
-      if (parsedUser.nicknameLastChanged) {
+      if (parsedUser.nicknameLastChanged && typeof parsedUser.nicknameLastChanged === 'string') {
         parsedUser.nicknameLastChanged = new Date(parsedUser.nicknameLastChanged);
       }
+      // Ensure selectedDisplayRank is part of the parsed user or default it
+      parsedUser.selectedDisplayRank = parsedUser.selectedDisplayRank || 'default';
       setUser(parsedUser);
       setIsAdmin(parsedUser.username === 'WANGJUNLAND');
     }
@@ -37,23 +39,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const login = async (username: string, pass: string): Promise<boolean> => {
     setLoading(true);
-    await new Promise(resolve => setTimeout(resolve, 300)); // Simulate API delay
-    
-    let foundUser: User | undefined;
-    if (username === 'WANGJUNLAND') {
-      if (pass === 'WJLAND1013$') { // Strict password check for admin
-        foundUser = mockUsers.find(u => u.username === 'WANGJUNLAND');
-      }
-    } else {
-      // For regular users, check username and password
-      foundUser = mockUsers.find(u => u.username === username && u.password === pass);
-    }
+    await new Promise(resolve => setTimeout(resolve, 300));
+
+    let foundUser = mockUsers.find(u => u.username === username && (username === 'WANGJUNLAND' ? u.password === pass : u.password === pass));
 
     if (foundUser) {
       const userToSet = {...foundUser};
       if (userToSet.nicknameLastChanged && typeof userToSet.nicknameLastChanged === 'string') {
         userToSet.nicknameLastChanged = new Date(userToSet.nicknameLastChanged);
       }
+      userToSet.selectedDisplayRank = userToSet.selectedDisplayRank || 'default'; // Ensure on login
       setUser(userToSet);
       setIsAdmin(userToSet.username === 'WANGJUNLAND');
       localStorage.setItem('currentUser', JSON.stringify(userToSet));
@@ -72,14 +67,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const signup = async (userData: SignupUserDto): Promise<{ success: boolean, message?: string }> => {
     setLoading(true);
-    await new Promise(resolve => setTimeout(resolve, 300)); // Simulate API delay
-    
-    const result = addUserToMockList(userData); // This now modifies the global mockUsers array
-    
+    await new Promise(resolve => setTimeout(resolve, 300));
+    const result = addUserToMockList(userData);
     setLoading(false);
-    return result; // result contains { success: boolean, message?: string, user?: User }
+    return result;
   };
-
 
   const updateUser = (updatedUserPartial: Partial<User>) => {
     if (user) {
@@ -88,8 +80,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       if (updatedUserPartial.nickname && updatedUserPartial.nickname.trim() !== user.nickname) {
         finalUpdatedFields.nicknameLastChanged = new Date();
       }
+      
+      // Ensure selectedDisplayRank is explicitly handled
+      if (updatedUserPartial.selectedDisplayRank) {
+        finalUpdatedFields.selectedDisplayRank = updatedUserPartial.selectedDisplayRank;
+      }
 
-      const updatedUserObject = { ...user, ...finalUpdatedFields };
+
+      const updatedUserObject: User = {
+        ...user,
+        ...finalUpdatedFields,
+        // Ensure selectedDisplayRank is always present, defaulting if necessary
+        selectedDisplayRank: finalUpdatedFields.selectedDisplayRank || user.selectedDisplayRank || 'default',
+      };
       
       if (updatedUserObject.nicknameLastChanged && typeof updatedUserObject.nicknameLastChanged === 'string') {
         updatedUserObject.nicknameLastChanged = new Date(updatedUserObject.nicknameLastChanged);
@@ -98,12 +101,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setUser(updatedUserObject);
       localStorage.setItem('currentUser', JSON.stringify(updatedUserObject));
 
-      // Update global mockUsers array as well for consistency across sessions if needed (or if page reloads without localstorage clear)
       const userIndex = mockUsers.findIndex(u => u.id === user.id);
       if (userIndex !== -1) {
-        mockUsers[userIndex] = { ...mockUsers[userIndex], ...finalUpdatedFields };
+        mockUsers[userIndex] = { ...mockUsers[userIndex], ...finalUpdatedFields, selectedDisplayRank: updatedUserObject.selectedDisplayRank };
       }
-
 
       if (updatedUserPartial.username) {
         setIsAdmin(updatedUserPartial.username === 'WANGJUNLAND');
@@ -125,4 +126,3 @@ export const useAuth = () => {
   }
   return context;
 };
-

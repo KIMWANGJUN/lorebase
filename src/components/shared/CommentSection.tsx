@@ -2,68 +2,28 @@
 // src/components/shared/CommentSection.tsx
 "use client";
 
-import type { Comment as CommentType, User as UserType, PostMainCategory, DisplayRankType } from '@/types'; 
-import { mockUsers, tetrisTitles, mockTetrisRankings } from '@/lib/mockData'; 
+import type { Comment as CommentType, User as UserType, PostMainCategory } from '@/types';
+import { mockUsers } from '@/lib/mockData';
 import React, { useState, useEffect, type FC } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import { MessageSquare, CornerDownRight, Send, Edit3, Save, XCircle, Box, AppWindow, PenTool, LayoutGrid, Star } from 'lucide-react';
+import { MessageSquare, CornerDownRight, Send, Edit3, Save, XCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
+import NicknameDisplay from './NicknameDisplay';
+
 
 const generateId = () => `comment_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
-const MAX_REPLY_DEPTH = 3; 
-
-const CategoryIcon: FC<{ category: PostMainCategory, className?: string }> = ({ category, className = "h-3.5 w-3.5 shrink-0" }) => {
-  // CSS 변수를 활용한 색상 적용으로 변경
-  const iconColorClass = 
-    category === 'Unity' ? 'text-unity-icon' :
-    category === 'Unreal' ? 'text-unreal-icon' :
-    category === 'Godot' ? 'text-godot-icon' :
-    category === 'General' ? 'text-general-icon' :
-    'text-muted-foreground';
-
-  switch (category) {
-    case 'Unity': return <Box className={cn(iconColorClass, className)} />;
-    case 'Unreal': return <AppWindow className={cn(iconColorClass, className)} />;
-    case 'Godot': return <PenTool className={cn(iconColorClass, className)} />;
-    case 'General': return <LayoutGrid className={cn(iconColorClass, className)} />;
-    default: return null;
-  }
-};
-
-interface NicknameDisplayForCommentProps {
-  author: UserType;
-  postMainCategory: PostMainCategory; 
-}
-
-const NicknameDisplayForComment: FC<NicknameDisplayForCommentProps> = ({ author, postMainCategory }) => {
-  if (!author) return <p className="text-sm text-foreground font-medium">Unknown User</p>;
-  
-  // 랭킹 하이라이트 제거, 기본 스타일로 표시
-  const nicknameTextClasses = "text-sm text-foreground font-medium";
-  const itemContainerClasses = "inline-flex items-center gap-1 bg-card/50 border-border/70 rounded-md shadow-sm px-1.5 py-0.5";
-  
-  return (
-    <div className="flex flex-col items-start">
-       <div className={itemContainerClasses}>
-            {postMainCategory && <CategoryIcon category={postMainCategory} className="h-3.5 w-3.5" />}
-            <span className={nicknameTextClasses}>
-              {author.nickname}
-            </span>
-      </div>
-    </div>
-  );
-};
+const MAX_REPLY_DEPTH = 3;
 
 
 interface CommentEntryProps {
   comment: CommentType;
   currentUser: UserType | null;
-  postMainCategory: PostMainCategory;
+  postMainCategory: PostMainCategory; // Pass this from the parent (PostDetail Page)
   onAddReply: (parentId: string, replyContent: string) => void;
   onEditComment: (commentId: string, newContent: string) => void;
   depth?: number;
@@ -75,34 +35,34 @@ const CommentEntry = ({ comment, currentUser, postMainCategory, onAddReply, onEd
   const [replyContent, setReplyContent] = useState('');
   const [isEditing, setIsEditing] = useState(false);
   const [editedContent, setEditedContent] = useState(comment.content);
-  
-  const author = mockUsers.find(u => u.id === comment.authorId); 
+
+  const author = mockUsers.find(u => u.id === comment.authorId);
   const isAuthor = currentUser?.id === comment.authorId;
-  const canReply = depth < MAX_REPLY_DEPTH -1; 
+  const canReply = depth < MAX_REPLY_DEPTH -1;
 
 
   const isReplyBoxOpen = activeReplyBoxId === comment.id;
 
   const handleToggleReplyInput = () => {
     if (isReplyBoxOpen) {
-      setActiveReplyBoxId(null); 
+      setActiveReplyBoxId(null);
     } else {
-      setActiveReplyBoxId(comment.id); 
-      setReplyContent(''); 
+      setActiveReplyBoxId(comment.id);
+      setReplyContent('');
     }
   };
 
   const handleReplySubmit = () => {
-    if (replyContent.trim() && currentUser && author) { 
+    if (replyContent.trim() && currentUser && author) {
       onAddReply(comment.id, replyContent.trim());
       setReplyContent('');
-      setActiveReplyBoxId(null); 
+      setActiveReplyBoxId(null);
     }
   };
 
   const handleEditToggle = () => {
-    if (isEditing) { 
-      setEditedContent(comment.content); 
+    if (isEditing) {
+      setEditedContent(comment.content);
     }
     setIsEditing(!isEditing);
   };
@@ -113,7 +73,7 @@ const CommentEntry = ({ comment, currentUser, postMainCategory, onAddReply, onEd
       setIsEditing(false);
     }
   };
-  
+
   const commentDate = comment.updatedAt ? new Date(comment.updatedAt) : new Date(comment.createdAt);
   const formattedDate = `${commentDate.toLocaleDateString()} ${commentDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
 
@@ -126,7 +86,7 @@ const CommentEntry = ({ comment, currentUser, postMainCategory, onAddReply, onEd
         </Avatar>
         <div className="flex-1">
           <div className="flex items-center justify-between">
-            {author ? <NicknameDisplayForComment author={author} postMainCategory={postMainCategory} /> : <p className="text-sm font-medium text-foreground">{comment.authorNickname}</p>}
+            {author ? <NicknameDisplay user={author} context="commentAuthor" postMainCategoryForAuthor={postMainCategory} /> : <p className="text-sm font-medium text-foreground">{comment.authorNickname}</p>}
             <p className="text-xs text-muted-foreground">
               {formattedDate}
               {comment.isEdited && <span className="ml-1 text-muted-foreground/80">(수정함)</span>}
@@ -134,8 +94,8 @@ const CommentEntry = ({ comment, currentUser, postMainCategory, onAddReply, onEd
           </div>
           {isEditing ? (
             <div className="mt-1 space-y-2">
-              <Textarea 
-                value={editedContent} 
+              <Textarea
+                value={editedContent}
                 onChange={(e) => setEditedContent(e.target.value)}
                 className="min-h-[60px] text-sm bg-input border-input text-foreground"
                 rows={2}
@@ -185,7 +145,7 @@ const CommentEntry = ({ comment, currentUser, postMainCategory, onAddReply, onEd
               key={reply.id}
               comment={reply}
               currentUser={currentUser}
-              postMainCategory={postMainCategory}
+              postMainCategory={postMainCategory} // Pass down
               onAddReply={onAddReply}
               onEditComment={onEditComment}
               depth={depth + 1}
@@ -203,23 +163,22 @@ const CommentEntry = ({ comment, currentUser, postMainCategory, onAddReply, onEd
 interface CommentSectionProps {
   postId: string;
   initialComments: CommentType[];
-  postMainCategory: PostMainCategory;
-  authorFull: UserType; 
+  postMainCategory: PostMainCategory; // Added to provide context to NicknameDisplay
 }
 
-export default function CommentSection({ postId, initialComments, postMainCategory, authorFull }: CommentSectionProps) {
+export default function CommentSection({ postId, initialComments, postMainCategory }: CommentSectionProps) {
   const { user: currentUser } = useAuth();
   const [comments, setComments] = useState<CommentType[]>([]);
   const [newCommentContent, setNewCommentContent] = useState('');
   const [activeReplyBoxId, setActiveReplyBoxId] = useState<string | null>(null);
 
   useEffect(() => {
-    const sortedInitialComments = [...initialComments].sort((a,b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()); 
+    const sortedInitialComments = [...initialComments].sort((a,b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
     setComments(sortedInitialComments);
   }, [initialComments]);
 
   const handleAddCommentInternal = (content: string, parentId?: string) => {
-    if (!currentUser) return; 
+    if (!currentUser) return;
 
     const newComment: CommentType = {
       id: generateId(),
@@ -263,7 +222,7 @@ export default function CommentSection({ postId, initialComments, postMainCatego
       setNewCommentContent('');
     }
   };
-  
+
   const handleAddReplyToComment = (targetCommentId: string, replyContent: string) => {
     handleAddCommentInternal(replyContent, targetCommentId);
   };
@@ -272,11 +231,11 @@ export default function CommentSection({ postId, initialComments, postMainCatego
     const editRecursive = (items: CommentType[]): CommentType[] => {
       return items.map(comment => {
         if (comment.id === commentId) {
-          return { 
-            ...comment, 
-            content: newContent, 
-            isEdited: true, 
-            updatedAt: new Date().toISOString() 
+          return {
+            ...comment,
+            content: newContent,
+            isEdited: true,
+            updatedAt: new Date().toISOString()
           };
         }
         if (comment.replies && comment.replies.length > 0) {
@@ -332,7 +291,7 @@ export default function CommentSection({ postId, initialComments, postMainCatego
             댓글을 작성하려면 <Link href="/login" className="underline text-primary hover:text-primary/80">로그인</Link>하세요.
           </p>
         )}
-        
+
         <div className="space-y-1">
           {comments.length > 0 ? (
             comments.map(comment => (
@@ -340,7 +299,7 @@ export default function CommentSection({ postId, initialComments, postMainCatego
                 key={comment.id}
                 comment={comment}
                 currentUser={currentUser}
-                postMainCategory={postMainCategory}
+                postMainCategory={postMainCategory} // Pass postMainCategory here
                 onAddReply={handleAddReplyToComment}
                 onEditComment={handleEditCommentInternal}
                 activeReplyBoxId={activeReplyBoxId}
@@ -355,5 +314,3 @@ export default function CommentSection({ postId, initialComments, postMainCatego
     </Card>
   );
 }
-
-    

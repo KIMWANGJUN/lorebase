@@ -1,5 +1,4 @@
 
-
 export type PostMainCategory = 'Unity' | 'Unreal' | 'Godot' | 'General';
 
 export interface UserCategoryStat {
@@ -7,11 +6,15 @@ export interface UserCategoryStat {
   rankInCate?: number; // Rank within that specific category (1-based), calculated dynamically
 }
 
-export type DisplayRankType = 
-  | 'global' 
-  | 'tetris' 
-  | `category_${PostMainCategory}` 
-  | 'default';
+// 사용자가 달성하여 프로필에서 선택할 수 있는 대표 랭크/칭호의 종류
+export type AchievedRankType =
+  | 'default' // 시스템 자동 우선순위 적용
+  | 'global_1' | 'global_2' | 'global_3'
+  | 'tetris_1' | 'tetris_2' | 'tetris_3'
+  | 'category_Unity_1-3' | 'category_Unity_4-10' | 'category_Unity_11-20'
+  | 'category_Unreal_1-3' | 'category_Unreal_4-10' | 'category_Unreal_11-20'
+  | 'category_Godot_1-3' | 'category_Godot_4-10' | 'category_Godot_11-20'
+  | 'category_General_1-3' | 'category_General_4-10' | 'category_General_11-20';
 
 export interface User {
   id: string;
@@ -20,7 +23,7 @@ export interface User {
   nickname: string; // 닉네임
   email?: string;
   avatar?: string;
-  score: number; // Global score
+  score: number; // Global score (모든 카테고리 게시물 점수 총합)
   rank: number; // Global rank: 0 for admin (filtered from display), 1 for 1st, etc.
   socialProfiles?: {
     naver?: string;
@@ -29,10 +32,10 @@ export interface User {
   };
   nicknameLastChanged?: Date;
   isBlocked?: boolean;
-  categoryStats?: { 
+  categoryStats?: {
     [key in PostMainCategory]?: UserCategoryStat;
   };
-  selectedDisplayRank?: DisplayRankType; // User's preference for display
+  selectedDisplayRank?: AchievedRankType; // User's preference for display
   tetrisRank?: number; // Monthly Tetris rank, 1-based. 0 or undefined if not ranked.
 }
 
@@ -68,8 +71,8 @@ export interface Post {
   title: string;
   content: string;
   authorId: string;
-  authorNickname: string;
-  authorAvatar?: string;
+  authorNickname: string; // This might be redundant if we always fetch User object, but keep for now
+  authorAvatar?: string; // Same as above
   createdAt: string; // ISO Date string
   updatedAt: string; // ISO Date string
   mainCategory: PostMainCategory;
@@ -81,6 +84,7 @@ export interface Post {
   tags?: string[];
   commentCount: number;
   isEdited?: boolean;
+  postScore?: number; // Calculated score for the post
 }
 
 export interface Comment {
@@ -134,4 +138,3 @@ export interface TetrisRanker {
   score: number;
   rank: number; // Calculated rank within Tetris monthly
 }
-    

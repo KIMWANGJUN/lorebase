@@ -1,12 +1,12 @@
 
 // src/lib/mockData.ts
-import type { User, StarterProject, AssetInfo, Post, Comment, RankEntry, Inquiry, PostMainCategory, TetrisRanker, DisplayRankType, UserCategoryStat } from '@/types';
+import type { User, StarterProject, AssetInfo, Post, Comment, RankEntry, Inquiry, PostMainCategory, TetrisRanker, AchievedRankType, UserCategoryStat } from '@/types';
 
 const fortyFiveDaysAgo = new Date(Date.now() - 45 * 24 * 60 * 60 * 1000);
 const fifteenDaysAgo = new Date(Date.now() - 15 * 24 * 60 * 60 * 1000);
 
 // 초기 사용자 데이터 (점수 관련 필드는 아래에서 재계산됨)
-export let mockUsersData: Omit<User, 'rank' | 'tetrisRank' | 'categoryStats' | 'selectedDisplayRank' | 'score'>[] = [
+export let mockUsersData: Omit<User, 'rank' | 'tetrisRank' | 'categoryStats' | 'selectedDisplayRank' | 'score' | 'postScore'>[] = [
   {
     id: 'admin', username: 'WANGJUNLAND', password: 'WJLAND1013$', nickname: 'WANGJUNLAND', email: 'admin@example.com',
     avatar: 'https://placehold.co/100x100.png?text=WJ',
@@ -59,14 +59,22 @@ export let mockUsersData: Omit<User, 'rank' | 'tetrisRank' | 'categoryStats' | '
   {
     id: 'user10_tetris_cat_rank', username: 'tetrisCatEnjoyer', password: 'password123', nickname: '테트리스냥이',
     avatar: 'https://placehold.co/100x100.png?text=TC',
-  }
+  },
+   // 카테고리별 랭커 추가 (4-20위권)
+  ...Array.from({ length: 17 }, (_, i) => ({
+    id: `user_cat_filler_${i + 1}`,
+    username: `catFiller${i + 1}`,
+    password: 'password123',
+    nickname: `카테고리필러${i + 1}`,
+    avatar: `https://placehold.co/100x100.png?text=CF${i+1}`,
+  })),
 ];
 
-export const tetrisTitles: string[] = [
-  '"테트리스" 그 자체',
-  '"테트리스" 그랜드 마스터',
-  '"테트리스" 마스터',
-];
+export const tetrisTitles: { [key: number]: string } = {
+  1: '♛테트리스♕',
+  2: '"테트리스" 그랜드 마스터',
+  3: '"테트리스" 마스터',
+};
 
 const rawTetrisRankings: Omit<TetrisRanker, 'rank'>[] = [
   { userId: 'user9_multi_rank', nickname: '멀티랭커', score: 2500000 },
@@ -88,7 +96,7 @@ export let mockTetrisRankings: TetrisRanker[] = rawTetrisRankings
   }));
 
 // 게시물 점수 계산 함수
-const calculatePostScore = (post: Post): number => {
+const calculatePostScore = (post: Omit<Post, 'postScore'>): number => {
   const score = (post.views * 0.01) + (post.upvotes * 0.5) + (post.commentCount * 0.1);
   return parseFloat(score.toFixed(2)); // 소수점 둘째 자리까지
 };
@@ -98,7 +106,7 @@ export let mockPosts: Post[] = [
   { id: 'post_unity_qna1', mainCategory: 'Unity', title: 'Unity Rigidbody 관련 질문입니다.', content: 'Rigidbody.MovePosition과 transform.Translate의 정확한 차이점과 사용 사례가 궁금합니다.', authorId: 'user4', authorNickname: '인디드리머', createdAt: new Date(Date.now() - 86400000 * 3).toISOString(), updatedAt: new Date(Date.now() - 86400000 * 3).toISOString(), type: 'QnA', upvotes: 10, downvotes: 0, views: 120, commentCount: 2, tags: ['Unity', 'Physics', 'Rigidbody'] },
   { id: 'post_unity_knowledge1', mainCategory: 'Unity', title: 'Unity DOTS 사용 후기 공유합니다.', content: '최근에 Unity DOTS를 사용해서 프로젝트를 진행해봤는데, 성능 최적화에 정말 큰 도움이 되었습니다. 처음엔 학습 곡선이 좀 있지만 익숙해지니 좋네요. 다른 분들 경험은 어떠신가요?', authorId: 'user1', authorNickname: '유니티장인', createdAt: new Date(Date.now() - 86400000 * 2).toISOString(), updatedAt: new Date(Date.now() - 86400000 * 2).toISOString(), type: 'Knowledge', upvotes: 25, downvotes: 1, views: 150, commentCount: 7, isPinned: true, tags: ['Unity', 'DOTS', 'Performance'] },
   { id: 'post_unity_devlog1', mainCategory: 'Unity', title: '나만의 2D 플랫포머 개발 일지 #1 - 캐릭터 구현', content: 'Unity로 2D 플랫포머 게임을 만들고 있습니다. 오늘은 기본 캐릭터 움직임과 점프를 구현했습니다!', authorId: 'user5', authorNickname: '픽셀아티스트', createdAt: new Date(Date.now() - 86400000 * 1).toISOString(), updatedAt: new Date(Date.now() - 86400000 * 1).toISOString(), type: 'DevLog', upvotes: 15, downvotes: 0, views: 90, commentCount: 3, tags: ['Unity', '2D', 'Platformer', 'DevLog'] },
-  
+
   { id: 'post_unreal_qna1', mainCategory: 'Unreal', title: 'Unreal Engine 5에서 Lumen 사용할 때 팁 있나요?', content: 'Lumen으로 실시간 GI를 구현 중인데, 특정 환경에서 빛샘 현상이 발생하네요. 해결 방법이나 최적화 팁 아시는 분 계시면 공유 부탁드립니다!', authorId: 'user2', authorNickname: '언리얼신', createdAt: new Date(Date.now() - 86400000 * 1).toISOString(), updatedAt: new Date(Date.now() - 86400000 * 1).toISOString(), type: 'QnA', upvotes: 18, downvotes: 0, views: 220, commentCount: 3, tags: ['Unreal Engine 5', 'Lumen', 'Lighting'] },
   { id: 'post_unreal_knowledge1', mainCategory: 'Unreal', title: '언리얼 블루프린트 최적화 팁 몇가지', content: '블루프린트 사용 시 자주 발생하는 성능 저하를 피하기 위한 몇 가지 팁을 공유합니다. Nativization, Pure 함수 활용 등...', authorId: 'user2', authorNickname: '언리얼신', createdAt: new Date(Date.now() - 86400000 * 4).toISOString(), updatedAt: new Date(Date.now() - 86400000 * 4).toISOString(), type: 'Knowledge', upvotes: 30, downvotes: 0, views: 250, commentCount: 5, tags: ['Unreal Engine', 'Blueprint', 'Optimization'] },
   { id: 'post_unreal_devlog1', mainCategory: 'Unreal', title: 'UE5 오픈월드 프로젝트 시작합니다!', content: '사이버펑크 컨셉의 오픈월드 게임 개발을 시작했습니다. 현재 기본 환경 구성 중입니다. #UE5 #OpenWorld', authorId: 'user10_tetris_cat_rank', authorNickname: '테트리스냥이', createdAt: new Date(Date.now() - 86400000 * 0.5).toISOString(), updatedAt: new Date(Date.now() - 86400000 * 0.5).toISOString(), type: 'DevLog', upvotes: 22, downvotes: 0, views: 180, commentCount: 4, tags: ['Unreal Engine 5', 'Open World', 'Cyberpunk'] },
@@ -116,14 +124,14 @@ export let mockPosts: Post[] = [
     mainCategory: 'General' as PostMainCategory,
     title: `오래된 일반 게시글 ${i + 1}`,
     content: `이것은 오래된 일반 게시글 내용입니다. (${i + 1})`,
-    authorId: mockUsersData.filter(u => u.id !== 'admin')[(i + 1) % (mockUsersData.filter(u => u.id !== 'admin').length)].id,
-    authorNickname: mockUsersData.filter(u => u.id !== 'admin')[(i + 1) % (mockUsersData.filter(u => u.id !== 'admin').length)].nickname,
+    authorId: mockUsersData.find(u => u.username === `catFiller${i+1}`)?.id || mockUsersData.filter(u => u.id !== 'admin')[(i + 1) % (mockUsersData.filter(u => u.id !== 'admin' && !u.username.startsWith("catFiller")).length)].id,
+    authorNickname: mockUsersData.find(u => u.username === `catFiller${i+1}`)?.nickname || mockUsersData.filter(u => u.id !== 'admin' && !u.username.startsWith("catFiller"))[(i + 1) % (mockUsersData.filter(u => u.id !== 'admin' && !u.username.startsWith("catFiller")).length)].nickname,
     createdAt: new Date(Date.now() - 86400000 * (7 + i)).toISOString(),
     updatedAt: new Date(Date.now() - 86400000 * (7 + i)).toISOString(),
     type: 'GeneralPost' as PostType,
-    upvotes: 5 + i,
+    upvotes: 5 + i * 3,
     downvotes: 0,
-    views: 50 + i * 5,
+    views: 50 + i * 15,
     commentCount: i % 5,
     tags: ['Old', 'General']
   })),
@@ -132,17 +140,50 @@ export let mockPosts: Post[] = [
     mainCategory: 'Unity' as PostMainCategory,
     title: `오래된 Unity QnA ${i + 1}`,
     content: `Unity 관련 오래된 질문입니다. (${i + 1})`,
-    authorId: mockUsersData.filter(u => u.id !== 'admin')[(i + 2) % (mockUsersData.filter(u => u.id !== 'admin').length)].id,
-    authorNickname: mockUsersData.filter(u => u.id !== 'admin')[(i + 2) % (mockUsersData.filter(u => u.id !== 'admin').length)].nickname,
+    authorId: mockUsersData.find(u => u.username === `catFiller${i+3}`)?.id || mockUsersData.filter(u => u.id !== 'admin' && !u.username.startsWith("catFiller"))[(i + 2) % (mockUsersData.filter(u => u.id !== 'admin' && !u.username.startsWith("catFiller")).length)].id,
+    authorNickname: mockUsersData.find(u => u.username === `catFiller${i+3}`)?.nickname || mockUsersData.filter(u => u.id !== 'admin' && !u.username.startsWith("catFiller"))[(i + 2) % (mockUsersData.filter(u => u.id !== 'admin' && !u.username.startsWith("catFiller")).length)].nickname,
     createdAt: new Date(Date.now() - 86400000 * (10 + i)).toISOString(),
     updatedAt: new Date(Date.now() - 86400000 * (10 + i)).toISOString(),
     type: 'QnA' as PostType,
-    upvotes: 3 + i,
+    upvotes: 3 + i * 2,
     downvotes: 0,
-    views: 30 + i * 3,
+    views: 30 + i * 10,
     commentCount: i % 3,
     tags: ['Old', 'Unity', 'QnA']
   })),
+  ...Array.from({ length: 10 }, (_, i) => ({ // For Unreal category fillers
+    id: `post_unreal_filler_${i + 1}`,
+    mainCategory: 'Unreal' as PostMainCategory,
+    title: `언리얼 필러 게시글 ${i + 1}`,
+    content: `언리얼 카테고리 랭킹을 위한 게시글 내용입니다. (${i + 1})`,
+    authorId: mockUsersData.find(u => u.username === `catFiller${i+5}`)?.id || 'user_cat_filler_5', // fallback
+    authorNickname: mockUsersData.find(u => u.username === `catFiller${i+5}`)?.nickname || `카테고리필러${i+5}`,
+    createdAt: new Date(Date.now() - 86400000 * (2 + i*0.5)).toISOString(),
+    updatedAt: new Date(Date.now() - 86400000 * (2 + i*0.5)).toISOString(),
+    type: 'Knowledge' as PostType,
+    upvotes: 10 + i * 2,
+    downvotes: 0,
+    views: 100 + i * 20,
+    commentCount: 1 + i % 4,
+    tags: ['Unreal', 'Filler']
+  })),
+    ...Array.from({ length: 10 }, (_, i) => ({ // For Godot category fillers
+    id: `post_godot_filler_${i + 1}`,
+    mainCategory: 'Godot' as PostMainCategory,
+    title: `고도 필러 게시글 ${i + 1}`,
+    content: `고도 카테고리 랭킹을 위한 게시글 내용입니다. (${i + 1})`,
+    authorId: mockUsersData.find(u => u.username === `catFiller${i+10}`)?.id || 'user_cat_filler_10', // fallback
+    authorNickname: mockUsersData.find(u => u.username === `catFiller${i+10}`)?.nickname || `카테고리필러${i+10}`,
+    createdAt: new Date(Date.now() - 86400000 * (1 + i*0.3)).toISOString(),
+    updatedAt: new Date(Date.now() - 86400000 * (1 + i*0.3)).toISOString(),
+    type: 'DevLog' as PostType,
+    upvotes: 8 + i * 1,
+    downvotes: 0,
+    views: 80 + i * 15,
+    commentCount: 1 + i % 2,
+    tags: ['Godot', 'Filler']
+  })),
+
 ].map(post => ({ ...post, postScore: calculatePostScore(post) })); // 각 게시물에 postScore 계산하여 추가
 
 // 종합 랭킹 계산 함수
@@ -166,7 +207,7 @@ const assignCategoryRanks = (users: User[]): void => {
   const categories: PostMainCategory[] = ['Unity', 'Unreal', 'Godot', 'General'];
   categories.forEach(category => {
     const rankedUsersInCategory = users
-      .filter(u => u.username !== 'WANGJUNLAND' && u.categoryStats && typeof u.categoryStats[category]?.score === 'number')
+      .filter(u => u.username !== 'WANGJUNLAND' && u.categoryStats && typeof u.categoryStats[category]?.score === 'number' && u.categoryStats[category]!.score > 0)
       .sort((a, b) => (b.categoryStats![category]!.score || 0) - (a.categoryStats![category]!.score || 0));
 
     let currentRank = 1;
@@ -176,9 +217,17 @@ const assignCategoryRanks = (users: User[]): void => {
       }
       if (user.categoryStats && user.categoryStats[category]) {
         user.categoryStats[category]!.rankInCate = currentRank;
-      } else if (user.categoryStats) { // 카테고리 점수가 0이거나 없는 경우
-         user.categoryStats[category] = { score: 0, rankInCate: 0 };
       }
+    });
+     // 점수 없는 유저들 랭크 0으로 초기화
+    users.filter(u => u.username !== 'WANGJUNLAND' && (!u.categoryStats || !u.categoryStats[category] || u.categoryStats[category]!.score === 0)).forEach(user => {
+        if (user.categoryStats && user.categoryStats[category]) {
+            user.categoryStats[category]!.rankInCate = 0;
+        } else if (user.categoryStats) {
+             user.categoryStats[category] = { score: 0, rankInCate: 0 };
+        } else {
+            user.categoryStats = { [category]: { score: 0, rankInCate: 0 } } as User['categoryStats'];
+        }
     });
   });
 };
@@ -186,9 +235,9 @@ const assignCategoryRanks = (users: User[]): void => {
 
 // 사용자 점수 및 랭킹 최종 계산 및 할당 함수
 const assignCalculatedScoresAndRanks = (
-    usersInput: Omit<User, 'rank' | 'tetrisRank' | 'categoryStats' | 'selectedDisplayRank' | 'score'>[]
+    usersInput: Omit<User, 'rank' | 'tetrisRank' | 'categoryStats' | 'selectedDisplayRank' | 'score' | 'postScore'>[]
   ): User[] => {
-  
+
   const tetrisRankMap = new Map<string, number>();
   mockTetrisRankings.forEach(tr => tetrisRankMap.set(tr.userId, tr.rank));
 
@@ -199,12 +248,12 @@ const assignCalculatedScoresAndRanks = (
     };
 
     if (uData.username === 'WANGJUNLAND') {
-      totalUserScore = 99999; // 관리자 예외 점수
-      userCategoryScores = { Unity: 1000, Unreal: 1000, Godot: 1000, General: 1000 };
+      totalUserScore = 999999; // 관리자 예외 점수
+      userCategoryScores = { Unity: 10000, Unreal: 10000, Godot: 10000, General: 10000 };
     } else {
       mockPosts.forEach(post => {
         if (post.authorId === uData.id) {
-          const currentPostScore = post.postScore || calculatePostScore(post); // postScore가 이미 계산되어 있으면 사용, 아니면 다시 계산
+          const currentPostScore = post.postScore !== undefined ? post.postScore : calculatePostScore(post);
           totalUserScore += currentPostScore;
           if (userCategoryScores[post.mainCategory] !== undefined) {
             userCategoryScores[post.mainCategory] += currentPostScore;
@@ -212,7 +261,7 @@ const assignCalculatedScoresAndRanks = (
         }
       });
     }
-    
+
     const categoryStatsOutput: User['categoryStats'] = {
       Unity: { score: parseFloat(userCategoryScores.Unity.toFixed(2)), rankInCate: 0 },
       Unreal: { score: parseFloat(userCategoryScores.Unreal.toFixed(2)), rankInCate: 0 },
@@ -226,12 +275,12 @@ const assignCalculatedScoresAndRanks = (
       password: (uData as any).password, // 타입 문제 회피
       score: parseFloat(totalUserScore.toFixed(2)),
       rank: 0, // 나중에 calculateGlobalRanks에서 할당
-      tetrisRank: tetrisRankMap.get(uData.id || uData.username) || undefined,
+      tetrisRank: tetrisRankMap.get(uData.id || uData.username) || 0, // 0 if not ranked
       categoryStats: categoryStatsOutput,
       selectedDisplayRank: (uData as User).selectedDisplayRank || 'default',
       nicknameLastChanged: uData.nicknameLastChanged ? new Date(uData.nicknameLastChanged) : undefined,
       isBlocked: (uData as User).isBlocked || false,
-    };
+    } as User; // Ensure it matches User type
   });
 
   calculateGlobalRanks(processedUsers);
@@ -243,7 +292,7 @@ const assignCalculatedScoresAndRanks = (
 export let mockUsers: User[] = assignCalculatedScoresAndRanks(mockUsersData);
 
 // 신규 사용자 추가 DTO 및 함수
-export type NewUserDto = Omit<User, 'rank' | 'categoryStats' | 'selectedDisplayRank' | 'tetrisRank' | 'id' | 'score' | 'nicknameLastChanged' | 'isBlocked' | 'avatar'> & { password?: string };
+export type NewUserDto = Omit<User, 'rank' | 'categoryStats' | 'selectedDisplayRank' | 'tetrisRank' | 'id' | 'score' | 'nicknameLastChanged' | 'isBlocked' | 'avatar' | 'postScore'> & { password?: string };
 
 export const addUser = (newUserData: NewUserDto): { success: boolean, message?: string, user?: User } => {
   if (mockUsers.some(u => u.username === newUserData.username)) {
@@ -256,7 +305,7 @@ export const addUser = (newUserData: NewUserDto): { success: boolean, message?: 
     return { success: false, message: "이미 사용 중인 이메일입니다." };
   }
 
-  const newUserRaw: Omit<User, 'rank' | 'tetrisRank' | 'categoryStats' | 'selectedDisplayRank' | 'score'> = {
+  const newUserRaw: Omit<User, 'rank' | 'tetrisRank' | 'categoryStats' | 'selectedDisplayRank' | 'score' | 'postScore'> = {
     id: `user${Date.now()}${Math.floor(Math.random() * 1000)}`,
     username: newUserData.username,
     password: newUserData.password,
@@ -266,12 +315,12 @@ export const addUser = (newUserData: NewUserDto): { success: boolean, message?: 
     nicknameLastChanged: new Date(),
     isBlocked: false,
   };
-  
+
   // 새로운 사용자를 mockUsersData에 추가 (점수 없이)
   mockUsersData.push(newUserRaw);
   // 전체 사용자 목록을 기반으로 점수와 랭킹을 다시 계산
   mockUsers = assignCalculatedScoresAndRanks(mockUsersData);
-  
+
   const addedUser = mockUsers.find(u => u.id === newUserRaw.id);
 
   return { success: true, user: addedUser };
@@ -303,22 +352,17 @@ export let mockComments: Comment[] = [
   { id: 'comment6_for_post_unity_knowledge1', postId: 'post_unity_knowledge1', authorId: 'admin', authorNickname: 'WANGJUNLAND', content: 'DOTS 관련해서 좋은 토론이네요. 혹시 추가적인 질문 있으시면 언제든 편하게 남겨주세요.', createdAt: new Date(Date.now() - 86400000 * 0.5).toISOString(), upvotes: 1, downvotes: 0, replies: [] },
 ];
 
-export const mockRankings: RankEntry[] = mockUsers // 이제 mockUsers는 점수가 계산된 상태임
-  .filter(u => u.username !== 'WANGJUNLAND')
-  .sort((a, b) => b.score - a.score)
-  .map((user, index, sortedUsers) => {
-    let rank = index + 1;
-    if (index > 0 && user.score === sortedUsers[index - 1].score) {
-      rank = sortedUsers[index - 1].rank; 
-    }
-    return {
-      userId: user.id,
-      nickname: user.nickname,
-      score: user.score,
-      rank: rank,
-      avatar: user.avatar,
-    }
-  });
+export const mockRankings: RankEntry[] = mockUsers
+  .filter(u => u.username !== 'WANGJUNLAND' && u.rank > 0)
+  .sort((a, b) => a.rank - b.rank) // rank is already calculated, sort by it
+  .map((user) => ({
+    userId: user.id,
+    nickname: user.nickname,
+    score: user.score,
+    rank: user.rank,
+    avatar: user.avatar,
+  }));
+
 
 export const mockInquiries: Inquiry[] = [
   { id: 'inq1', userId: 'user4', userNickname: '인디드리머', title: '닉네임 변경 기간 문의', content: '닉네임 변경 후 1개월 제한이 정확히 어떻게 적용되는지 궁금합니다.', createdAt: new Date(Date.now() - 86400000 * 3).toISOString(), status: 'Answered', response: '닉네임 변경 시점으로부터 만 30일 이후에 다시 변경 가능합니다.', respondedAt: new Date(Date.now() - 86400000 * 2.5).toISOString() },

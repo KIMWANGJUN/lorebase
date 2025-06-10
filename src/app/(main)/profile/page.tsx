@@ -12,12 +12,14 @@ import { Label } from '@/components/ui/label';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Edit3, Mail, MessageSquare, ShieldAlert, UserCog, ShieldX, Star, CheckCircle, Clock, Users, Wand2, Crown, Gamepad2 } from 'lucide-react';
+import { Edit3, Mail, MessageSquare, ShieldAlert, UserCog, ShieldCheck, Crown, Users, Gamepad2, Clock, CheckCircle, Wand2 } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
-import type { User, PostMainCategory, DisplayRankType } from '@/types';
-import { mockPosts, mockInquiries, mockUsers, tetrisTitles, mockTetrisRankings } from '@/lib/mockData'; 
+import type { User, PostMainCategory, AchievedRankType } from '@/types';
+import { mockPosts, mockInquiries, mockUsers, tetrisTitles } from '@/lib/mockData';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
+import NicknameDisplay from '@/components/shared/NicknameDisplay';
+
 
 const getCategoryDisplayName = (category: PostMainCategory): string => {
   switch (category) {
@@ -37,8 +39,8 @@ export default function ProfilePage() {
   const [nickname, setNickname] = useState('');
   const [email, setEmail] = useState('');
   const [isEditingNickname, setIsEditingNickname] = useState(false);
-  const [selectedDisplayRankState, setSelectedDisplayRankState] = useState<DisplayRankType | undefined>(user?.selectedDisplayRank || 'default');
-  
+  const [selectedDisplayRankState, setSelectedDisplayRankState] = useState<AchievedRankType | undefined>(user?.selectedDisplayRank || 'default');
+
   const calculateCanChangeNickname = () => {
     if (!user) return false;
     if (isAdmin) return true;
@@ -48,7 +50,7 @@ export default function ProfilePage() {
   };
 
   const [nicknameChangeAllowed, setNicknameChangeAllowed] = useState(false);
-  
+
   const nextChangeDate = useMemo(() => {
     if (!user || isAdmin || !user.nicknameLastChanged || calculateCanChangeNickname()) return null;
     return new Date(new Date(user.nicknameLastChanged).getTime() + (30 * 24 * 60 * 60 * 1000));
@@ -90,8 +92,9 @@ export default function ProfilePage() {
         return;
     }
 
-    updateUser({ nickname: trimmedNickname }); 
+    updateUser({ nickname: trimmedNickname });
     setIsEditingNickname(false);
+    setNicknameChangeAllowed(calculateCanChangeNickname()); // Recalculate after change
     toast({ title: "성공", description: "닉네임이 변경되었습니다." });
   };
 
@@ -99,53 +102,61 @@ export default function ProfilePage() {
     if (!user) return;
     const trimmedEmail = email.trim();
 
-    if (trimmedEmail && !/\S+@\S+\.\S+/.test(trimmedEmail)) { 
+    if (trimmedEmail && !/\S+@\S+\.\S+/.test(trimmedEmail)) {
         toast({ title: "오류", description: "유효한 이메일 주소를 입력해주세요.", variant: "destructive"});
         return;
     }
-    
-    if (trimmedEmail && trimmedEmail !== (user.email || '')) { 
+
+    if (trimmedEmail && trimmedEmail !== (user.email || '')) {
         const isDuplicate = mockUsers.some(u => u.id !== user.id && u.username !== 'WANGJUNLAND' && u.email?.toLowerCase() === trimmedEmail.toLowerCase());
         if (isDuplicate) {
             toast({ title: "오류", description: "이미 사용 중인 이메일입니다.", variant: "destructive"});
             return;
         }
     }
-    
-    updateUser({ email: trimmedEmail || undefined }); 
+
+    updateUser({ email: trimmedEmail || undefined });
     toast({ title: "성공", description: "이메일이 등록/수정되었습니다." });
   };
 
   const handleDisplayRankChange = (value: string) => {
-    const newDisplayRank = value as DisplayRankType;
+    const newDisplayRank = value as AchievedRankType;
     setSelectedDisplayRankState(newDisplayRank);
     if (user) {
       updateUser({ selectedDisplayRank: newDisplayRank });
-      toast({ title: "성공", description: "대표 칭호/하이라이트 설정이 변경되었습니다. (다른 페이지에서 반영됩니다)" });
+      toast({ title: "성공", description: "대표 칭호/하이라이트 설정이 변경되었습니다. 다른 페이지에서 반영됩니다." });
     }
   };
 
   const availableDisplayRanks = useMemo(() => {
-    if (!user || user.username === 'WANGJUNLAND') return [{value: 'default' as DisplayRankType, label: '기본 표시 (관리자는 설정 불가)'}];
-    const ranks: { value: DisplayRankType; label: string }[] = [{value: 'default', label: '기본 표시 (우선순위 따름)'}];
-    
+    if (!user) return [];
+    const ranks: { value: AchievedRankType; label: string }[] = [{ value: 'default', label: '기본 표시 (시스템 자동 우선순위 적용)' }];
+
     if (user.rank > 0 && user.rank <= 3) {
-      ranks.push({ value: 'global', label: `종합 랭킹 ${user.rank}위` });
+      ranks.push({ value: `global_${user.rank}` as AchievedRankType, label: `종합 랭킹 ${user.rank}위 (금/은/동 배경 및 닉네임)` });
     }
 
     if (user.tetrisRank && user.tetrisRank > 0 && user.tetrisRank <= 3) {
-      ranks.push({ value: 'tetris', label: `${tetrisTitles[user.tetrisRank - 1]} (테트리스 ${user.tetrisRank}위)`});
+        const title = tetrisTitles[user.tetrisRank] || `테트리스 ${user.tetrisRank}위`;
+        ranks.push({ value: `tetris_${user.tetrisRank}` as AchievedRankType, label: `${title} (금/은/동 칭호 및 닉네임)` });
     }
 
     (Object.keys(user.categoryStats || {}) as PostMainCategory[]).forEach(catKey => {
       const stat = user.categoryStats?.[catKey];
-      if (stat && stat.rankInCate && stat.rankInCate > 0 && stat.rankInCate <= 3) {
-        ranks.push({ value: `category_${catKey}`, label: `${getCategoryDisplayName(catKey)} 랭킹 ${stat.rankInCate}위` });
+      if (stat && stat.rankInCate && stat.rankInCate > 0) {
+        const catDisplayName = getCategoryDisplayName(catKey);
+        if (stat.rankInCate >= 1 && stat.rankInCate <= 3) {
+          ranks.push({ value: `category_${catKey}_1-3` as AchievedRankType, label: `${catDisplayName} ${stat.rankInCate}위 (카테고리 칭호, 배경, 닉네임, 로고)` });
+        } else if (stat.rankInCate >= 4 && stat.rankInCate <= 10) {
+          ranks.push({ value: `category_${catKey}_4-10` as AchievedRankType, label: `${catDisplayName} ${stat.rankInCate}위 (카테고리 배경, 닉네임, 로고)` });
+        } else if (stat.rankInCate >= 11 && stat.rankInCate <= 20) {
+          ranks.push({ value: `category_${catKey}_11-20` as AchievedRankType, label: `${catDisplayName} ${stat.rankInCate}위 (카테고리 닉네임, 로고)` });
+        }
       }
     });
     return ranks;
   }, [user]);
-  
+
   if (authLoading || !user) {
     return <div className="container mx-auto py-8 px-4 text-center text-foreground">프로필 정보를 불러오는 중...</div>;
   }
@@ -155,23 +166,9 @@ export default function ProfilePage() {
 
   const bannerImageUrl = "https://placehold.co/1920x600.png";
 
-  // 랭킹 하이라이트 제거, 기본 스타일
-  let headerNicknameClasses = "text-3xl font-headline text-foreground font-semibold";
-  let headerRankText = user.rank > 0 ? `종합 ${user.rank}위` : "랭킹 정보 없음";
-  let headerRankTextClasses = "text-lg text-muted-foreground";
-  let headerContainerClasses = "rounded-lg px-3 py-1 text-center bg-card/50 border-border/70"; 
-
-  if (isAdmin) {
-    headerNicknameClasses = "text-3xl font-headline text-primary font-semibold"; // 관리자 특별 색상
-    headerRankText = "관리자";
-    headerRankTextClasses = "text-lg text-primary"; 
-    headerContainerClasses = "rounded-lg px-3 py-1 text-center bg-primary/10 border-primary/50";
-  }
- 
-
   return (
     <div className="container mx-auto py-10 px-4">
-       <section 
+       <section
         className="py-16 md:py-24 rounded-xl shadow-xl mb-10 relative bg-cover bg-center"
         style={{ backgroundImage: `url(${bannerImageUrl})` }}
         data-ai-hint="personal coat_of_arms"
@@ -193,14 +190,14 @@ export default function ProfilePage() {
                     <AvatarImage src={user.avatar || `https://placehold.co/200x200.png?text=${user.nickname.substring(0,1)}`} alt={user.nickname} data-ai-hint="fantasy portrait" />
                     <AvatarFallback className="text-4xl bg-muted text-muted-foreground">{user.nickname.substring(0, 2).toUpperCase()}</AvatarFallback>
                 </Avatar>
-                <div className={headerContainerClasses}>
-                  <h1 className={headerNicknameClasses}>{user.nickname}</h1>
+                <div className="mb-1">
+                    <NicknameDisplay user={user} context="rankingList" />
                 </div>
                 <p className="text-sm opacity-80 mt-1">{user.email || "이메일 미등록"}</p>
                 <div className="mt-4 text-center">
                     <p className="text-2xl font-semibold">{user.score.toLocaleString()} 점</p>
-                     <p className={headerRankTextClasses}>
-                        {headerRankText}
+                    <p className="text-sm opacity-80">
+                        {user.rank > 0 ? `종합 ${user.rank}위` : (isAdmin ? "" : "랭킹 정보 없음")}
                     </p>
                 </div>
             </div>
@@ -229,11 +226,11 @@ export default function ProfilePage() {
                                     </div>
                                     {!isAdmin && !nicknameChangeAllowed && nextChangeDate && (
                                         <p className="text-xs text-muted-foreground mt-1">
-                                            <Clock className="inline-block h-3 w-3 mr-1"/> 
+                                            <Clock className="inline-block h-3 w-3 mr-1"/>
                                             다음 닉네임 변경은 {nextChangeDate.toLocaleDateString()} 이후에 가능합니다.
                                         </p>
                                     )}
-                                     {!isAdmin && nicknameChangeAllowed && !user.nicknameLastChanged && (
+                                     {!isAdmin && nicknameChangeAllowed && (!user.nicknameLastChanged || new Date(user.nicknameLastChanged).getFullYear() < 2024 ) && (
                                         <p className="text-xs text-muted-foreground mt-1">
                                             닉네임은 30일에 한 번 변경 가능합니다.
                                         </p>
@@ -255,12 +252,14 @@ export default function ProfilePage() {
                           <CardHeader>
                             <CardTitle className="text-foreground">대표 칭호/하이라이트 설정</CardTitle>
                             <CardDescription className="text-muted-foreground">
-                              (랭킹 하이라이트 기능 제거됨) 여러 랭킹에 해당될 경우, 커뮤니티에 표시될 주요 칭호와 스타일을 선택하세요.
+                              여러 랭킹에 해당될 경우, 커뮤니티에 표시될 주요 칭호와 스타일을 선택하세요.
                               {isAdmin && <span className="text-destructive font-semibold"> (관리자는 이 설정이 적용되지 않습니다.)</span>}
                             </CardDescription>
                           </CardHeader>
                           <CardContent>
-                            {availableDisplayRanks.length > 1 && !isAdmin ? (
+                            {isAdmin ? (
+                                <p className="text-sm text-muted-foreground">관리자 계정은 칭호/하이라이트 설정을 사용하지 않습니다.</p>
+                            ) : availableDisplayRanks.length > 1 ? (
                               <RadioGroup value={selectedDisplayRankState} onValueChange={handleDisplayRankChange}>
                                 {availableDisplayRanks.map(rankOption => (
                                   <div key={rankOption.value} className="flex items-center space-x-2 py-2">
@@ -271,12 +270,8 @@ export default function ProfilePage() {
                                   </div>
                                 ))}
                               </RadioGroup>
-                            ) : isAdmin ? (
-                                <p className="text-sm text-muted-foreground">관리자 계정은 칭호/하이라이트 설정을 사용하지 않습니다.</p>
-                            ) : availableDisplayRanks.length === 1 ? (
-                               <p className="text-sm text-muted-foreground">현재 설정 가능한 대표 칭호가 한 가지 입니다: {availableDisplayRanks[0].label}</p>
-                            ): (
-                              <p className="text-sm text-muted-foreground">선택 가능한 대표 칭호/하이라이트가 없습니다.</p>
+                            ) : (
+                              <p className="text-sm text-muted-foreground">현재 선택 가능한 대표 칭호/하이라이트가 없습니다. (기본 표시만 가능)</p>
                             )}
                           </CardContent>
                         </Card>
@@ -317,7 +312,7 @@ export default function ProfilePage() {
             </div>
         </div>
       </Card>
-      
+
       <section id="ranking" className="mt-12">
         <div className="text-center mb-8">
             <Users className="mx-auto h-12 w-12 text-primary mb-2" />
@@ -330,33 +325,25 @@ export default function ProfilePage() {
           </CardHeader>
           <CardContent>
             <div className="space-y-3 max-h-[500px] overflow-y-auto p-1">
-              {mockUsers.filter(u => u.username !== 'WANGJUNLAND' && u.rank > 0).sort((a, b) => a.rank - b.rank).map((rankerUser) => { 
-                // 랭킹 하이라이트 제거, 기본 스타일
-                const itemContainerClasses = "flex items-center justify-between p-3 rounded-lg border border-border bg-card/50 shadow-sm";
-                const rankNumberClasses = "font-bold text-lg w-8 text-center text-muted-foreground";
-                const nicknameClasses = "font-medium text-foreground";
-                
-                return (
+              {mockUsers.filter(u => u.username !== 'WANGJUNLAND' && u.rank > 0).sort((a, b) => a.rank - b.rank).map((rankerUser) => (
                   <div key={rankerUser.id} className={cn(
-                    itemContainerClasses,
-                    rankerUser.id === user.id ? 'bg-primary/10 border-primary' : '' // 현재 사용자만 살짝 강조
+                    "flex items-center justify-between p-3 rounded-lg border bg-card/50 shadow-sm",
+                     rankerUser.id === user.id ? 'border-primary bg-primary/10' : 'border-border'
                   )}>
                     <div className="flex items-center gap-3">
-                      <span className={rankNumberClasses}>
-                          {rankerUser.rank > 0 ? `${rankerUser.rank}.` : <Star className="h-5 w-5 inline text-yellow-400" />}
+                      <span className="font-bold text-lg w-8 text-center text-muted-foreground">
+                          {rankerUser.rank > 0 ? `${rankerUser.rank}.` : "-"}
                       </span>
                       <Avatar className="h-10 w-10 border-2 border-accent/50">
                         <Image src={rankerUser.avatar || `https://placehold.co/40x40.png?text=${rankerUser.nickname.substring(0,1)}`} alt={rankerUser.nickname} width={40} height={40} className="rounded-full" data-ai-hint="fantasy character icon" />
                         <AvatarFallback className="bg-muted text-muted-foreground">{rankerUser.nickname.substring(0,1)}</AvatarFallback>
                       </Avatar>
-                      <span className={nicknameClasses}>
-                        {rankerUser.nickname}
-                      </span>
+                      <NicknameDisplay user={rankerUser} context="rankingList" />
                     </div>
                     <span className="text-sm font-semibold text-accent">{rankerUser.score.toLocaleString()} 점</span>
                   </div>
-                );
-              })}
+                )
+              )}
             </div>
           </CardContent>
         </Card>
@@ -364,5 +351,3 @@ export default function ProfilePage() {
     </div>
   );
 }
-
-    

@@ -1,3 +1,4 @@
+
 // src/components/shared/UserAvatarDropdown.tsx
 "use client";
 import type { User } from '@/types';
@@ -13,6 +14,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { LogOut, UserCircle, Settings, ShieldCheck } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import NicknameDisplay from './NicknameDisplay'; // Import NicknameDisplay
 
 interface UserAvatarDropdownProps {
   user: User;
@@ -22,7 +24,7 @@ interface UserAvatarDropdownProps {
 
 export default function UserAvatarDropdown({ user, isAdmin, onLogout }: UserAvatarDropdownProps) {
   const getInitials = (name: string) => {
-    return name.substring(0, 2).toUpperCase();
+    return name.substring(0, 1).toUpperCase(); // Changed to 1 initial for consistency
   };
 
   return (
@@ -33,15 +35,9 @@ export default function UserAvatarDropdown({ user, isAdmin, onLogout }: UserAvat
             <AvatarImage src={user.avatar} alt={user.nickname} data-ai-hint="user avatar icon"/>
             <AvatarFallback className="bg-muted text-muted-foreground">{getInitials(user.nickname)}</AvatarFallback>
           </Avatar>
-           {isAdmin ? (
-            <span className="admin-badge-bg admin-badge-border rounded-lg px-3 py-1 text-sm font-medium hidden sm:inline">
-              <span className="text-admin">{user.nickname}</span>
-            </span>
-           ) : (
-            <span className="text-sm font-medium hidden sm:inline text-foreground">
-              {user.nickname}
-            </span>
-           )}
+          <div className="hidden sm:inline">
+            <NicknameDisplay user={user} context="header" />
+          </div>
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56 bg-popover border-border text-popover-foreground shadow-xl">

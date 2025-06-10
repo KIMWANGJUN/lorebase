@@ -2,74 +2,31 @@
 // src/app/(main)/tavern/page.tsx
 "use client";
 import React, { useState, useMemo, useEffect, type FC, type ElementType, useCallback } from 'react';
-import type { AppRouterInstance } from 'next/dist/shared/lib/app-router-context.shared-runtime'; 
+import type { AppRouterInstance } from 'next/dist/shared/lib/app-router-context.shared-runtime';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { mockUsers, mockPosts, mockTetrisRankings, tetrisTitles } from '@/lib/mockData';
-import type { Post, PostMainCategory, PostType, User as UserType, DisplayRankType } from '@/types'; 
+import { mockUsers, mockPosts } from '@/lib/mockData';
+import type { Post, PostMainCategory, PostType, User as UserType } from '@/types';
 import Link from 'next/link';
-import Image from 'next/image';
-import { useRouter } from 'next/navigation'; 
-import { 
-  Search, PlusCircle, MessageSquare, ThumbsUp, ThumbsDown, Eye, Pin, Edit, Trash2, Star,
+import { useRouter } from 'next/navigation';
+import {
+  Search, PlusCircle, MessageSquare, ThumbsUp, ThumbsDown, Eye, Pin, Edit, Trash2,
   ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, ScrollText,
-  Box, AppWindow, PenTool, ListChecks, HelpCircle, BookOpen, ClipboardList, Smile, LayoutGrid, Flame, Trophy
+  Box, AppWindow, PenTool, ListChecks, HelpCircle, BookOpen, ClipboardList, Smile, LayoutGrid, Flame
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from '@/contexts/AuthContext';
 import { cn } from '@/lib/utils';
+import NicknameDisplay from '@/components/shared/NicknameDisplay';
+import CategoryRankingSidebar from '@/components/shared/CategoryRankingSidebar';
 
 const POSTS_PER_PAGE = 10;
-const RANKERS_TO_SHOW_TAVERN = 20; 
-
-const CategoryIcon: FC<{ category: PostMainCategory, className?: string }> = ({ category, className = "h-3.5 w-3.5 shrink-0" }) => {
-  // CSS 변수를 활용한 색상 적용으로 변경
-  const iconColorClass = 
-    category === 'Unity' ? 'text-unity-icon' :
-    category === 'Unreal' ? 'text-unreal-icon' :
-    category === 'Godot' ? 'text-godot-icon' :
-    category === 'General' ? 'text-general-icon' :
-    'text-muted-foreground';
-
-  switch (category) {
-    case 'Unity': return <Box className={cn(iconColorClass, className)} />;
-    case 'Unreal': return <AppWindow className={cn(iconColorClass, className)} />;
-    case 'Godot': return <PenTool className={cn(iconColorClass, className)} />;
-    case 'General': return <LayoutGrid className={cn(iconColorClass, className)} />;
-    default: return null;
-  }
-};
-
-interface NicknameDisplayProps {
-  author: UserType;
-  postMainCategory: PostMainCategory; 
-}
-
-const NicknameDisplay: FC<NicknameDisplayProps> = ({ author, postMainCategory }) => {
-  if (!author) return <span className="text-xs text-foreground font-medium">Unknown User</span>;
-
-  // 랭킹 하이라이트 제거, 기본 스타일로 표시
-  const nicknameTextClasses = "text-xs text-foreground font-medium";
-  const itemContainerClasses = "inline-flex items-center gap-1 bg-card/50 border-border/70 rounded-md shadow-sm px-1.5 py-0.5";
-
-  return (
-    <div className="flex flex-col items-start">
-      <div className={itemContainerClasses}>
-        {postMainCategory && <CategoryIcon category={postMainCategory} className="h-3 w-3" />}
-        <span className={nicknameTextClasses}>
-          {author.nickname}
-        </span>
-      </div>
-    </div>
-  );
-};
-
 
 const PostItem = ({ post, currentUser, router }: { post: Post, currentUser: UserType | null, router: AppRouterInstance }) => {
   const author = mockUsers.find(u => u.id === post.authorId);
-  
+
   const postDateToShow = post.isEdited && post.updatedAt ? new Date(post.updatedAt) : new Date(post.createdAt);
   const formattedDate = `${postDateToShow.getFullYear()}년 ${postDateToShow.getMonth() + 1}월 ${postDateToShow.getDate()}일 ${postDateToShow.getHours()}시 ${postDateToShow.getMinutes()}분`;
 
@@ -77,28 +34,28 @@ const PostItem = ({ post, currentUser, router }: { post: Post, currentUser: User
   const isAdminPost = author?.username === 'WANGJUNLAND';
 
   return (
-    <Card 
+    <Card
       className={cn(
         "shadow-md hover:shadow-lg transition-shadow duration-300 ease-in-out bg-card border-border hover:border-primary/30",
-        post.isPinned && "border-t-4 border-accent dark:border-accent/80", // .dark 선택자 무의미해짐
-        isNotice && "bg-primary/10 border-primary/50" // .dark 선택자 무의미해짐
+        post.isPinned && "border-t-4 border-accent",
+        isNotice && "bg-primary/10 border-primary/50"
       )}
     >
       <Link href={`/tavern/${post.id}`} className="block hover:bg-card/5 transition-colors rounded-lg relative">
         <CardHeader className="pb-1 pt-2 px-3">
           <div className="flex justify-between items-start">
             <CardTitle className="font-headline text-md mb-0.5 flex items-center text-foreground">
-              {post.isPinned && <Pin className="h-4 w-4 mr-2 text-accent" />} 
+              {post.isPinned && <Pin className="h-4 w-4 mr-2 text-accent" />}
               {isNotice && <ScrollText className="h-4 w-4 mr-2 text-primary" />}
               {post.title}
               {post.isEdited && <span className="ml-1.5 text-xs font-normal text-muted-foreground">(수정됨)</span>}
             </CardTitle>
-            {currentUser?.id === post.authorId && isAdminPost && ( 
+            {currentUser?.id === post.authorId && isAdminPost && (
               <div className="flex gap-1 absolute top-2 right-2">
                 <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-foreground" onClick={(e) => {e.preventDefault(); router.push(`/tavern/${post.id}/edit`); }}>
                   <Edit className="h-3 w-3" />
                 </Button>
-                <Button variant="ghost" size="icon" className="h-6 w-6 text-destructive/70 hover:text-destructive" onClick={(e) => {e.preventDefault(); alert('Delete clicked'); }}>
+                <Button variant="ghost" size="icon" className="h-6 w-6 text-destructive/70 hover:text-destructive" onClick={(e) => {e.preventDefault(); alert('Delete clicked (not implemented)'); }}>
                   <Trash2 className="h-3 w-3" />
                 </Button>
               </div>
@@ -109,7 +66,7 @@ const PostItem = ({ post, currentUser, router }: { post: Post, currentUser: User
               <AvatarImage src={author?.avatar || `https://placehold.co/40x40.png?text=${post.authorNickname.substring(0,1)}`} />
               <AvatarFallback className="text-[10px]">{author?.nickname.substring(0, 1).toUpperCase() || 'U'}</AvatarFallback>
             </Avatar>
-            {author ? <NicknameDisplay author={author} postMainCategory={post.mainCategory} /> : <span className="text-xs text-foreground font-medium">{post.authorNickname}</span>}
+            {author ? <NicknameDisplay user={author} context="postAuthor" postMainCategoryForAuthor={post.mainCategory} /> : <span className="text-xs text-foreground font-medium">{post.authorNickname}</span>}
             <span>·</span>
             <span className="text-xs">{formattedDate}</span>
             <span>·</span>
@@ -136,6 +93,7 @@ interface SubTabInfo {
 }
 
 const engineSubTabs: SubTabInfo[] = [
+  { value: 'all', label: '전체 글', icon: ListChecks },
   { value: 'QnA', label: 'Q&A', icon: HelpCircle },
   { value: 'Knowledge', label: '지식', icon: BookOpen },
   { value: 'DevLog', label: '개발 일지', icon: ClipboardList },
@@ -143,6 +101,7 @@ const engineSubTabs: SubTabInfo[] = [
 ];
 
 const generalSubTabs: SubTabInfo[] = [
+  { value: 'all', label: '전체 글', icon: ListChecks },
   { value: 'GeneralPost', label: '일반 글', icon: MessageSquare },
   { value: 'Humor', label: '유머 글', icon: Smile },
   { value: 'Notice', label: '공지', icon: ScrollText},
@@ -164,9 +123,9 @@ const SubTabsComponent: FC<SubTabsComponentProps> = ({ activeSubTab, setActiveSu
     }} className="mb-6">
       <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-none lg:flex items-center">
         {subTabs.map(tab => (
-          <TabsTrigger 
-            key={tab.value} 
-            value={tab.value} 
+          <TabsTrigger
+            key={tab.value}
+            value={tab.value}
             className="data-[state=active]:bg-secondary data-[state=active]:text-secondary-foreground flex-1 lg:flex-none"
           >
             {tab.icon && <tab.icon className="mr-1.5 h-4 w-4" />}
@@ -178,112 +137,26 @@ const SubTabsComponent: FC<SubTabsComponentProps> = ({ activeSubTab, setActiveSu
   );
 };
 
-const CategoryRankingCard: FC<{ category: PostMainCategory, currentUser: UserType | null }> = ({ category, currentUser }) => {
-  const categoryDisplayName = category === 'General' ? '일반 & 유머' : category;
-
-  const getTopNUsersForCategoryCard = useCallback((users: UserType[], cat: PostMainCategory, count: number): UserType[] => {
-    return users
-      .filter(u => u.username !== 'WANGJUNLAND' && u.categoryStats?.[cat]?.rankInCate && u.categoryStats[cat]!.rankInCate! > 0)
-      .sort((a, b) => (a.categoryStats![cat]!.rankInCate || Infinity) - (b.categoryStats![cat]!.rankInCate || Infinity))
-      .slice(0, count); 
-  }, []);
-  
-  const categoryRankers = useMemo(() => {
-    return getTopNUsersForCategoryCard(mockUsers, category, RANKERS_TO_SHOW_TAVERN);
-  }, [category, getTopNUsersForCategoryCard]);
-
-
-  if (categoryRankers.length === 0) {
-    return (
-      <Card className="shadow-lg bg-card border-border">
-        <CardHeader>
-          <CardTitle className="font-headline text-foreground text-lg flex items-center gap-2">
-            <CategoryIcon category={category} className="h-5 w-5" />
-            {categoryDisplayName} 랭킹 TOP {RANKERS_TO_SHOW_TAVERN}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-sm text-muted-foreground text-center py-4">아직 랭커가 없습니다.</p>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  return (
-    <Card className="shadow-lg bg-card border-border">
-      <CardHeader>
-        <CardTitle className="font-headline text-foreground text-lg flex items-center gap-2">
-          <CategoryIcon category={category} className="h-5 w-5" />
-          {categoryDisplayName} 랭킹 TOP {RANKERS_TO_SHOW_TAVERN}
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-3">
-        {categoryRankers.map((rankerUser) => {
-            // 랭킹 하이라이트 제거, 기본 스타일로 표시
-            const nicknameTextClasses = "text-sm text-foreground font-medium";
-            const rankNumberTextClasses = "font-bold text-md w-5 text-center shrink-0 text-muted-foreground";
-            const itemContainerClasses = "flex items-center justify-between p-2.5 bg-card/50 border-border/70 rounded-md shadow-sm";
-            
-            const { nickname, categoryStats } = rankerUser;
-            const currentCategoryStats = categoryStats?.[category];
-            const displayRankNumber = currentCategoryStats?.rankInCate || 0; 
-            
-          return (
-            <div key={rankerUser.id} className={itemContainerClasses}>
-              <div className="flex items-center gap-2.5">
-                <span className={rankNumberTextClasses}>
-                  {displayRankNumber > 0 ? `${displayRankNumber}.` : "-"}
-                </span>
-                <Avatar className="h-8 w-8 border-2 border-accent/70 shrink-0">
-                  <AvatarImage src={rankerUser.avatar || `https://placehold.co/40x40.png?text=${nickname.substring(0,1)}`} alt={nickname} data-ai-hint="user avatar"/>
-                  <AvatarFallback className="text-xs bg-muted text-muted-foreground">{nickname.substring(0,1)}</AvatarFallback>
-                </Avatar>
-                
-                <div className="flex flex-col items-start text-left">
-                  <div className="flex items-center gap-1.5">
-                        <CategoryIcon category={category} className="h-4 w-4" />
-                        <span className={nicknameTextClasses}>
-                          {nickname}
-                        </span>
-                  </div>
-                </div>
-              </div>
-              {currentUser?.username === 'WANGJUNLAND' && (
-                <span className="text-xs font-semibold text-accent shrink-0">
-                  {(rankerUser.categoryStats?.[category]?.score || 0).toLocaleString()} 점
-                </span>
-              )}
-            </div>
-          );
-        })}
-      </CardContent>
-    </Card>
-  );
-};
-
 
 export default function TavernPage() {
   const [mainCategory, setMainCategory] = useState<PostMainCategory>('Unity');
-  const [subCategory, setSubCategory] = useState<PostType | 'popular' | 'all'>('QnA'); 
-  
+  const [subCategory, setSubCategory] = useState<PostType | 'popular' | 'all'>('all');
+
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
-  const { user, isAdmin } = useAuth(); 
-  const router = useRouter(); 
-  
-  useEffect(() => { 
+  const { user, isAdmin } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
     const currentNewSubTabs = mainCategory === 'General' ? generalSubTabs : engineSubTabs;
     if (!currentNewSubTabs.find(tab => tab.value === subCategory)) {
-       const firstSubTab = currentNewSubTabs.find(tab => tab.value !== 'popular');
-       setSubCategory(firstSubTab ? firstSubTab.value : (currentNewSubTabs[0]?.value || 'all'));
+       setSubCategory('all'); // Default to 'all' if current subCategory isn't valid
     }
   }, [mainCategory, subCategory]);
 
   const handleMainCategoryChange = (newMainCategory: PostMainCategory) => {
     setMainCategory(newMainCategory);
-    const currentNewSubTabs = newMainCategory === 'General' ? generalSubTabs : engineSubTabs;
-    const firstSubTab = currentNewSubTabs.find(tab => tab.value !== 'popular');
-    setSubCategory(firstSubTab ? firstSubTab.value : (currentNewSubTabs[0]?.value || 'all'));
+    setSubCategory('all'); // Reset sub-category to 'all'
     setCurrentPage(1);
   };
 
@@ -297,24 +170,24 @@ export default function TavernPage() {
   }, [mainCategory]);
 
   const filteredPosts = useMemo(() => {
-    let posts = [...mockPosts].filter(p => p.mainCategory === mainCategory && p.authorId !== 'admin'); 
-    
+    let posts = [...mockPosts].filter(p => p.mainCategory === mainCategory && p.authorId !== 'admin');
+
     if (searchTerm) {
-      posts = posts.filter(p => 
+      posts = posts.filter(p =>
         p.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
         p.authorNickname.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
 
     if (subCategory === 'popular') {
-      posts = posts.sort((a,b) => (b.isPinned ? 1 : 0) - (a.isPinned ? 1 : 0) || b.views - a.views);
-    } else if (subCategory !== 'all') { 
+      posts = posts.sort((a,b) => (b.isPinned ? 1 : 0) - (a.isPinned ? 1 : 0) || (b.postScore || 0) - (a.postScore || 0) || b.views - a.views);
+    } else if (subCategory !== 'all') {
       posts = posts.filter(p => p.type === subCategory);
       posts = posts.sort((a,b) => (b.isPinned ? 1 : 0) - (a.isPinned ? 1 : 0) || new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-    } else { 
+    } else { // 'all'
       posts = posts.sort((a,b) => (b.isPinned ? 1 : 0) - (a.isPinned ? 1 : 0) || new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
     }
-    
+
     const notices = mockPosts.filter(p => p.mainCategory === mainCategory && p.authorId === 'admin' && (p.type === 'Notice' || p.type === 'Announcement'));
     const pinnedPosts = posts.filter(p => p.isPinned);
     const otherPosts = posts.filter(p => !p.isPinned);
@@ -322,7 +195,7 @@ export default function TavernPage() {
     return [...notices.sort((a,b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()), ...pinnedPosts, ...otherPosts];
 
   }, [mainCategory, subCategory, searchTerm]);
-  
+
   const totalPages = Math.ceil(filteredPosts.length / POSTS_PER_PAGE);
   const indexOfLastPost = currentPage * POSTS_PER_PAGE;
   const indexOfFirstPost = indexOfLastPost - POSTS_PER_PAGE;
@@ -336,15 +209,15 @@ export default function TavernPage() {
 
   const renderPageNumbers = () => {
     const pageNumbers = [];
-    const maxPagesToShow = 5; 
-    
+    const maxPagesToShow = 5;
+
     let startPage = Math.max(1, currentPage - Math.floor(maxPagesToShow / 2));
     let endPage = Math.min(totalPages, startPage + maxPagesToShow - 1);
 
     if (endPage - startPage + 1 < maxPagesToShow) {
         startPage = Math.max(1, endPage - maxPagesToShow + 1);
     }
-    
+
     if (totalPages === 0) return null;
 
     for (let i = startPage; i <= endPage; i++) {
@@ -362,12 +235,12 @@ export default function TavernPage() {
     }
     return pageNumbers;
   };
-  
+
   const bannerImageUrl = "https://placehold.co/1920x600.png";
 
   return (
     <div className="container mx-auto py-8 px-4">
-      <section 
+      <section
         className="text-center py-20 md:py-32 rounded-xl shadow-xl mb-10 relative bg-cover bg-center"
         style={{ backgroundImage: `url(${bannerImageUrl})` }}
         data-ai-hint="fantasy tavern interior"
@@ -390,7 +263,7 @@ export default function TavernPage() {
             onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1);}}
           />
         </div>
-        {user && ( 
+        {user && (
           <Button asChild className="w-full md:w-auto bg-gradient-to-r from-green-500 to-teal-500 text-primary-foreground hover:opacity-90 shadow-md">
             <Link href="/tavern/new">
               <PlusCircle className="mr-2 h-5 w-5" /> 새 글 작성
@@ -410,15 +283,15 @@ export default function TavernPage() {
 
       <div className="grid lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2">
-          <SubTabsComponent 
+          <SubTabsComponent
             activeSubTab={subCategory}
             setActiveSubTab={handleSubCategoryChange}
             subTabs={currentSubTabSet}
             onSubTabChange={() => setCurrentPage(1)}
           />
-          
+
           {currentPostsToDisplay.length > 0 ? (
-            <div className="space-y-3"> 
+            <div className="space-y-3">
               {currentPostsToDisplay.map((post) => (
                 <PostItem key={post.id} post={post} currentUser={user} router={router} />
               ))}
@@ -430,7 +303,7 @@ export default function TavernPage() {
               <p className="text-sm text-muted-foreground mt-1">선택한 카테고리 또는 검색어에 해당하는 글이 없습니다.</p>
             </div>
           )}
-          
+
           {totalPages > 0 && (
             <div className="mt-8 flex flex-col items-center gap-4">
                 <div className="flex items-center gap-1 sm:gap-2">
@@ -445,11 +318,9 @@ export default function TavernPage() {
           )}
         </div>
         <aside className="lg:col-span-1 space-y-6 sticky top-20 self-start">
-           <CategoryRankingCard category={mainCategory} currentUser={user} />
+           <CategoryRankingSidebar category={mainCategory} currentUser={user} />
         </aside>
       </div>
     </div>
   );
 }
-
-    
