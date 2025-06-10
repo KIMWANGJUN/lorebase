@@ -1,6 +1,7 @@
 
 // src/lib/mockData.ts
 import type { User, StarterProject, AssetInfo, Post, Comment, RankEntry, Inquiry, PostMainCategory, TetrisRanker, AchievedRankType, UserCategoryStat, TitleIdentifier, NicknameEffectIdentifier, LogoIdentifier } from '@/types';
+import { validateUsername, validatePassword, validateNickname } from './validationRules'; // Import validation functions
 
 const fortyFiveDaysAgo = new Date(Date.now() - 45 * 24 * 60 * 60 * 1000);
 const fifteenDaysAgo = new Date(Date.now() - 15 * 24 * 60 * 60 * 1000);
@@ -13,57 +14,57 @@ export let mockUsersData: Omit<User, 'rank' | 'tetrisRank' | 'categoryStats' | '
     nicknameLastChanged: new Date('2023-01-01'),
   },
   {
-    id: 'user1', username: 'unityMaster', password: 'password123', nickname: '유니티장인', email: 'unity@example.com',
+    id: 'user1', username: 'unitymaster', password: 'Password123!', nickname: '유니티장인', email: 'unity@example.com',
     avatar: 'https://placehold.co/100x100.png?text=UM',
     nicknameLastChanged: fortyFiveDaysAgo,
   },
   {
-    id: 'user2', username: 'unrealDev', password: 'password123', nickname: '언리얼신', email: 'unreal@example.com',
+    id: 'user2', username: 'unrealdev', password: 'Password123!', nickname: '언리얼신', email: 'unreal@example.com',
     avatar: 'https://placehold.co/100x100.png?text=UD',
     nicknameLastChanged: fifteenDaysAgo,
   },
   {
-    id: 'user3', username: 'godotFan', password: 'password123', nickname: '고도엔진팬', email: 'godot@example.com',
+    id: 'user3', username: 'godotfan', password: 'Password123!', nickname: '고도엔진팬', email: 'godot@example.com',
     avatar: 'https://placehold.co/100x100.png?text=GF',
   },
   {
-    id: 'user4', username: 'indieDreamer', password: 'password123', nickname: '인디드리머', email: 'dreamer@example.com',
+    id: 'user4', username: 'indiedreamer', password: 'Password123!', nickname: '인디드리머', email: 'dreamer@example.com',
     avatar: 'https://placehold.co/100x100.png?text=ID',
     nicknameLastChanged: new Date('2024-07-01'),
   },
   {
-    id: 'user5', username: 'pixelArtist', password: 'password123', nickname: '픽셀아티스트',
+    id: 'user5', username: 'pixelartist', password: 'Password123!', nickname: '픽셀아티스트',
     avatar: 'https://placehold.co/100x100.png?text=PA',
     nicknameLastChanged: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
   },
   {
-    id: 'user6', username: 'generalEnjoyer', password: 'password123', nickname: '일반글애호가', email: 'general@example.com',
+    id: 'user6', username: 'generalenjoyer', password: 'Password123!', nickname: '일반글애호가', email: 'general@example.com',
     avatar: 'https://placehold.co/100x100.png?text=GE',
     nicknameLastChanged: new Date('2024-07-06'),
   },
   {
-    id: 'user7', username: 'unityNewbie', password: 'password123', nickname: '유니티뉴비',
+    id: 'user7', username: 'unitynewbie', password: 'Password123!', nickname: '유니티뉴비',
     avatar: 'https://placehold.co/100x100.png?text=UN',
     nicknameLastChanged: new Date('2024-07-07'),
   },
   {
-    id: 'user8', username: 'unrealArtist', password: 'password123', nickname: '언리얼아티스트',
+    id: 'user8', username: 'unrealartist', password: 'Password123!', nickname: '언리얼아티스트',
     avatar: 'https://placehold.co/100x100.png?text=UA',
     nicknameLastChanged: new Date('2024-07-08'),
   },
   {
-    id: 'user9_multi_rank', username: 'multiRanker', password: 'password123', nickname: '멀티랭커', email: 'multi@example.com',
+    id: 'user9_multi_rank', username: 'multiranker', password: 'Password123!', nickname: '멀티랭커', email: 'multi@example.com',
     avatar: 'https://placehold.co/100x100.png?text=MR',
     nicknameLastChanged: new Date('2024-06-01'),
   },
   {
-    id: 'user10_tetris_cat_rank', username: 'tetrisCatEnjoyer', password: 'password123', nickname: '테트리스냥이',
+    id: 'user10_tetris_cat_rank', username: 'tetriscatenjoyer', password: 'Password123!', nickname: '테트리스냥이',
     avatar: 'https://placehold.co/100x100.png?text=TC',
   },
   {
     id: 'testwang1_id', 
     username: 'testwang1', 
-    password: 'testwang1', 
+    password: 'Password123!', 
     nickname: '테스트왕', 
     email: 'testwang1@example.com',
     avatar: 'https://placehold.co/100x100.png?text=TW',
@@ -72,8 +73,8 @@ export let mockUsersData: Omit<User, 'rank' | 'tetrisRank' | 'categoryStats' | '
    // 카테고리별 랭커 추가 (4-20위권)
   ...Array.from({ length: 17 }, (_, i) => ({
     id: `user_cat_filler_${i + 1}`,
-    username: `catFiller${i + 1}`,
-    password: 'password123',
+    username: `catfiller${i + 1}`, // Ensure usernames also follow rules (lowercase)
+    password: 'Password123!',
     nickname: `카테고리필러${i + 1}`,
     avatar: `https://placehold.co/100x100.png?text=CF${i+1}`,
   })),
@@ -133,8 +134,8 @@ export let mockPosts: Post[] = [
     mainCategory: 'General' as PostMainCategory,
     title: `오래된 일반 게시글 ${i + 1}`,
     content: `이것은 오래된 일반 게시글 내용입니다. (${i + 1})`,
-    authorId: mockUsersData.find(u => u.username === `catFiller${i+1}`)?.id || mockUsersData.filter(u => u.id !== 'admin' && !u.username.startsWith("catFiller"))[(i + 1) % (mockUsersData.filter(u => u.id !== 'admin' && !u.username.startsWith("catFiller")).length)].id,
-    authorNickname: mockUsersData.find(u => u.username === `catFiller${i+1}`)?.nickname || mockUsersData.filter(u => u.id !== 'admin' && !u.username.startsWith("catFiller"))[(i + 1) % (mockUsersData.filter(u => u.id !== 'admin' && !u.username.startsWith("catFiller")).length)].nickname,
+    authorId: mockUsersData.find(u => u.username === `catfiller${i+1}`)?.id || mockUsersData.filter(u => u.id !== 'admin' && !u.username.startsWith("catfiller"))[(i + 1) % (mockUsersData.filter(u => u.id !== 'admin' && !u.username.startsWith("catfiller")).length)].id,
+    authorNickname: mockUsersData.find(u => u.username === `catfiller${i+1}`)?.nickname || mockUsersData.filter(u => u.id !== 'admin' && !u.username.startsWith("catfiller"))[(i + 1) % (mockUsersData.filter(u => u.id !== 'admin' && !u.username.startsWith("catfiller")).length)].nickname,
     createdAt: new Date(Date.now() - 86400000 * (7 + i)).toISOString(),
     updatedAt: new Date(Date.now() - 86400000 * (7 + i)).toISOString(),
     type: 'GeneralPost' as PostType,
@@ -149,8 +150,8 @@ export let mockPosts: Post[] = [
     mainCategory: 'Unity' as PostMainCategory,
     title: `오래된 Unity QnA ${i + 1}`,
     content: `Unity 관련 오래된 질문입니다. (${i + 1})`,
-    authorId: mockUsersData.find(u => u.username === `catFiller${i+3}`)?.id || mockUsersData.filter(u => u.id !== 'admin' && !u.username.startsWith("catFiller"))[(i + 2) % (mockUsersData.filter(u => u.id !== 'admin' && !u.username.startsWith("catFiller")).length)].id,
-    authorNickname: mockUsersData.find(u => u.username === `catFiller${i+3}`)?.nickname || mockUsersData.filter(u => u.id !== 'admin' && !u.username.startsWith("catFiller"))[(i + 2) % (mockUsersData.filter(u => u.id !== 'admin' && !u.username.startsWith("catFiller")).length)].nickname,
+    authorId: mockUsersData.find(u => u.username === `catfiller${i+3}`)?.id || mockUsersData.filter(u => u.id !== 'admin' && !u.username.startsWith("catfiller"))[(i + 2) % (mockUsersData.filter(u => u.id !== 'admin' && !u.username.startsWith("catfiller")).length)].id,
+    authorNickname: mockUsersData.find(u => u.username === `catfiller${i+3}`)?.nickname || mockUsersData.filter(u => u.id !== 'admin' && !u.username.startsWith("catfiller"))[(i + 2) % (mockUsersData.filter(u => u.id !== 'admin' && !u.username.startsWith("catfiller")).length)].nickname,
     createdAt: new Date(Date.now() - 86400000 * (10 + i)).toISOString(),
     updatedAt: new Date(Date.now() - 86400000 * (10 + i)).toISOString(),
     type: 'QnA' as PostType,
@@ -165,8 +166,8 @@ export let mockPosts: Post[] = [
     mainCategory: 'Unreal' as PostMainCategory,
     title: `언리얼 필러 게시글 ${i + 1}`,
     content: `언리얼 카테고리 랭킹을 위한 게시글 내용입니다. (${i + 1})`,
-    authorId: mockUsersData.find(u => u.username === `catFiller${i+5}`)?.id || 'user_cat_filler_5', // fallback
-    authorNickname: mockUsersData.find(u => u.username === `catFiller${i+5}`)?.nickname || `카테고리필러${i+5}`,
+    authorId: mockUsersData.find(u => u.username === `catfiller${i+5}`)?.id || 'user_cat_filler_5', // fallback
+    authorNickname: mockUsersData.find(u => u.username === `catfiller${i+5}`)?.nickname || `카테고리필러${i+5}`,
     createdAt: new Date(Date.now() - 86400000 * (2 + i*0.5)).toISOString(),
     updatedAt: new Date(Date.now() - 86400000 * (2 + i*0.5)).toISOString(),
     type: 'Knowledge' as PostType,
@@ -181,8 +182,8 @@ export let mockPosts: Post[] = [
     mainCategory: 'Godot' as PostMainCategory,
     title: `고도 필러 게시글 ${i + 1}`,
     content: `고도 카테고리 랭킹을 위한 게시글 내용입니다. (${i + 1})`,
-    authorId: mockUsersData.find(u => u.username === `catFiller${i+10}`)?.id || 'user_cat_filler_10', // fallback
-    authorNickname: mockUsersData.find(u => u.username === `catFiller${i+10}`)?.nickname || `카테고리필러${i+10}`,
+    authorId: mockUsersData.find(u => u.username === `catfiller${i+10}`)?.id || 'user_cat_filler_10', // fallback
+    authorNickname: mockUsersData.find(u => u.username === `catfiller${i+10}`)?.nickname || `카테고리필러${i+10}`,
     createdAt: new Date(Date.now() - 86400000 * (1 + i*0.3)).toISOString(),
     updatedAt: new Date(Date.now() - 86400000 * (1 + i*0.3)).toISOString(),
     type: 'DevLog' as PostType,
@@ -313,10 +314,24 @@ export let mockUsers: User[] = assignCalculatedScoresAndRanks(mockUsersData);
 export type NewUserDto = Omit<User, 'rank' | 'categoryStats' | 'tetrisRank' | 'id' | 'score' | 'nicknameLastChanged' | 'isBlocked' | 'avatar' | 'postScore' | 'selectedTitleIdentifier' | 'selectedNicknameEffectIdentifier' | 'selectedLogoIdentifier'> & { password?: string };
 
 export const addUser = (newUserData: NewUserDto): { success: boolean, message?: string, user?: User } => {
-  if (mockUsers.some(u => u.username === newUserData.username)) {
+  // Validate with imported functions
+  const usernameError = validateUsername(newUserData.username);
+  if (usernameError) {
+    return { success: false, message: usernameError };
+  }
+  const passwordError = newUserData.password ? validatePassword(newUserData.password) : "비밀번호는 필수입니다.";
+  if (passwordError) {
+    return { success: false, message: passwordError };
+  }
+  const nicknameError = validateNickname(newUserData.nickname);
+  if (nicknameError) {
+    return { success: false, message: nicknameError };
+  }
+
+  if (mockUsers.some(u => u.username.toLowerCase() === newUserData.username.toLowerCase())) {
     return { success: false, message: "이미 사용 중인 아이디입니다." };
   }
-  if (mockUsers.some(u => u.nickname === newUserData.nickname)) {
+  if (mockUsers.some(u => u.nickname.toLowerCase() === newUserData.nickname.toLowerCase())) {
     return { success: false, message: "이미 사용 중인 닉네임입니다." };
   }
   if (newUserData.email && mockUsers.some(u => u.email && u.email.toLowerCase() === newUserData.email.toLowerCase())) {
@@ -330,7 +345,7 @@ export const addUser = (newUserData: NewUserDto): { success: boolean, message?: 
     nickname: newUserData.nickname,
     email: newUserData.email,
     avatar: `https://placehold.co/100x100.png?text=${newUserData.nickname.substring(0,1).toUpperCase()}`,
-    nicknameLastChanged: new Date(),
+    nicknameLastChanged: new Date(), // Set on creation
     isBlocked: false,
   };
 
@@ -384,4 +399,3 @@ export const mockInquiries: Inquiry[] = [
   { id: 'inq1', userId: 'user4', userNickname: '인디드리머', title: '닉네임 변경 기간 문의', content: '닉네임 변경 후 1개월 제한이 정확히 어떻게 적용되는지 궁금합니다.', createdAt: new Date(Date.now() - 86400000 * 3).toISOString(), status: 'Answered', response: '닉네임 변경 시점으로부터 만 30일 이후에 다시 변경 가능합니다.', respondedAt: new Date(Date.now() - 86400000 * 2.5).toISOString() },
   { id: 'inq2', userId: 'user1', userNickname: '유니티장인', title: '게시글 오류 신고', content: '특정 게시글에서 이미지가 깨져 보입니다. 확인 부탁드립니다. (게시글 ID: postX)', createdAt: new Date(Date.now() - 86400000 * 1).toISOString(), status: 'Pending' },
 ];
-
