@@ -18,8 +18,8 @@ import NicknameDisplay from '@/components/shared/NicknameDisplay';
 
 const POSTS_PER_PAGE = 10;
 const MAX_PAGES = 10;
-const RANKERS_TO_SHOW = 20; // Total rankers to consider for community ranking pagination
-const COMMUNITY_RANKERS_PER_PAGE = 10; // Rankers per page for community ranking
+const RANKERS_TO_SHOW = 20; 
+const COMMUNITY_RANKERS_PER_PAGE = 10;
 
 const CategorySpecificIcon: React.FC<{ category: PostMainCategory, className?: string }> = ({ category, className }) => {
   const defaultClassName = "h-3.5 w-3.5 shrink-0";
@@ -98,22 +98,30 @@ export default function HomePage() {
   }, []);
 
   const rankedUsersToDisplay = useMemo(() => {
-    return getTopNUsers(mockUsers, activeRankingTab, RANKERS_TO_SHOW);
-  }, [activeRankingTab, getTopNUsers]);
+    const countToShow = activeRankingTab === 'Global' ? COMMUNITY_RANKERS_PER_PAGE : RANKERS_TO_SHOW;
+    return getTopNUsers(mockUsers, activeRankingTab, countToShow);
+  }, [activeRankingTab, getTopNUsers, mockUsers, COMMUNITY_RANKERS_PER_PAGE, RANKERS_TO_SHOW]);
 
-  const totalCommunityRankingPages = Math.ceil(rankedUsersToDisplay.length / COMMUNITY_RANKERS_PER_PAGE);
+  const totalCommunityRankingPages = useMemo(() => {
+    if (activeRankingTab === 'Global') {
+        return 1; 
+    }
+    return Math.ceil(rankedUsersToDisplay.length / COMMUNITY_RANKERS_PER_PAGE);
+  }, [activeRankingTab, rankedUsersToDisplay, COMMUNITY_RANKERS_PER_PAGE]);
 
   const currentCommunityRankersToDisplay = useMemo(() => {
+    if (activeRankingTab === 'Global') {
+        return rankedUsersToDisplay; 
+    }
     const startIndex = (communityRankingCurrentPage - 1) * COMMUNITY_RANKERS_PER_PAGE;
     const endIndex = startIndex + COMMUNITY_RANKERS_PER_PAGE;
     return rankedUsersToDisplay.slice(startIndex, endIndex);
-  }, [rankedUsersToDisplay, communityRankingCurrentPage]);
+  }, [rankedUsersToDisplay, communityRankingCurrentPage, activeRankingTab, COMMUNITY_RANKERS_PER_PAGE]);
 
   const handleRankingTabChange = (value: PostMainCategory | 'Global') => {
     setActiveRankingTab(value);
-    setCommunityRankingCurrentPage(1); // Reset page on tab change
+    setCommunityRankingCurrentPage(1);
   };
-
 
   return (
     <div className="container mx-auto py-8 px-4">
@@ -299,7 +307,7 @@ export default function HomePage() {
                   </TabsContent>
                 ))}
               </Tabs>
-               {totalCommunityRankingPages > 1 && (
+               {totalCommunityRankingPages > 1 && activeRankingTab !== 'Global' && (
                 <div className="mt-4 flex items-center justify-between pt-2 border-t border-border/50">
                   <Button
                     variant="outline"
@@ -338,4 +346,3 @@ export default function HomePage() {
     </div>
   );
 }
-
