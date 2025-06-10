@@ -46,17 +46,17 @@ const CategoryIcon: FC<{ category: PostMainCategory, className?: string }> = ({ 
 interface NicknameDisplayProps {
   author: UserType;
   postMainCategory: PostMainCategory; 
-  baseNicknameClass?: string;
-  baseTitleClass?: string;
+  baseNicknameClasses?: string; // Renamed for clarity
+  baseTitleClasses?: string; // Renamed for clarity
 }
 
-const NicknameDisplay: FC<NicknameDisplayProps> = ({ author, postMainCategory, baseNicknameClass = "text-xs", baseTitleClass = "title-text" }) => {
-  if (!author) return <span className={cn(baseNicknameClass, "text-foreground font-medium")}>Unknown User</span>;
+const NicknameDisplay: FC<NicknameDisplayProps> = ({ author, postMainCategory, baseNicknameClasses = "text-xs", baseTitleClasses = "title-text" }) => {
+  if (!author) return <span className={cn(baseNicknameClasses, "text-foreground font-medium")}>Unknown User</span>;
 
   let finalContainerClass = "default-rank-item-bg";
   let titleElement = null;
-  let finalNicknameClasses = baseNicknameClass;
-  let finalTitleClasses = baseTitleClass;
+  let nicknameTextClasses = baseNicknameClasses; // Start with base (e.g., "text-xs")
+  let titleTextClasses = baseTitleClasses; // Start with base (e.g., "title-text")
   
   const { 
     rank: globalRank, 
@@ -74,17 +74,18 @@ const NicknameDisplay: FC<NicknameDisplayProps> = ({ author, postMainCategory, b
   
   if (username === 'WANGJUNLAND') {
     finalContainerClass = "admin-badge-bg admin-badge-border px-1.5 py-0.5";
-    finalNicknameClasses = `${baseNicknameClass} text-admin`; // font-semibold included in text-admin
+    nicknameTextClasses = `${baseNicknameClasses} text-admin`; // font-semibold included in text-admin
   } else if ((displayPreference === 'default' || displayPreference === 'global') && globalRank > 0 && globalRank <= 3) {
     finalContainerClass = cn(globalRank === 1 && 'rank-1-badge', globalRank === 2 && 'rank-2-badge', globalRank === 3 && 'rank-3-badge', "px-1.5 py-0.5");
     const gradientClass = globalRank === 1 ? "text-rank-gold" : globalRank === 2 ? "text-rank-silver" : "text-rank-bronze";
-    finalNicknameClasses = `${baseNicknameClass} ${gradientClass}`;
+    nicknameTextClasses = `${baseNicknameClasses} ${gradientClass}`;
   } else if ((displayPreference === 'default' || displayPreference === 'tetris') && tetrisRank && tetrisRank > 0 && tetrisRank <= 3) {
     const gradientClass = tetrisRank === 1 ? "text-rank-gold" : tetrisRank === 2 ? "text-rank-silver" : "text-rank-bronze";
     if(tetrisTitles[tetrisRank - 1]){
-        titleElement = <div className="title-container"><p className={`${finalTitleClasses} ${gradientClass}`}>{tetrisTitles[tetrisRank - 1]}</p></div>;
+        titleTextClasses = `${baseTitleClasses} ${gradientClass}`;
+        titleElement = <div className="title-container"><p className={titleTextClasses}>{tetrisTitles[tetrisRank - 1]}</p></div>;
     }
-    finalNicknameClasses = `${baseNicknameClass} ${gradientClass}`;
+    nicknameTextClasses = `${baseNicknameClasses} ${gradientClass}`;
     if ((displayPreference === 'default' || displayPreference === `category_${postMainCategory}`) && rankInCurrentCategory > 0 && rankInCurrentCategory <= 3) {
         finalContainerClass = cn(`highlight-${postMainCategory.toLowerCase()}`, "px-1.5 py-0.5");
          if (postMainCategory === 'General') isGeneralHighlightActive = true;
@@ -96,18 +97,20 @@ const NicknameDisplay: FC<NicknameDisplayProps> = ({ author, postMainCategory, b
     const titleTextContent = postMainCategory === 'General' ? '일반 & 유머' : postMainCategory;
      if (postMainCategory === 'General') {
         isGeneralHighlightActive = true;
-        titleElement = <div className="title-container"><p className={`${finalTitleClasses} text-content-inside-gradient`}>{titleTextContent}</p></div>;
-        finalNicknameClasses = `${baseNicknameClass} text-content-inside-gradient`;
+        titleTextClasses = `${baseTitleClasses} text-content-inside-gradient`;
+        titleElement = <div className="title-container"><p className={titleTextClasses}>{titleTextContent}</p></div>;
+        nicknameTextClasses = `${baseNicknameClasses} text-content-inside-gradient`;
     } else {
-        titleElement = <div className="title-container"><p className={`${finalTitleClasses} ${gradientClass}`}>{titleTextContent}</p></div>;
-        finalNicknameClasses = `${baseNicknameClass} ${gradientClass}`;
+        titleTextClasses = `${baseTitleClasses} ${gradientClass}`;
+        titleElement = <div className="title-container"><p className={titleTextClasses}>{titleTextContent}</p></div>;
+        nicknameTextClasses = `${baseNicknameClasses} ${gradientClass}`;
     }
     finalContainerClass = cn(`highlight-${postMainCategory.toLowerCase()}`, "px-1.5 py-0.5");
   } else if (displayPreference === 'default' && rankInCurrentCategory > 0 && rankInCurrentCategory <= 10) {
-    finalNicknameClasses = cn(baseNicknameClass, `text-${postMainCategory.toLowerCase()}-themed`, `nickname-text-rank-${rankInCurrentCategory}`);
+    nicknameTextClasses = cn(baseNicknameClasses, `text-${postMainCategory.toLowerCase()}-themed`, `nickname-text-rank-${rankInCurrentCategory}`);
     finalContainerClass = "default-rank-item-bg px-1.5 py-0.5";
   } else {
-    finalNicknameClasses = cn(baseNicknameClass, "text-foreground font-medium");
+    nicknameTextClasses = cn(baseNicknameClasses, "text-foreground font-medium");
     finalContainerClass = "default-rank-item-bg px-1.5 py-0.5";
   }
   
@@ -120,13 +123,12 @@ const NicknameDisplay: FC<NicknameDisplayProps> = ({ author, postMainCategory, b
     nicknameWrapperProps.className = cn(finalContainerClass, 'highlight-general-inner p-0 inline-flex items-center gap-1', titleElement && "mt-0.5");
   }
 
-
   return (
     <div className="flex flex-col items-start">
       {titleElement}
       <NicknameWrapperComponent {...nicknameWrapperProps}>
             {showCategoryIconInNickname && postMainCategory && <CategoryIcon category={postMainCategory} className="h-3 w-3" />}
-            <span className={finalNicknameClasses}>
+            <span className={nicknameTextClasses}>
               {nickname}
             </span>
       </NicknameWrapperComponent>
@@ -289,9 +291,9 @@ const CategoryRankingCard: FC<{ category: PostMainCategory, currentUser: UserTyp
         {categoryRankers.map((rankerUser) => {
             let finalContainerClass = "default-rank-item-bg";
             let titleElement = null;
-            let finalNicknameClasses = "text-sm";
-            let finalTitleClasses = "title-text";
-            let finalRankNumberClasses = "font-bold text-md w-5 text-center shrink-0";
+            let nicknameTextClasses = "text-sm"; // Base nickname class
+            let titleTextClasses = "title-text"; // Base title class from globals.css
+            let rankNumberTextClasses = "font-bold text-md w-5 text-center shrink-0";
 
             const { rank: globalRank, tetrisRank, categoryStats: userCategoryStats, username, selectedDisplayRank, nickname } = rankerUser;
             const currentCategoryStats = userCategoryStats?.[category];
@@ -302,20 +304,21 @@ const CategoryRankingCard: FC<{ category: PostMainCategory, currentUser: UserTyp
             
             if (username === 'WANGJUNLAND') { 
                 finalContainerClass = "admin-badge-bg admin-badge-border";
-                finalNicknameClasses += " text-admin"; 
-                finalRankNumberClasses += " text-admin";
+                nicknameTextClasses += " text-admin"; 
+                rankNumberTextClasses += " text-admin";
             } else if ((displayPreference === 'default' || displayPreference === 'global') && globalRank > 0 && globalRank <= 3) {
                 finalContainerClass = cn(globalRank === 1 && 'rank-1-badge', globalRank === 2 && 'rank-2-badge', globalRank === 3 && 'rank-3-badge');
                 const gradientClass = globalRank === 1 ? "text-rank-gold" : globalRank === 2 ? "text-rank-silver" : "text-rank-bronze";
-                finalNicknameClasses += ` ${gradientClass}`;
-                finalRankNumberClasses += ` ${gradientClass.replace('text-rank-','text-')}`;
+                nicknameTextClasses += ` ${gradientClass}`;
+                rankNumberTextClasses += ` ${gradientClass.replace('text-rank-','text-')}`;
             } else if ((displayPreference === 'default' || displayPreference === 'tetris') && tetrisRank && tetrisRank > 0 && tetrisRank <= 3) {
                 const gradientClass = tetrisRank === 1 ? "text-rank-gold" : tetrisRank === 2 ? "text-rank-silver" : "text-rank-bronze";
                 if(tetrisTitles[tetrisRank - 1]) {
-                    titleElement = <div className="title-container"><p className={`${finalTitleClasses} ${gradientClass}`}>{tetrisTitles[tetrisRank - 1]}</p></div>;
+                    titleTextClasses = `${titleTextClasses} ${gradientClass}`;
+                    titleElement = <div className="title-container"><p className={titleTextClasses}>{tetrisTitles[tetrisRank - 1]}</p></div>;
                 }
-                finalNicknameClasses += ` ${gradientClass}`;
-                finalRankNumberClasses += ` ${gradientClass.replace('text-rank-','text-')}`;
+                nicknameTextClasses += ` ${gradientClass}`;
+                rankNumberTextClasses += ` ${gradientClass.replace('text-rank-','text-')}`;
                 if ((displayPreference === 'default' || displayPreference === `category_${category}`) && rankInCurrentCategory > 0 && rankInCurrentCategory <= 3) {
                    finalContainerClass = cn(`highlight-${category.toLowerCase()}`);
                    if (category === 'General') isGeneralHighlightActive = true;
@@ -324,20 +327,22 @@ const CategoryRankingCard: FC<{ category: PostMainCategory, currentUser: UserTyp
                 const gradientClass = rankInCurrentCategory === 1 ? "text-rank-gold" : rankInCurrentCategory === 2 ? "text-rank-silver" : "text-rank-bronze";
                  if(category === 'General') {
                     isGeneralHighlightActive = true;
-                    titleElement = <div className="title-container"><p className={`${finalTitleClasses} text-content-inside-gradient`}>{categoryDisplayName}</p></div>;
-                    finalNicknameClasses += " text-content-inside-gradient";
+                    titleTextClasses = `${titleTextClasses} text-content-inside-gradient`;
+                    titleElement = <div className="title-container"><p className={titleTextClasses}>{categoryDisplayName}</p></div>;
+                    nicknameTextClasses += " text-content-inside-gradient";
                 } else {
-                    titleElement = <div className="title-container"><p className={`${finalTitleClasses} ${gradientClass}`}>{categoryDisplayName}</p></div>;
-                    finalNicknameClasses += ` ${gradientClass}`;
+                    titleTextClasses = `${titleTextClasses} ${gradientClass}`;
+                    titleElement = <div className="title-container"><p className={titleTextClasses}>{categoryDisplayName}</p></div>;
+                    nicknameTextClasses += ` ${gradientClass}`;
                 }
-                finalRankNumberClasses += ` ${gradientClass.replace('text-rank-','text-')}`;
+                rankNumberTextClasses += ` ${gradientClass.replace('text-rank-','text-')}`;
                 finalContainerClass = cn(`highlight-${category.toLowerCase()}`);
             } else if (displayPreference === 'default' && rankInCurrentCategory > 0 && rankInCurrentCategory <= 10) {
-                 finalNicknameClasses += ` text-${category.toLowerCase()}-themed nickname-text-rank-${rankInCurrentCategory}`;
-                 finalRankNumberClasses += ` text-${category.toLowerCase()}-themed`;
+                 nicknameTextClasses += ` text-${category.toLowerCase()}-themed nickname-text-rank-${rankInCurrentCategory}`;
+                 rankNumberTextClasses += ` text-${category.toLowerCase()}-themed`;
             } else {
-                finalNicknameClasses += " text-foreground font-medium";
-                finalRankNumberClasses += " text-muted-foreground";
+                nicknameTextClasses += " text-foreground font-medium";
+                rankNumberTextClasses += " text-muted-foreground";
             }
           
             const showCategoryIcon = !(username === 'WANGJUNLAND' || ((displayPreference === 'default' || displayPreference === 'global') && globalRank > 0 && globalRank <= 3));
@@ -352,7 +357,7 @@ const CategoryRankingCard: FC<{ category: PostMainCategory, currentUser: UserTyp
           return (
             <div key={rankerUser.id} className={cn("flex items-center justify-between p-2.5", finalContainerClass)}>
               <div className="flex items-center gap-2.5">
-                <span className={finalRankNumberClasses}>
+                <span className={rankNumberTextClasses}>
                   {displayRankNumber > 0 ? `${displayRankNumber}.` : "-"}
                 </span>
                 <Avatar className="h-8 w-8 border-2 border-accent/70 shrink-0">
@@ -364,7 +369,7 @@ const CategoryRankingCard: FC<{ category: PostMainCategory, currentUser: UserTyp
                    {titleElement}
                   <NicknameWrapperComponent {...nicknameWrapperProps}>
                         {showCategoryIcon && <CategoryIcon category={category} className="h-4 w-4" />}
-                        <span className={finalNicknameClasses}>
+                        <span className={nicknameTextClasses}>
                           {nickname}
                         </span>
                   </NicknameWrapperComponent>

@@ -261,11 +261,12 @@ body {
 .nickname-text-rank-4 { @apply font-medium opacity-85; }
 .nickname-text-rank-5 { @apply font-medium opacity-80; }
 .nickname-text-rank-6 { @apply font-medium opacity-75; }
-.nickname-text-rank-7 { @apply font-medium opacity-70; } /* font-medium for consistency */
-.nickname-text-rank-8 { @apply font-medium opacity-65; } /* font-medium for consistency */
-.nickname-text-rank-9 { @apply font-medium opacity-60; } /* font-medium for consistency */
-.nickname-text-rank-10 { @apply font-medium opacity-55; } /* font-medium for consistency */
+.nickname-text-rank-7 { @apply font-medium opacity-70; } 
+.nickname-text-rank-8 { @apply font-medium opacity-65; } 
+.nickname-text-rank-9 { @apply font-medium opacity-60; } 
+.nickname-text-rank-10 { @apply font-medium opacity-55; } 
 
+/* Title Text Base Styling */
 .title-container { 
   @apply w-full text-center mb-0.5;
 }

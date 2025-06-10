@@ -155,29 +155,29 @@ export default function ProfilePage() {
 
   const bannerImageUrl = "https://placehold.co/1920x600.png";
 
-  let finalHeaderNicknameClasses = "text-3xl font-headline";
+  let headerNicknameClasses = "text-3xl font-headline"; // Base class
   let headerRankText = user.rank > 0 ? `종합 ${user.rank}위` : "랭킹 정보 없음";
-  let finalHeaderRankTextClasses = "text-lg text-muted-foreground";
+  let headerRankTextClasses = "text-lg text-muted-foreground"; // Base class
   let headerContainerClasses = ""; 
 
 
   if (isAdmin) {
-    finalHeaderNicknameClasses += " text-admin"; 
+    headerNicknameClasses = `${headerNicknameClasses} text-admin`; 
     headerRankText = "관리자";
-    finalHeaderRankTextClasses = "text-lg text-admin"; 
+    headerRankTextClasses = "text-lg text-admin"; 
     headerContainerClasses = "admin-badge-bg admin-badge-border";
   } else if (user.rank > 0 && user.rank <= 3) { 
     const gradientClass = user.rank === 1 ? "text-rank-gold" : user.rank === 2 ? "text-rank-silver" : "text-rank-bronze";
-    finalHeaderNicknameClasses += ` ${gradientClass}`; 
+    headerNicknameClasses = `${headerNicknameClasses} ${gradientClass}`; 
     headerRankText = `종합 ${user.rank}위`;
-    finalHeaderRankTextClasses = `text-lg ${gradientClass}`;
+    headerRankTextClasses = `text-lg ${gradientClass}`;
     headerContainerClasses = cn(
       user.rank === 1 && 'rank-1-badge',
       user.rank === 2 && 'rank-2-badge',
       user.rank === 3 && 'rank-3-badge'
     );
   } else {
-    finalHeaderNicknameClasses += " text-foreground font-semibold"; 
+    headerNicknameClasses = `${headerNicknameClasses} text-foreground font-semibold`; 
   }
  
 
@@ -206,12 +206,12 @@ export default function ProfilePage() {
                     <AvatarFallback className="text-4xl bg-muted text-muted-foreground">{user.nickname.substring(0, 2).toUpperCase()}</AvatarFallback>
                 </Avatar>
                 <div className={cn("rounded-lg px-3 py-1 text-center", headerContainerClasses)}>
-                  <h1 className={finalHeaderNicknameClasses}>{user.nickname}</h1>
+                  <h1 className={headerNicknameClasses}>{user.nickname}</h1>
                 </div>
                 <p className="text-sm opacity-80 mt-1">{user.email || "이메일 미등록"}</p>
                 <div className="mt-4 text-center">
                     <p className="text-2xl font-semibold">{user.score.toLocaleString()} 점</p>
-                     <p className={finalHeaderRankTextClasses}>
+                     <p className={headerRankTextClasses}>
                         {headerRankText}
                     </p>
                 </div>
@@ -345,16 +345,16 @@ export default function ProfilePage() {
               {mockUsers.filter(u => u.username !== 'WANGJUNLAND' && u.rank > 0).sort((a, b) => a.rank - b.rank).map((rankerUser) => { 
                 let finalItemContainerClasses = "default-rank-item-bg";
                 let rankNumberClasses = "font-bold text-lg w-8 text-center";
-                let nicknameClasses = "font-medium"; // 기본 폰트 두께
+                let nicknameClasses = "font-medium"; // Base font weight
                 
                 if (rankerUser.rank > 0 && rankerUser.rank <= 3) {
                   finalItemContainerClasses = cn(rankerUser.rank === 1 && 'rank-1-badge', rankerUser.rank === 2 && 'rank-2-badge', rankerUser.rank === 3 && 'rank-3-badge');
                   const gradientClass = rankerUser.rank === 1 ? 'text-rank-gold' : rankerUser.rank === 2 ? 'text-rank-silver' : 'text-rank-bronze';
-                  nicknameClasses += ` ${gradientClass}`; 
-                  rankNumberClasses += ` ${gradientClass.replace('text-rank-','text-')}`;
+                  nicknameClasses = `${nicknameClasses} ${gradientClass}`; // Add gradient
+                  rankNumberClasses = `${rankNumberClasses} ${gradientClass.replace('text-rank-','text-')}`;
                 } else {
-                  nicknameClasses += " text-foreground"; // 기본 텍스트 색상
-                   rankNumberClasses += " text-muted-foreground";
+                  nicknameClasses = `${nicknameClasses} text-foreground`; // Default color
+                   rankNumberClasses = `${rankNumberClasses} text-muted-foreground`;
                 }
                 
                 return (
