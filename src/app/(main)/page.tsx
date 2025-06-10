@@ -18,7 +18,8 @@ import NicknameDisplay from '@/components/shared/NicknameDisplay';
 
 const POSTS_PER_PAGE = 10;
 const MAX_PAGES = 10;
-const RANKERS_TO_SHOW = 20;
+const RANKERS_TO_SHOW = 20; // Total rankers to consider for community ranking pagination
+const COMMUNITY_RANKERS_PER_PAGE = 10; // Rankers per page for community ranking
 
 const CategorySpecificIcon: React.FC<{ category: PostMainCategory, className?: string }> = ({ category, className }) => {
   const defaultClassName = "h-3.5 w-3.5 shrink-0";
@@ -42,6 +43,7 @@ export default function HomePage() {
   const { user: currentUser } = useAuth();
   const [currentPage, setCurrentPage] = useState(1);
   const [activeRankingTab, setActiveRankingTab] = useState<PostMainCategory | 'Global'>('Global');
+  const [communityRankingCurrentPage, setCommunityRankingCurrentPage] = useState(1);
 
   const allSortedPosts = [...mockPosts].filter(p => p.authorId !== 'admin').sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
   const effectivePosts = allSortedPosts.slice(0, MAX_PAGES * POSTS_PER_PAGE);
@@ -98,6 +100,20 @@ export default function HomePage() {
   const rankedUsersToDisplay = useMemo(() => {
     return getTopNUsers(mockUsers, activeRankingTab, RANKERS_TO_SHOW);
   }, [activeRankingTab, getTopNUsers]);
+
+  const totalCommunityRankingPages = Math.ceil(rankedUsersToDisplay.length / COMMUNITY_RANKERS_PER_PAGE);
+
+  const currentCommunityRankersToDisplay = useMemo(() => {
+    const startIndex = (communityRankingCurrentPage - 1) * COMMUNITY_RANKERS_PER_PAGE;
+    const endIndex = startIndex + COMMUNITY_RANKERS_PER_PAGE;
+    return rankedUsersToDisplay.slice(startIndex, endIndex);
+  }, [rankedUsersToDisplay, communityRankingCurrentPage]);
+
+  const handleRankingTabChange = (value: PostMainCategory | 'Global') => {
+    setActiveRankingTab(value);
+    setCommunityRankingCurrentPage(1); // Reset page on tab change
+  };
+
 
   return (
     <div className="container mx-auto py-8 px-4">
@@ -235,7 +251,7 @@ export default function HomePage() {
               </CardTitle>
             </CardHeader>
             <CardContent className="p-4">
-              <Tabs value={activeRankingTab} onValueChange={(value) => setActiveRankingTab(value as PostMainCategory | 'Global')} className="w-full">
+              <Tabs value={activeRankingTab} onValueChange={(value) => handleRankingTabChange(value as PostMainCategory | 'Global')} className="w-full">
                 <TabsList className="grid w-full grid-cols-3 sm:grid-cols-5 mb-4 bg-card border-border p-1 rounded-lg shadow-inner">
                   <TabsTrigger value="Global" className="text-xs px-1 py-1.5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">종합</TabsTrigger>
                   <TabsTrigger value="Unity" className="text-xs px-1 py-1.5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground flex items-center justify-center gap-1"><Box className="h-3.5 w-3.5"/>Unity</TabsTrigger>
@@ -246,9 +262,9 @@ export default function HomePage() {
 
                 {(['Global', 'Unity', 'Unreal', 'Godot', 'General'] as (PostMainCategory | 'Global')[]).map(tabValue => (
                   <TabsContent key={tabValue} value={tabValue}>
-                    {rankedUsersToDisplay.length > 0 ? (
+                    {currentCommunityRankersToDisplay.length > 0 ? (
                       <div className="space-y-3">
-                        {rankedUsersToDisplay.map((user) => {
+                        {currentCommunityRankersToDisplay.map((user) => {
                           if (user.username === 'WANGJUNLAND' && tabValue !== 'Global') return null;
 
                           const rankNumberTextClasses = "font-bold text-md w-5 text-center shrink-0 text-muted-foreground";
@@ -283,6 +299,33 @@ export default function HomePage() {
                   </TabsContent>
                 ))}
               </Tabs>
+               {totalCommunityRankingPages > 1 && (
+                <div className="mt-4 flex items-center justify-between pt-2 border-t border-border/50">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCommunityRankingCurrentPage(prev => Math.max(1, prev - 1))}
+                    disabled={communityRankingCurrentPage === 1}
+                    className="border-border text-muted-foreground hover:bg-muted/50 hover:border-accent"
+                  >
+                    <ChevronLeft className="h-4 w-4 mr-1" />
+                    이전
+                  </Button>
+                  <span className="text-sm text-muted-foreground">
+                    {communityRankingCurrentPage} / {totalCommunityRankingPages}
+                  </span>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCommunityRankingCurrentPage(prev => Math.min(totalCommunityRankingPages, prev + 1))}
+                    disabled={communityRankingCurrentPage === totalCommunityRankingPages || rankedUsersToDisplay.length <= COMMUNITY_RANKERS_PER_PAGE * communityRankingCurrentPage}
+                    className="border-border text-muted-foreground hover:bg-muted/50 hover:border-accent"
+                  >
+                    다음
+                    <ChevronRight className="h-4 w-4 ml-1" />
+                  </Button>
+                </div>
+              )}
             </CardContent>
             <CardFooter className="justify-center pt-2">
               <Button variant="outline" asChild className="border-accent/50 text-accent hover:bg-accent/10 hover:text-accent/90">
@@ -295,3 +338,4 @@ export default function HomePage() {
     </div>
   );
 }
+
