@@ -1,3 +1,4 @@
+
 import type {Config} from 'tailwindcss';
 
 export default {
@@ -5,6 +6,60 @@ export default {
     './src/pages/**/*.{js,ts,jsx,tsx,mdx}',
     './src/components/**/*.{js,ts,jsx,tsx,mdx}',
     './src/app/**/*.{js,ts,jsx,tsx,mdx}',
+  ],
+  safelist: [
+    // 텍스트 그라데이션 클래스
+    'text-gradient-gold',
+    'text-gradient-silver',
+    'text-gradient-bronze',
+    'text-gradient-unity',
+    'text-gradient-unreal',
+    'text-gradient-godot',
+    'text-gradient-general-rainbow',
+    
+    // 배경 래퍼 클래스
+    'bg-wrapper-gold',
+    'bg-wrapper-silver',
+    'bg-wrapper-bronze',
+    'bg-wrapper-unity',
+    'bg-wrapper-unreal',
+    'bg-wrapper-godot',
+    'bg-wrapper-general-rainbow',
+    
+    // 기타 커스텀 클래스
+    'admin-badge',
+    'admin-text',
+    'title-on-nickname-wrapper',
+    'title-text-base',
+    
+    // 카테고리 아이콘 클래스 (HSL 변수를 사용하므로 safelist 필요 없을 수 있으나, 만약을 위해 추가)
+    'icon-unity',
+    'icon-unreal',
+    'icon-godot',
+    'icon-general',
+
+    // NicknameDisplay에서 동적으로 사용될 수 있는 기본 Tailwind 클래스들
+    'text-transparent',
+    'font-semibold',
+    'font-medium',
+    'text-primary',
+    'text-foreground',
+    'inline-flex',
+    'items-center',
+    'gap-1',
+    'flex-col',
+    'leading-tight',
+    'text-center',
+    'block',
+    'w-full',
+    'mb-0.5',
+    'h-3.5',
+    'w-3.5',
+    'h-4',
+    'w-4',
+    'shrink-0',
+    // 추가적으로 필요할 수 있는 기본 클래스들을 여기에 더 명시할 수 있습니다.
+    // 예: 'p-1.5', 'rounded-md', 'border', 'shadow-md', 'shadow-sm'
   ],
   theme: {
     extend: {

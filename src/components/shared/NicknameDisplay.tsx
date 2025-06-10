@@ -1,7 +1,6 @@
 
 // src/components/shared/NicknameDisplay.tsx
 "use client";
-
 import type { User, PostMainCategory, TitleIdentifier, NicknameEffectIdentifier, LogoIdentifier } from '@/types';
 import { tetrisTitles } from '@/lib/mockData';
 import { cn } from '@/lib/utils';
