@@ -5,60 +5,59 @@ import type { User, StarterProject, AssetInfo, Post, Comment, RankEntry, Inquiry
 const fortyFiveDaysAgo = new Date(Date.now() - 45 * 24 * 60 * 60 * 1000);
 const fifteenDaysAgo = new Date(Date.now() - 15 * 24 * 60 * 60 * 1000);
 
-export let mockUsersData: Omit<User, 'rank' | 'tetrisRank' | 'categoryStats' | 'selectedDisplayRank'>[] = [
+// 초기 사용자 데이터 (점수 관련 필드는 아래에서 재계산됨)
+export let mockUsersData: Omit<User, 'rank' | 'tetrisRank' | 'categoryStats' | 'selectedDisplayRank' | 'score'>[] = [
   {
     id: 'admin', username: 'WANGJUNLAND', password: 'WJLAND1013$', nickname: 'WANGJUNLAND', email: 'admin@example.com',
-    score: 99999, avatar: 'https://placehold.co/100x100.png?text=WJ',
+    avatar: 'https://placehold.co/100x100.png?text=WJ',
     nicknameLastChanged: new Date('2023-01-01'),
   },
   {
     id: 'user1', username: 'unityMaster', password: 'password123', nickname: '유니티장인', email: 'unity@example.com',
-    score: 1250, avatar: 'https://placehold.co/100x100.png?text=UM',
+    avatar: 'https://placehold.co/100x100.png?text=UM',
     nicknameLastChanged: fortyFiveDaysAgo,
   },
   {
     id: 'user2', username: 'unrealDev', password: 'password123', nickname: '언리얼신', email: 'unreal@example.com',
-    score: 1100, avatar: 'https://placehold.co/100x100.png?text=UD',
+    avatar: 'https://placehold.co/100x100.png?text=UD',
     nicknameLastChanged: fifteenDaysAgo,
   },
   {
     id: 'user3', username: 'godotFan', password: 'password123', nickname: '고도엔진팬', email: 'godot@example.com',
-    score: 950, avatar: 'https://placehold.co/100x100.png?text=GF',
+    avatar: 'https://placehold.co/100x100.png?text=GF',
   },
   {
     id: 'user4', username: 'indieDreamer', password: 'password123', nickname: '인디드리머', email: 'dreamer@example.com',
-    score: 700, avatar: 'https://placehold.co/100x100.png?text=ID',
+    avatar: 'https://placehold.co/100x100.png?text=ID',
     nicknameLastChanged: new Date('2024-07-01'),
   },
   {
     id: 'user5', username: 'pixelArtist', password: 'password123', nickname: '픽셀아티스트',
-    score: 600, avatar: 'https://placehold.co/100x100.png?text=PA',
+    avatar: 'https://placehold.co/100x100.png?text=PA',
     nicknameLastChanged: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
   },
   {
     id: 'user6', username: 'generalEnjoyer', password: 'password123', nickname: '일반글애호가', email: 'general@example.com',
-    score: 550, avatar: 'https://placehold.co/100x100.png?text=GE',
+    avatar: 'https://placehold.co/100x100.png?text=GE',
     nicknameLastChanged: new Date('2024-07-06'),
   },
   {
     id: 'user7', username: 'unityNewbie', password: 'password123', nickname: '유니티뉴비',
-    score: 400, avatar: 'https://placehold.co/100x100.png?text=UN',
+    avatar: 'https://placehold.co/100x100.png?text=UN',
     nicknameLastChanged: new Date('2024-07-07'),
   },
   {
     id: 'user8', username: 'unrealArtist', password: 'password123', nickname: '언리얼아티스트',
-    score: 300, avatar: 'https://placehold.co/100x100.png?text=UA',
+    avatar: 'https://placehold.co/100x100.png?text=UA',
     nicknameLastChanged: new Date('2024-07-08'),
   },
   {
     id: 'user9_multi_rank', username: 'multiRanker', password: 'password123', nickname: '멀티랭커', email: 'multi@example.com',
-    score: 1050,
     avatar: 'https://placehold.co/100x100.png?text=MR',
     nicknameLastChanged: new Date('2024-06-01'),
   },
   {
     id: 'user10_tetris_cat_rank', username: 'tetrisCatEnjoyer', password: 'password123', nickname: '테트리스냥이',
-    score: 800,
     avatar: 'https://placehold.co/100x100.png?text=TC',
   }
 ];
@@ -81,142 +80,20 @@ const rawTetrisRankings: Omit<TetrisRanker, 'rank'>[] = [
   { userId: 'user7', nickname: '유니티뉴비', score: 1200000 },
 ];
 
-export const mockTetrisRankings: TetrisRanker[] = rawTetrisRankings
+export let mockTetrisRankings: TetrisRanker[] = rawTetrisRankings
   .sort((a, b) => b.score - a.score)
   .map((ranker, index) => ({
     ...ranker,
     rank: index + 1,
   }));
 
-
-const calculateGlobalRanks = (usersToRank: User[]): void => {
-  const nonAdminUsers = usersToRank.filter(u => u.username !== 'WANGJUNLAND');
-  nonAdminUsers.sort((a, b) => b.score - a.score);
-
-  let currentGlobalRank = 1;
-  for (let i = 0; i < nonAdminUsers.length; i++) {
-    if (i > 0 && nonAdminUsers[i].score < nonAdminUsers[i - 1].score) {
-      currentGlobalRank = i + 1;
-    }
-    nonAdminUsers[i].rank = currentGlobalRank;
-  }
-  // Ensure admin rank is 0
-  const admin = usersToRank.find(u => u.username === 'WANGJUNLAND');
-  if (admin) admin.rank = 0;
+// 게시물 점수 계산 함수
+const calculatePostScore = (post: Post): number => {
+  const score = (post.views * 0.01) + (post.upvotes * 0.5) + (post.commentCount * 0.1);
+  return parseFloat(score.toFixed(2)); // 소수점 둘째 자리까지
 };
 
-
-const assignCategoryRanks = (users: User[]): void => {
-  const categories: PostMainCategory[] = ['Unity', 'Unreal', 'Godot', 'General'];
-  categories.forEach(category => {
-    const rankedUsersInCategory = users
-      .filter(u => u.username !== 'WANGJUNLAND' && u.categoryStats && typeof u.categoryStats[category]?.score === 'number')
-      .sort((a, b) => (b.categoryStats![category]!.score || 0) - (a.categoryStats![category]!.score || 0));
-
-    let currentRank = 1;
-    rankedUsersInCategory.forEach((user, index) => {
-      if (index > 0 && rankedUsersInCategory[index].categoryStats![category]!.score < rankedUsersInCategory[index - 1].categoryStats![category]!.score) {
-        currentRank = index + 1;
-      }
-      if (user.categoryStats && user.categoryStats[category]) {
-        user.categoryStats[category]!.rankInCate = currentRank;
-      }
-    });
-  });
-};
-
-const assignCalculatedRanks = (
-    usersInput: Omit<User, 'rank' | 'tetrisRank' | 'categoryStats' | 'selectedDisplayRank'>[]
-  ): User[] => {
-  
-  const tetrisRankMap = new Map<string, number>();
-  mockTetrisRankings.forEach(tr => tetrisRankMap.set(tr.userId, tr.rank));
-
-  let processedUsers: User[] = usersInput.map(u => {
-    const baseScore = u.score || 0;
-    let categoryStats: User['categoryStats'] = {
-        Unity: { score: Math.floor(Math.random() * 50) + baseScore * 0.1 + (u.username === 'user1' ? 700 : u.username === 'user9_multi_rank' ? 600 : u.username === 'user7' ? 300 : u.username === 'user5' ? 10 : 0 ) },
-        Unreal: { score: Math.floor(Math.random() * 50) + baseScore * 0.1 + (u.username === 'user2' ? 650 : u.username === 'user10_tetris_cat_rank' ? 350 : u.username === 'user8' ? 230 : u.username === 'user5' ? 200 : 0) },
-        Godot: { score: Math.floor(Math.random() * 50) + baseScore * 0.1 + (u.username === 'user3' ? 600 : u.username === 'user5' ? 150 : 0) },
-        General: { score: Math.floor(Math.random() * 50) + baseScore * 0.1 + (u.username === 'user6' ? 440 : u.username === 'user9_multi_rank' ? 240 : 0) },
-    };
-     if (u.username === 'WANGJUNLAND') {
-        categoryStats = { Unity: { score: 1000 }, Unreal: { score: 1000 }, Godot: { score: 1000 }, General: { score: 1000 } };
-    }
-
-    return {
-      ...(u as User), 
-      id: u.id || u.username,
-      rank: 0, 
-      tetrisRank: tetrisRankMap.get(u.id || u.username) || undefined,
-      categoryStats,
-      selectedDisplayRank: (u as User).selectedDisplayRank || 'default',
-      nicknameLastChanged: u.nicknameLastChanged ? new Date(u.nicknameLastChanged) : undefined,
-    };
-  });
-
-  calculateGlobalRanks(processedUsers);
-  assignCategoryRanks(processedUsers);
-  return processedUsers;
-};
-
-export let mockUsers: User[] = assignCalculatedRanks(mockUsersData);
-
-export type NewUserDto = Omit<User, 'rank' | 'categoryStats' | 'selectedDisplayRank' | 'tetrisRank' | 'id' | 'score' | 'nicknameLastChanged' | 'isBlocked' | 'avatar'> & { password?: string };
-
-export const addUser = (newUserData: NewUserDto): { success: boolean, message?: string, user?: User } => {
-  if (mockUsers.some(u => u.username === newUserData.username)) {
-    return { success: false, message: "이미 사용 중인 아이디입니다." };
-  }
-  if (mockUsers.some(u => u.nickname === newUserData.nickname)) {
-    return { success: false, message: "이미 사용 중인 닉네임입니다." };
-  }
-  if (newUserData.email && mockUsers.some(u => u.email === newUserData.email)) {
-    return { success: false, message: "이미 사용 중인 이메일입니다." };
-  }
-
-  const newUser: User = {
-    id: `user${Date.now()}${Math.floor(Math.random() * 1000)}`,
-    username: newUserData.username,
-    password: newUserData.password, // Store password for mock login
-    nickname: newUserData.nickname,
-    email: newUserData.email,
-    score: 0,
-    avatar: `https://placehold.co/100x100.png?text=${newUserData.nickname.substring(0,1).toUpperCase()}`,
-    nicknameLastChanged: new Date(),
-    isBlocked: false,
-    categoryStats: {
-      Unity: { score: 0 },
-      Unreal: { score: 0 },
-      Godot: { score: 0 },
-      General: { score: 0 },
-    },
-    selectedDisplayRank: 'default',
-    rank: 0, // Will be recalculated
-  };
-
-  mockUsers.push(newUser);
-  calculateGlobalRanks(mockUsers); // Recalculate ranks for all users
-  assignCategoryRanks(mockUsers); // Recalculate category ranks for all users
-
-  return { success: true, user: newUser };
-};
-
-
-export const mockStarterProjects: StarterProject[] = [
-  { id: 'sp1', engine: 'Unity', name: 'Unity 2D 플랫포머 스타터', description: '기본적인 2D 플랫포머 게임 개발을 위한 Unity 프로젝트 템플릿입니다. 캐릭터 컨트롤, 타일맵, 간단한 UI가 포함되어 있습니다.', imageUrl: 'https://placehold.co/600x400.png', downloadUrl: '#', version: '1.0.2', lastUpdatedAt: new Date().toISOString(), tags: ['2D', 'Platformer', 'Unity'] },
-  { id: 'sp2', engine: 'Unreal', name: 'Unreal FPS 스타터 키트', description: '1인칭 슈팅 게임 개발을 위한 Unreal Engine 5 스타터 프로젝트입니다. 기본 무기 시스템, 플레이어 이동, 간단한 AI 적이 포함되어 있습니다.', imageUrl: 'https://placehold.co/600x400.png', downloadUrl: '#', version: '0.8.5', lastUpdatedAt: new Date().toISOString(), tags: ['FPS', 'Unreal Engine 5', 'Shooter'] },
-  { id: 'sp3', engine: 'Godot', name: 'Godot 픽셀아트 RPG 템플릿', description: 'Godot Engine으로 만드는 픽셀 아트 스타일 RPG 게임 템플릿입니다. 대화 시스템, 인벤토리, 간단한 퀘스트 시스템이 포함되어 있습니다.', imageUrl: 'https://placehold.co/600x400.png', downloadUrl: '#', version: '1.1.0', lastUpdatedAt: new Date().toISOString(), tags: ['RPG', 'Pixel Art', 'Godot'] },
-  { id: 'sp4', engine: 'Unity', name: 'Unity VR 인터랙션 샘플', description: 'VR 환경에서의 기본 상호작용을 구현한 Unity 샘플 프로젝트입니다.', imageUrl: 'https://placehold.co/600x400.png', downloadUrl: '#', version: '1.0.0', lastUpdatedAt: new Date().toISOString(), tags: ['VR', 'Interaction', 'Unity'] },
-];
-
-export const mockAssetInfos: AssetInfo[] = [
-  { id: 'ai1', name: 'Kenney.nl Assets', type: 'Model', description: '방대한 양의 무료 2D/3D 게임 에셋 제공. UI, 캐릭터, 환경 등 다양함.', siteUrl: 'https://kenney.nl/assets', imageUrl: 'https://placehold.co/600x400.png', isFree: true, updateFrequency: 'Monthly', tags: ['2D', '3D', 'UI', 'Character'] },
-  { id: 'ai2', name: 'Poly Haven', type: 'Texture', description: '고품질 PBR 텍스처, 모델, HDRIs 무료 제공.', siteUrl: 'https://polyhaven.com', imageUrl: 'https://placehold.co/600x400.png', isFree: true, updateFrequency: 'Weekly', tags: ['PBR', 'Texture', 'Model', 'HDRI'] },
-  { id: 'ai3', name: 'Freesound', type: 'Sound', description: '다양한 종류의 사운드 이펙트 및 배경음악 무료 제공.', siteUrl: 'https://freesound.org', imageUrl: 'https://placehold.co/600x400.png', isFree: true, tags: ['Sound Effect', 'BGM'] },
-  { id: 'ai4', name: 'Unity Asset Store (Free)', type: 'Plugin', description: 'Unity Asset Store에서 제공하는 다양한 무료 에셋 및 플러그인.', siteUrl: 'https://assetstore.unity.com/?category=3d&orderBy=1&price=0-0', imageUrl: 'https://placehold.co/600x400.png', isFree: true, updateFrequency: 'Daily', tags: ['Unity', 'Plugin', 'Model'] },
-];
-
+// 초기 게시물 데이터
 export let mockPosts: Post[] = [
   { id: 'post_unity_qna1', mainCategory: 'Unity', title: 'Unity Rigidbody 관련 질문입니다.', content: 'Rigidbody.MovePosition과 transform.Translate의 정확한 차이점과 사용 사례가 궁금합니다.', authorId: 'user4', authorNickname: '인디드리머', createdAt: new Date(Date.now() - 86400000 * 3).toISOString(), updatedAt: new Date(Date.now() - 86400000 * 3).toISOString(), type: 'QnA', upvotes: 10, downvotes: 0, views: 120, commentCount: 2, tags: ['Unity', 'Physics', 'Rigidbody'] },
   { id: 'post_unity_knowledge1', mainCategory: 'Unity', title: 'Unity DOTS 사용 후기 공유합니다.', content: '최근에 Unity DOTS를 사용해서 프로젝트를 진행해봤는데, 성능 최적화에 정말 큰 도움이 되었습니다. 처음엔 학습 곡선이 좀 있지만 익숙해지니 좋네요. 다른 분들 경험은 어떠신가요?', authorId: 'user1', authorNickname: '유니티장인', createdAt: new Date(Date.now() - 86400000 * 2).toISOString(), updatedAt: new Date(Date.now() - 86400000 * 2).toISOString(), type: 'Knowledge', upvotes: 25, downvotes: 1, views: 150, commentCount: 7, isPinned: true, tags: ['Unity', 'DOTS', 'Performance'] },
@@ -239,8 +116,8 @@ export let mockPosts: Post[] = [
     mainCategory: 'General' as PostMainCategory,
     title: `오래된 일반 게시글 ${i + 1}`,
     content: `이것은 오래된 일반 게시글 내용입니다. (${i + 1})`,
-    authorId: mockUsers.filter(u => u.id !== 'admin')[(i + 1) % (mockUsers.filter(u => u.id !== 'admin').length)].id,
-    authorNickname: mockUsers.filter(u => u.id !== 'admin')[(i + 1) % (mockUsers.filter(u => u.id !== 'admin').length)].nickname,
+    authorId: mockUsersData.filter(u => u.id !== 'admin')[(i + 1) % (mockUsersData.filter(u => u.id !== 'admin').length)].id,
+    authorNickname: mockUsersData.filter(u => u.id !== 'admin')[(i + 1) % (mockUsersData.filter(u => u.id !== 'admin').length)].nickname,
     createdAt: new Date(Date.now() - 86400000 * (7 + i)).toISOString(),
     updatedAt: new Date(Date.now() - 86400000 * (7 + i)).toISOString(),
     type: 'GeneralPost' as PostType,
@@ -255,8 +132,8 @@ export let mockPosts: Post[] = [
     mainCategory: 'Unity' as PostMainCategory,
     title: `오래된 Unity QnA ${i + 1}`,
     content: `Unity 관련 오래된 질문입니다. (${i + 1})`,
-    authorId: mockUsers.filter(u => u.id !== 'admin')[(i + 2) % (mockUsers.filter(u => u.id !== 'admin').length)].id,
-    authorNickname: mockUsers.filter(u => u.id !== 'admin')[(i + 2) % (mockUsers.filter(u => u.id !== 'admin').length)].nickname,
+    authorId: mockUsersData.filter(u => u.id !== 'admin')[(i + 2) % (mockUsersData.filter(u => u.id !== 'admin').length)].id,
+    authorNickname: mockUsersData.filter(u => u.id !== 'admin')[(i + 2) % (mockUsersData.filter(u => u.id !== 'admin').length)].nickname,
     createdAt: new Date(Date.now() - 86400000 * (10 + i)).toISOString(),
     updatedAt: new Date(Date.now() - 86400000 * (10 + i)).toISOString(),
     type: 'QnA' as PostType,
@@ -266,8 +143,154 @@ export let mockPosts: Post[] = [
     commentCount: i % 3,
     tags: ['Old', 'Unity', 'QnA']
   })),
+].map(post => ({ ...post, postScore: calculatePostScore(post) })); // 각 게시물에 postScore 계산하여 추가
+
+// 종합 랭킹 계산 함수
+const calculateGlobalRanks = (usersToRank: User[]): void => {
+  const nonAdminUsers = usersToRank.filter(u => u.username !== 'WANGJUNLAND');
+  nonAdminUsers.sort((a, b) => b.score - a.score);
+
+  let currentGlobalRank = 1;
+  for (let i = 0; i < nonAdminUsers.length; i++) {
+    if (i > 0 && nonAdminUsers[i].score < nonAdminUsers[i - 1].score) {
+      currentGlobalRank = i + 1;
+    }
+    nonAdminUsers[i].rank = currentGlobalRank;
+  }
+  const admin = usersToRank.find(u => u.username === 'WANGJUNLAND');
+  if (admin) admin.rank = 0; // 관리자 랭크는 0
+};
+
+// 카테고리별 랭킹 계산 함수
+const assignCategoryRanks = (users: User[]): void => {
+  const categories: PostMainCategory[] = ['Unity', 'Unreal', 'Godot', 'General'];
+  categories.forEach(category => {
+    const rankedUsersInCategory = users
+      .filter(u => u.username !== 'WANGJUNLAND' && u.categoryStats && typeof u.categoryStats[category]?.score === 'number')
+      .sort((a, b) => (b.categoryStats![category]!.score || 0) - (a.categoryStats![category]!.score || 0));
+
+    let currentRank = 1;
+    rankedUsersInCategory.forEach((user, index) => {
+      if (index > 0 && rankedUsersInCategory[index].categoryStats![category]!.score < rankedUsersInCategory[index - 1].categoryStats![category]!.score) {
+        currentRank = index + 1;
+      }
+      if (user.categoryStats && user.categoryStats[category]) {
+        user.categoryStats[category]!.rankInCate = currentRank;
+      } else if (user.categoryStats) { // 카테고리 점수가 0이거나 없는 경우
+         user.categoryStats[category] = { score: 0, rankInCate: 0 };
+      }
+    });
+  });
+};
+
+
+// 사용자 점수 및 랭킹 최종 계산 및 할당 함수
+const assignCalculatedScoresAndRanks = (
+    usersInput: Omit<User, 'rank' | 'tetrisRank' | 'categoryStats' | 'selectedDisplayRank' | 'score'>[]
+  ): User[] => {
+  
+  const tetrisRankMap = new Map<string, number>();
+  mockTetrisRankings.forEach(tr => tetrisRankMap.set(tr.userId, tr.rank));
+
+  let processedUsers: User[] = usersInput.map(uData => {
+    let totalUserScore = 0;
+    let userCategoryScores: { [key in PostMainCategory]: number } = {
+      Unity: 0, Unreal: 0, Godot: 0, General: 0,
+    };
+
+    if (uData.username === 'WANGJUNLAND') {
+      totalUserScore = 99999; // 관리자 예외 점수
+      userCategoryScores = { Unity: 1000, Unreal: 1000, Godot: 1000, General: 1000 };
+    } else {
+      mockPosts.forEach(post => {
+        if (post.authorId === uData.id) {
+          const currentPostScore = post.postScore || calculatePostScore(post); // postScore가 이미 계산되어 있으면 사용, 아니면 다시 계산
+          totalUserScore += currentPostScore;
+          if (userCategoryScores[post.mainCategory] !== undefined) {
+            userCategoryScores[post.mainCategory] += currentPostScore;
+          }
+        }
+      });
+    }
+    
+    const categoryStatsOutput: User['categoryStats'] = {
+      Unity: { score: parseFloat(userCategoryScores.Unity.toFixed(2)), rankInCate: 0 },
+      Unreal: { score: parseFloat(userCategoryScores.Unreal.toFixed(2)), rankInCate: 0 },
+      Godot: { score: parseFloat(userCategoryScores.Godot.toFixed(2)), rankInCate: 0 },
+      General: { score: parseFloat(userCategoryScores.General.toFixed(2)), rankInCate: 0 },
+    };
+
+    return {
+      ...uData,
+      id: uData.id || uData.username,
+      password: (uData as any).password, // 타입 문제 회피
+      score: parseFloat(totalUserScore.toFixed(2)),
+      rank: 0, // 나중에 calculateGlobalRanks에서 할당
+      tetrisRank: tetrisRankMap.get(uData.id || uData.username) || undefined,
+      categoryStats: categoryStatsOutput,
+      selectedDisplayRank: (uData as User).selectedDisplayRank || 'default',
+      nicknameLastChanged: uData.nicknameLastChanged ? new Date(uData.nicknameLastChanged) : undefined,
+      isBlocked: (uData as User).isBlocked || false,
+    };
+  });
+
+  calculateGlobalRanks(processedUsers);
+  assignCategoryRanks(processedUsers);
+  return processedUsers;
+};
+
+// 최종 사용자 데이터 생성
+export let mockUsers: User[] = assignCalculatedScoresAndRanks(mockUsersData);
+
+// 신규 사용자 추가 DTO 및 함수
+export type NewUserDto = Omit<User, 'rank' | 'categoryStats' | 'selectedDisplayRank' | 'tetrisRank' | 'id' | 'score' | 'nicknameLastChanged' | 'isBlocked' | 'avatar'> & { password?: string };
+
+export const addUser = (newUserData: NewUserDto): { success: boolean, message?: string, user?: User } => {
+  if (mockUsers.some(u => u.username === newUserData.username)) {
+    return { success: false, message: "이미 사용 중인 아이디입니다." };
+  }
+  if (mockUsers.some(u => u.nickname === newUserData.nickname)) {
+    return { success: false, message: "이미 사용 중인 닉네임입니다." };
+  }
+  if (newUserData.email && mockUsers.some(u => u.email && u.email.toLowerCase() === newUserData.email.toLowerCase())) {
+    return { success: false, message: "이미 사용 중인 이메일입니다." };
+  }
+
+  const newUserRaw: Omit<User, 'rank' | 'tetrisRank' | 'categoryStats' | 'selectedDisplayRank' | 'score'> = {
+    id: `user${Date.now()}${Math.floor(Math.random() * 1000)}`,
+    username: newUserData.username,
+    password: newUserData.password,
+    nickname: newUserData.nickname,
+    email: newUserData.email,
+    avatar: `https://placehold.co/100x100.png?text=${newUserData.nickname.substring(0,1).toUpperCase()}`,
+    nicknameLastChanged: new Date(),
+    isBlocked: false,
+  };
+  
+  // 새로운 사용자를 mockUsersData에 추가 (점수 없이)
+  mockUsersData.push(newUserRaw);
+  // 전체 사용자 목록을 기반으로 점수와 랭킹을 다시 계산
+  mockUsers = assignCalculatedScoresAndRanks(mockUsersData);
+  
+  const addedUser = mockUsers.find(u => u.id === newUserRaw.id);
+
+  return { success: true, user: addedUser };
+};
+
+// 나머지 mock 데이터 (starterProjects, assetInfos, comments, inquiries)는 이전과 동일하게 유지합니다.
+export const mockStarterProjects: StarterProject[] = [
+  { id: 'sp1', engine: 'Unity', name: 'Unity 2D 플랫포머 스타터', description: '기본적인 2D 플랫포머 게임 개발을 위한 Unity 프로젝트 템플릿입니다. 캐릭터 컨트롤, 타일맵, 간단한 UI가 포함되어 있습니다.', imageUrl: 'https://placehold.co/600x400.png', downloadUrl: '#', version: '1.0.2', lastUpdatedAt: new Date().toISOString(), tags: ['2D', 'Platformer', 'Unity'] },
+  { id: 'sp2', engine: 'Unreal', name: 'Unreal FPS 스타터 키트', description: '1인칭 슈팅 게임 개발을 위한 Unreal Engine 5 스타터 프로젝트입니다. 기본 무기 시스템, 플레이어 이동, 간단한 AI 적이 포함되어 있습니다.', imageUrl: 'https://placehold.co/600x400.png', downloadUrl: '#', version: '0.8.5', lastUpdatedAt: new Date().toISOString(), tags: ['FPS', 'Unreal Engine 5', 'Shooter'] },
+  { id: 'sp3', engine: 'Godot', name: 'Godot 픽셀아트 RPG 템플릿', description: 'Godot Engine으로 만드는 픽셀 아트 스타일 RPG 게임 템플릿입니다. 대화 시스템, 인벤토리, 간단한 퀘스트 시스템이 포함되어 있습니다.', imageUrl: 'https://placehold.co/600x400.png', downloadUrl: '#', version: '1.1.0', lastUpdatedAt: new Date().toISOString(), tags: ['RPG', 'Pixel Art', 'Godot'] },
+  { id: 'sp4', engine: 'Unity', name: 'Unity VR 인터랙션 샘플', description: 'VR 환경에서의 기본 상호작용을 구현한 Unity 샘플 프로젝트입니다.', imageUrl: 'https://placehold.co/600x400.png', downloadUrl: '#', version: '1.0.0', lastUpdatedAt: new Date().toISOString(), tags: ['VR', 'Interaction', 'Unity'] },
 ];
 
+export const mockAssetInfos: AssetInfo[] = [
+  { id: 'ai1', name: 'Kenney.nl Assets', type: 'Model', description: '방대한 양의 무료 2D/3D 게임 에셋 제공. UI, 캐릭터, 환경 등 다양함.', siteUrl: 'https://kenney.nl/assets', imageUrl: 'https://placehold.co/600x400.png', isFree: true, updateFrequency: 'Monthly', tags: ['2D', '3D', 'UI', 'Character'] },
+  { id: 'ai2', name: 'Poly Haven', type: 'Texture', description: '고품질 PBR 텍스처, 모델, HDRIs 무료 제공.', siteUrl: 'https://polyhaven.com', imageUrl: 'https://placehold.co/600x400.png', isFree: true, updateFrequency: 'Weekly', tags: ['PBR', 'Texture', 'Model', 'HDRI'] },
+  { id: 'ai3', name: 'Freesound', type: 'Sound', description: '다양한 종류의 사운드 이펙트 및 배경음악 무료 제공.', siteUrl: 'https://freesound.org', imageUrl: 'https://placehold.co/600x400.png', isFree: true, tags: ['Sound Effect', 'BGM'] },
+  { id: 'ai4', name: 'Unity Asset Store (Free)', type: 'Plugin', description: 'Unity Asset Store에서 제공하는 다양한 무료 에셋 및 플러그인.', siteUrl: 'https://assetstore.unity.com/?category=3d&orderBy=1&price=0-0', imageUrl: 'https://placehold.co/600x400.png', isFree: true, updateFrequency: 'Daily', tags: ['Unity', 'Plugin', 'Model'] },
+];
 
 export let mockComments: Comment[] = [
   { id: 'comment1', postId: 'post_unity_knowledge1', authorId: 'user2', authorNickname: '언리얼신', content: 'DOTS 정말 좋죠! 저도 작은 프로젝트에 적용해봤는데 확실히 퍼포먼스가 다르더라고요.', createdAt: new Date(Date.now() - 86400000 * 1.9).toISOString(), upvotes: 5, downvotes: 0, replies: [
@@ -280,8 +303,7 @@ export let mockComments: Comment[] = [
   { id: 'comment6_for_post_unity_knowledge1', postId: 'post_unity_knowledge1', authorId: 'admin', authorNickname: 'WANGJUNLAND', content: 'DOTS 관련해서 좋은 토론이네요. 혹시 추가적인 질문 있으시면 언제든 편하게 남겨주세요.', createdAt: new Date(Date.now() - 86400000 * 0.5).toISOString(), upvotes: 1, downvotes: 0, replies: [] },
 ];
 
-
-export const mockRankings: RankEntry[] = mockUsers
+export const mockRankings: RankEntry[] = mockUsers // 이제 mockUsers는 점수가 계산된 상태임
   .filter(u => u.username !== 'WANGJUNLAND')
   .sort((a, b) => b.score - a.score)
   .map((user, index, sortedUsers) => {
@@ -298,9 +320,7 @@ export const mockRankings: RankEntry[] = mockUsers
     }
   });
 
-
 export const mockInquiries: Inquiry[] = [
   { id: 'inq1', userId: 'user4', userNickname: '인디드리머', title: '닉네임 변경 기간 문의', content: '닉네임 변경 후 1개월 제한이 정확히 어떻게 적용되는지 궁금합니다.', createdAt: new Date(Date.now() - 86400000 * 3).toISOString(), status: 'Answered', response: '닉네임 변경 시점으로부터 만 30일 이후에 다시 변경 가능합니다.', respondedAt: new Date(Date.now() - 86400000 * 2.5).toISOString() },
   { id: 'inq2', userId: 'user1', userNickname: '유니티장인', title: '게시글 오류 신고', content: '특정 게시글에서 이미지가 깨져 보입니다. 확인 부탁드립니다. (게시글 ID: postX)', createdAt: new Date(Date.now() - 86400000 * 1).toISOString(), status: 'Pending' },
 ];
-
