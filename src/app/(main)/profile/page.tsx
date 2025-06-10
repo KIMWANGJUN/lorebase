@@ -155,29 +155,17 @@ export default function ProfilePage() {
 
   const bannerImageUrl = "https://placehold.co/1920x600.png";
 
-  let headerNicknameClasses = "text-3xl font-headline"; // Base class
+  // 랭킹 하이라이트 제거, 기본 스타일
+  let headerNicknameClasses = "text-3xl font-headline text-foreground font-semibold";
   let headerRankText = user.rank > 0 ? `종합 ${user.rank}위` : "랭킹 정보 없음";
-  let headerRankTextClasses = "text-lg text-muted-foreground"; // Base class
-  let headerContainerClasses = ""; 
-
+  let headerRankTextClasses = "text-lg text-muted-foreground";
+  let headerContainerClasses = "rounded-lg px-3 py-1 text-center bg-card/50 border-border/70"; 
 
   if (isAdmin) {
-    headerNicknameClasses = `${headerNicknameClasses} text-admin`; 
+    headerNicknameClasses = "text-3xl font-headline text-primary font-semibold"; // 관리자 특별 색상
     headerRankText = "관리자";
-    headerRankTextClasses = "text-lg text-admin"; 
-    headerContainerClasses = "admin-badge-bg admin-badge-border";
-  } else if (user.rank > 0 && user.rank <= 3) { 
-    const gradientClass = user.rank === 1 ? "text-rank-gold" : user.rank === 2 ? "text-rank-silver" : "text-rank-bronze";
-    headerNicknameClasses = `${headerNicknameClasses} ${gradientClass}`; 
-    headerRankText = `종합 ${user.rank}위`;
-    headerRankTextClasses = `text-lg ${gradientClass}`;
-    headerContainerClasses = cn(
-      user.rank === 1 && 'rank-1-badge',
-      user.rank === 2 && 'rank-2-badge',
-      user.rank === 3 && 'rank-3-badge'
-    );
-  } else {
-    headerNicknameClasses = `${headerNicknameClasses} text-foreground font-semibold`; 
+    headerRankTextClasses = "text-lg text-primary"; 
+    headerContainerClasses = "rounded-lg px-3 py-1 text-center bg-primary/10 border-primary/50";
   }
  
 
@@ -205,7 +193,7 @@ export default function ProfilePage() {
                     <AvatarImage src={user.avatar || `https://placehold.co/200x200.png?text=${user.nickname.substring(0,1)}`} alt={user.nickname} data-ai-hint="fantasy portrait" />
                     <AvatarFallback className="text-4xl bg-muted text-muted-foreground">{user.nickname.substring(0, 2).toUpperCase()}</AvatarFallback>
                 </Avatar>
-                <div className={cn("rounded-lg px-3 py-1 text-center", headerContainerClasses)}>
+                <div className={headerContainerClasses}>
                   <h1 className={headerNicknameClasses}>{user.nickname}</h1>
                 </div>
                 <p className="text-sm opacity-80 mt-1">{user.email || "이메일 미등록"}</p>
@@ -267,7 +255,7 @@ export default function ProfilePage() {
                           <CardHeader>
                             <CardTitle className="text-foreground">대표 칭호/하이라이트 설정</CardTitle>
                             <CardDescription className="text-muted-foreground">
-                              여러 랭킹에 해당될 경우, 커뮤니티에 표시될 주요 칭호와 스타일을 선택하세요.
+                              (랭킹 하이라이트 기능 제거됨) 여러 랭킹에 해당될 경우, 커뮤니티에 표시될 주요 칭호와 스타일을 선택하세요.
                               {isAdmin && <span className="text-destructive font-semibold"> (관리자는 이 설정이 적용되지 않습니다.)</span>}
                             </CardDescription>
                           </CardHeader>
@@ -343,24 +331,15 @@ export default function ProfilePage() {
           <CardContent>
             <div className="space-y-3 max-h-[500px] overflow-y-auto p-1">
               {mockUsers.filter(u => u.username !== 'WANGJUNLAND' && u.rank > 0).sort((a, b) => a.rank - b.rank).map((rankerUser) => { 
-                let finalItemContainerClasses = "default-rank-item-bg";
-                let rankNumberClasses = "font-bold text-lg w-8 text-center";
-                let nicknameClasses = "font-medium"; // Base font weight
-                
-                if (rankerUser.rank > 0 && rankerUser.rank <= 3) {
-                  finalItemContainerClasses = cn(rankerUser.rank === 1 && 'rank-1-badge', rankerUser.rank === 2 && 'rank-2-badge', rankerUser.rank === 3 && 'rank-3-badge');
-                  const gradientClass = rankerUser.rank === 1 ? 'text-rank-gold' : rankerUser.rank === 2 ? 'text-rank-silver' : 'text-rank-bronze';
-                  nicknameClasses = `${nicknameClasses} ${gradientClass}`; // Add gradient
-                  rankNumberClasses = `${rankNumberClasses} ${gradientClass.replace('text-rank-','text-')}`;
-                } else {
-                  nicknameClasses = `${nicknameClasses} text-foreground`; // Default color
-                   rankNumberClasses = `${rankNumberClasses} text-muted-foreground`;
-                }
+                // 랭킹 하이라이트 제거, 기본 스타일
+                const itemContainerClasses = "flex items-center justify-between p-3 rounded-lg border border-border bg-card/50 shadow-sm";
+                const rankNumberClasses = "font-bold text-lg w-8 text-center text-muted-foreground";
+                const nicknameClasses = "font-medium text-foreground";
                 
                 return (
-                  <div key={rankerUser.id} className={cn("flex items-center justify-between p-3 rounded-lg border", 
-                    finalItemContainerClasses,
-                    rankerUser.id === user.id && !finalItemContainerClasses.startsWith('rank-') ? 'bg-primary/10 border-primary shadow-md' : 'border-border'
+                  <div key={rankerUser.id} className={cn(
+                    itemContainerClasses,
+                    rankerUser.id === user.id ? 'bg-primary/10 border-primary' : '' // 현재 사용자만 살짝 강조
                   )}>
                     <div className="flex items-center gap-3">
                       <span className={rankNumberClasses}>

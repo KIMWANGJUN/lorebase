@@ -9,138 +9,62 @@ body {
 
 @layer base {
   :root {
-    /* Light Theme - Standard Values */
-    --background: 0 0% 100%; /* white */
-    --foreground: 222.2 84% 4.9%; /* near black */
+    /* 단일 테마 (기본: 어두운 판타지 테마 유지 또는 원하는 기본 테마로 설정) */
+    --background: 220 15% 15%; /* Deep Dark Blue/Gray */
+    --foreground: 210 30% 85%; /* Light Cool Gray/Parchment */
 
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --card: 220 15% 20%; 
+    --card-foreground: 210 30% 85%;
+    --popover: 220 15% 12%; 
+    --popover-foreground: 210 30% 85%;
 
-    --primary: 260 70% 55%; 
-    --primary-foreground: 0 0% 100%; 
+    --primary: 260 70% 65%; /* Arcane Purple */
+    --primary-foreground: 0 0% 100%; /* White */
 
-    --secondary: 180 50% 40%; 
-    --secondary-foreground: 0 0% 100%; 
+    --secondary: 180 50% 45%; /* Mystical Teal */
+    --secondary-foreground: 220 15% 15%; 
 
-    --muted: 210 40% 96.1%; 
-    --muted-foreground: 215.4 16.3% 46.9%; 
+    --muted: 220 10% 30%; 
+    --muted-foreground: 210 20% 65%; 
 
-    --accent: 50 90% 55%; 
-    --accent-foreground: 222.2 84% 4.9%; 
+    --accent: 50 90% 60%; /* Enchanted Gold/Amber */
+    --accent-foreground: 220 15% 15%; 
     
     --accent-orange: 30 85% 58%; 
     --accent-yellow: 50 95% 55%; 
 
-    --destructive: 0 84.2% 60.2%; 
+    --destructive: 0 65% 50%; /* Deep Crimson Red */
     --destructive-foreground: 0 0% 100%; 
 
-    --border: 214.3 31.8% 91.4%; 
-    --input: 214.3 31.8% 91.4%; 
-    --ring: 260 70% 55%; 
+    --border: 220 10% 40%; 
+    --input: 220 10% 25%; 
+    --ring: 260 70% 65%; 
 
     --radius: 0.5rem; 
 
-    --chart-1: 260 70% 55%;
-    --chart-2: 180 50% 40%;
-    --chart-3: 50 90% 55%; 
+    --chart-1: 260 70% 65%;
+    --chart-2: 180 50% 45%;
+    --chart-3: 50 90% 60%; 
     --chart-4: 30 85% 58%; 
-    --chart-5: 210 30% 60%; 
+    --chart-5: 210 30% 70%; 
 
-    /* Sidebar specific for light mode */
-    --sidebar-background: 220 15% 95%; 
-    --sidebar-foreground: 222.2 84% 4.9%;
-    --sidebar-primary: 260 70% 55%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 210 40% 90%; 
-    --sidebar-accent-foreground: 222.2 84% 4.9%;
-    --sidebar-border: 214.3 31.8% 88%;
-    --sidebar-ring: 260 70% 55%;
-
-    /* Category Specific Icon/Base HSL Colors - Light Theme */
-    --unity-icon-color-hsl: 220 10% 40%; 
-    --unity-bg-light: 220 25% 94%;      
-    --unity-text-light-hsl: 220 15% 25%;   
-    --unity-border-light: 220 15% 80%;
-    
-    --unreal-icon-color-hsl: 0 0% 20%; 
-    --unreal-bg-light: 0 0% 97%;        
-    --unreal-text-light-hsl: 0 0% 10%;      
-    --unreal-border-light: 0 0% 85%;
-
-    --godot-icon-color-hsl: 200 50% 40%; 
-    --godot-bg-light: 200 100% 92%;     
-    --godot-text-light-hsl: 200 60% 35%;    
-    --godot-border-light: 200 50% 75%;
-
-    --general-icon-color-hsl: 30 80% 50%; 
-    --general-text-light-hsl: 0 0% 100%; /* For gradient background text */
-  }
-
-  .dark {
-    /* Dark Theme */
-    --background: 220 15% 15%;
-    --foreground: 210 30% 85%;
-
-    --card: 220 15% 20%;
-    --card-foreground: 210 30% 85%;
-    --popover: 220 15% 12%;
-    --popover-foreground: 210 30% 85%;
-
-    --primary: 260 70% 70%; 
-    --primary-foreground: 0 0% 100%;
-
-    --secondary: 180 50% 50%; 
-    --secondary-foreground: 220 15% 15%;
-    
-    --muted: 220 10% 22%; 
-    --muted-foreground: 210 20% 55%;
-
-    --accent: 50 90% 65%; 
-    --accent-foreground: 220 15% 15%;
-    
-    --accent-orange: 30 85% 63%;
-    --accent-yellow: 50 95% 60%;
-
-    --destructive: 0 65% 55%; 
-    --destructive-foreground: 0 0% 100%;
-
-    --border: 220 10% 35%;
-    --input: 220 10% 25%;
-    --ring: 260 70% 70%;
-
-    /* Sidebar specific for dark mode */
-    --sidebar-background: 220 15% 10%; 
+    --sidebar-background: 220 15% 12%; 
     --sidebar-foreground: 210 30% 80%;
-    --sidebar-primary: 260 70% 70%;
+    --sidebar-primary: 260 70% 65%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 220 10% 20%;
+    --sidebar-accent: 220 10% 25%;
     --sidebar-accent-foreground: 210 30% 85%;
-    --sidebar-border: 220 10% 30%;
-    --sidebar-ring: 260 70% 70%;
+    --sidebar-border: 220 10% 35%;
+    --sidebar-ring: 260 70% 65%;
 
-    /* Category Icon Colors - Dark Theme */
+    /* 카테고리 아이콘 색상 (단일 테마 기준) */
     --unity-icon-color-hsl: 220 10% 60%; 
     --unreal-icon-color-hsl: 0 0% 70%;
     --godot-icon-color-hsl: 200 50% 50%;
     --general-icon-color-hsl: 30 80% 55%;
-
-    /* Category Specific Background & Default Text Colors for Nickname Containers - Dark Theme */
-    --unity-bg-dark: 220 15% 28%;      
-    --unity-text-dark-hsl: 220 15% 88%;   
-    --unity-border-dark: 220 15% 45%;
-    
-    --unreal-bg-dark: 0 0% 15%;        
-    --unreal-text-dark-hsl: 0 0% 90%;      
-    --unreal-border-dark: 0 0% 30%;
-
-    --godot-bg-dark: 200 60% 25%;      
-    --godot-text-dark-hsl: 200 80% 75%;    
-    --godot-border-dark: 200 50% 40%;
-    
-    --general-text-dark-hsl: 0 0% 100%; /* For gradient background text */
   }
+
+  /* .dark {...} 블록 제거 */
 }
 
 @layer base {
@@ -148,131 +72,28 @@ body {
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground; /* Ensures body uses theme variables */
+    @apply bg-background text-foreground; /* 테마 변수 적용 */
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
 }
 
-/* Gradient text utilities - ENSURE THESE ARE CORRECT */
-.text-rank-gold { @apply font-semibold bg-gradient-to-r from-yellow-400 via-amber-500 to-yellow-300 bg-clip-text text-transparent; }
-.text-rank-silver { @apply font-semibold bg-gradient-to-r from-slate-300 via-slate-400 to-slate-200 bg-clip-text text-transparent; }
-.text-rank-bronze { @apply font-semibold bg-gradient-to-r from-orange-400 via-yellow-600 to-orange-300 bg-clip-text text-transparent; }
-.text-admin { @apply font-semibold bg-gradient-to-r from-purple-400 via-purple-500 to-indigo-500 bg-clip-text text-transparent; }
+/* 랭킹 관련 시각적 스타일 제거 또는 단순화 */
+/* .text-rank-gold, .text-rank-silver, ... 등 그라데이션 클래스 제거 */
+/* .admin-badge-bg, .rank-1-badge, ... 등 컨테이너 배경 스타일 제거 */
+/* .highlight-unity, .highlight-general-inner, ... 등 카테고리 하이라이트 제거 */
+/* .text-unity-themed, .nickname-text-rank-X, ... 등 특정 텍스트 색상/스타일 제거 */
 
-
-/* Admin Badge Container Styles */
-.admin-badge-bg { @apply bg-primary/20; }
-.admin-badge-border { @apply border border-primary; }
-
-/* Global Rank Badge Container Styles (for Nickname Containers) */
-.rank-1-badge { 
-  @apply rounded-md border border-amber-500/80 dark:border-amber-400/80 
-         bg-gradient-to-br from-yellow-200/30 via-amber-300/30 to-yellow-400/30 
-         dark:from-amber-600/40 dark:via-amber-700/40 dark:to-amber-800/40 shadow-sm;
-}
-.rank-2-badge { 
-  @apply rounded-md border border-slate-400/80 dark:border-slate-500/80
-         bg-gradient-to-br from-slate-200/30 via-slate-300/30 to-slate-300/30
-         dark:from-slate-600/40 dark:via-slate-700/40 dark:to-slate-800/40 shadow-sm;
-}
-.rank-3-badge { 
-  @apply rounded-md border border-orange-500/80 dark:border-orange-600/80 
-         bg-gradient-to-br from-yellow-300/30 via-orange-400/30 to-orange-500/30 
-         dark:from-yellow-700/40 dark:via-orange-700/40 dark:to-orange-800/40 shadow-sm;
-}
-
-/* Base style for category highlighted nickname containers & default rank items */
-.highlight-base, .default-rank-item-bg {
-  @apply rounded-md border shadow-sm;
-}
-.default-rank-item-bg {
-   @apply bg-card/50 border-border/70; 
-}
-
-/* Category Specific Background & Default Text Colors for Nickname Containers */
-.highlight-unity {
-  @apply highlight-base;
-  background-color: hsl(var(--unity-bg-light));
-  border-color: hsl(var(--unity-border-light));
-}
-.dark .highlight-unity {
-  background-color: hsl(var(--unity-bg-dark));
-  border-color: hsl(var(--unity-border-dark));
-}
-.text-unity-themed { color: hsl(var(--unity-text-light-hsl)); }
-.dark .text-unity-themed { color: hsl(var(--unity-text-dark-hsl)); }
-
-
-.highlight-unreal {
-  @apply highlight-base;
-  background-color: hsl(var(--unreal-bg-light));
-  border-color: hsl(var(--unreal-border-light));
-}
-.dark .highlight-unreal {
-  background-color: hsl(var(--unreal-bg-dark));
-  border-color: hsl(var(--unreal-border-dark));
-}
-.text-unreal-themed { color: hsl(var(--unreal-text-light-hsl)); }
-.dark .text-unreal-themed { color: hsl(var(--unreal-text-dark-hsl)); }
-
-.highlight-godot {
-  @apply highlight-base;
-  background-color: hsl(var(--godot-bg-light));
-  border-color: hsl(var(--godot-border-light));
-}
-.dark .highlight-godot {
-  background-color: hsl(var(--godot-bg-dark));
-  border-color: hsl(var(--godot-border-dark));
-}
-.text-godot-themed { color: hsl(var(--godot-text-light-hsl)); }
-.dark .text-godot-themed { color: hsl(var(--godot-text-dark-hsl)); }
-
-
-.highlight-general { 
-  @apply highlight-base p-0 border-transparent; 
-}
-.highlight-general-inner { 
-   @apply px-1.5 py-0.5 rounded-[calc(var(--radius)-1px)] 
-          bg-gradient-to-r from-violet-500 via-indigo-500 via-blue-500 via-green-500 via-yellow-500 via-orange-500 to-red-500;
-}
-/* Class for text inside the general gradient highlight container */
-.text-content-inside-gradient { 
-  color: hsl(var(--general-text-light-hsl)) !important; /* Ensure it's white in light mode */
-  @apply font-semibold drop-shadow-[0_1px_1px_rgba(0,0,0,0.7)]; 
-}
-.dark .text-content-inside-gradient {
-  color: hsl(var(--general-text-dark-hsl)) !important; /* Ensure it's white in dark mode */
-  @apply font-semibold drop-shadow-[0_1px_1px_rgba(0,0,0,0.7)];
-}
-
-
-/* Category Icon Colors (standalone icons) */
+/* 카테고리 아이콘 색상 적용을 위한 단순 클래스 (위의 CSS 변수 사용) */
 .text-unity-icon { color: hsl(var(--unity-icon-color-hsl)); }
 .text-unreal-icon { color: hsl(var(--unreal-icon-color-hsl)); }
 .text-godot-icon { color: hsl(var(--godot-icon-color-hsl)); }
 .text-general-icon { color: hsl(var(--general-icon-color-hsl)); }
 
-
-/* Nickname Text Styling (Font weight, Opacity) - Applied with category themed colors */
-.nickname-text-rank-1 { @apply font-bold opacity-100; } 
-.nickname-text-rank-2 { @apply font-semibold opacity-95; }
-.nickname-text-rank-3 { @apply font-semibold opacity-90; }
-.nickname-text-rank-4 { @apply font-medium opacity-85; }
-.nickname-text-rank-5 { @apply font-medium opacity-80; }
-.nickname-text-rank-6 { @apply font-medium opacity-75; }
-.nickname-text-rank-7 { @apply font-medium opacity-70; } 
-.nickname-text-rank-8 { @apply font-medium opacity-65; } 
-.nickname-text-rank-9 { @apply font-medium opacity-60; } 
-.nickname-text-rank-10 { @apply font-medium opacity-55; } 
-
-/* Title Text Base Styling */
+/* 칭호 기본 스타일 (필요하다면 유지, 색상은 컴포넌트에서 직접 지정) */
 .title-container { 
   @apply w-full text-center mb-0.5;
 }
 .title-text { 
- /* font-semibold is part of gradient classes, or applied with text-content-inside-gradient */
- @apply text-[0.7rem] leading-tight tracking-tight;
+ @apply text-[0.7rem] leading-tight tracking-tight font-medium; /* 기본 두께 */
 }
-
-    
