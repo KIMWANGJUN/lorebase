@@ -118,19 +118,19 @@ export default function PostDetailPage() {
   return (
     <div className="container mx-auto py-8 px-4 max-w-3xl">
       <div className="flex justify-between items-center mb-6">
-        <Button asChild variant="outline" className="text-sm"> {/* CHZZK: ~14px for buttons */}
-          <Link href="/tavern">
+        <Link href="/tavern" legacyBehavior={false} passHref>
+          <Button variant="outline" className="text-sm"> {/* CHZZK: ~14px for buttons */}
             <ArrowLeft className="mr-2 h-4 w-4" />
             목록으로 돌아가기
-          </Link>
-        </Button>
+          </Button>
+        </Link>
         {canEdit && (
-          <Button asChild variant="outline" className="text-sm"> {/* CHZZK: ~14px for buttons */}
-            <Link href={`/tavern/${post.id}/edit`}>
+          <Link href={`/tavern/${post.id}/edit`} legacyBehavior={false} passHref>
+            <Button variant="outline" className="text-sm"> {/* CHZZK: ~14px for buttons */}
               <Edit3 className="mr-2 h-4 w-4" />
               수정
-            </Link>
-          </Button>
+            </Button>
+          </Link>
         )}
       </div>
 
