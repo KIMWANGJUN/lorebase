@@ -7,108 +7,102 @@ body {
 }
 
 @layer base {
-  :root {
-    --background: 220 15% 15%; /* Deep Dark Blue/Gray - 유지 또는 판타지 테마에 맞게 조정 */
-    --foreground: 210 30% 85%; /* Light Cool Gray/Parchment */
+  :root { /* CHZZK-inspired Dark Theme */
+    --background: 220 10% 10%; /* Very dark, slightly blueish grey (e.g., #17181B) */
+    --foreground: 220 10% 85%; /* Light grey text (e.g., #D0D1D9) */
 
-    --card: 220 15% 20%; /* Slightly Lighter Dark Blue/Gray for Cards */
-    --card-foreground: 210 30% 85%;
-    --popover: 220 15% 12%; /* Darker for Popovers */
-    --popover-foreground: 210 30% 85%;
+    --card: 220 10% 15%; /* Slightly lighter dark for cards (e.g., #212329) */
+    --card-foreground: 220 10% 85%;
+    --popover: 220 10% 8%; /* Even darker for popovers */
+    --popover-foreground: 220 10% 85%;
 
-    --primary: 260 70% 65%; /* Arcane Purple */
+    --primary: 145 65% 40%; /* CHZZK Green (e.g., #1FAF5F, a bit desaturated for dark mode) */
     --primary-foreground: 0 0% 100%; /* White */
 
-    --secondary: 180 50% 45%; /* Mystical Teal */
-    --secondary-foreground: 220 15% 15%; /* Dark for contrast on teal */
+    --secondary: 220 10% 25%; /* Medium-dark grey for secondary elements */
+    --secondary-foreground: 220 10% 85%; /* Light text on secondary */
 
-    --muted: 220 10% 30%; /* Muted Dark Blue/Gray */
-    --muted-foreground: 210 20% 65%; /* Muted Light Gray */
+    --muted: 220 10% 20%; /* Dark muted */
+    --muted-foreground: 220 10% 55%; /* Greyed out text */
 
-    --accent: 50 90% 60%; /* Enchanted Gold/Amber */
-    --accent-foreground: 220 15% 15%; /* Dark for contrast on gold */
+    --accent: 145 60% 50%; /* Brighter green for highlights (e.g., #2ECC71) */
+    --accent-foreground: 0 0% 100%; /* White on accent */
     
-    --accent-orange: 30 85% 58%; /* Fiery Orange */
-    --accent-yellow: 50 95% 55%; /* Bright Yellow (can be kept if used for specific highlights) */
-
-    --destructive: 0 65% 50%; /* Deep Crimson Red */
+    --destructive: 0 70% 50%; /* Standard destructive red */
     --destructive-foreground: 0 0% 100%;
 
-    --border: 220 10% 40%; /* Subtly visible border */
-    --input: 220 10% 25%; /* Dark input background */
-    --ring: 260 70% 65%; /* Arcane Purple for ring */
+    --border: 220 10% 22%; /* Darker border, slightly visible (e.g., #2E3039) */
+    --input: 220 10% 12%; /* Dark input background (e.g., #1A1C20) */
+    --ring: 145 65% 45%; /* Primary green for focus rings */
 
-    --radius: 0.5rem; /* Slightly sharper corners for a more "fantasy" feel */
+    --radius: 0.375rem; /* Slightly more squared, common in modern UIs */
 
-    --chart-1: 260 70% 65%; /* Arcane Purple */
-    --chart-2: 180 50% 45%; /* Mystical Teal */
-    --chart-3: 50 90% 60%;  /* Enchanted Gold/Amber */
-    --chart-4: 30 85% 58%;  /* Fiery Orange */
-    --chart-5: 210 30% 70%; /* Lighter Cool Gray */
+    --chart-1: hsl(var(--primary));
+    --chart-2: hsl(var(--accent));
+    --chart-3: 145 60% 70%; /* Lighter green */
+    --chart-4: 220 10% 60%; /* Medium grey */
+    --chart-5: 220 10% 40%; /* Darker grey */
 
-    --sidebar-background: 220 15% 12%; /* Even Darker for Sidebar */
-    --sidebar-foreground: 210 30% 80%;
-    --sidebar-primary: 260 70% 65%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 220 10% 25%;
-    --sidebar-accent-foreground: 210 30% 85%;
-    --sidebar-border: 220 10% 35%;
-    --sidebar-ring: 260 70% 65%;
+    /* Sidebar - Dark Theme */
+    --sidebar-background: 220 10% 12%; /* Darker than cards for distinct sidebar */
+    --sidebar-foreground: hsl(var(--foreground));
+    --sidebar-primary: hsl(var(--primary));
+    --sidebar-primary-foreground: hsl(var(--primary-foreground));
+    --sidebar-accent: 220 10% 18%; /* Hover for sidebar items */
+    --sidebar-accent-foreground: hsl(var(--primary)); /* Text color on hover */
+    --sidebar-border: 220 10% 18%; /* Border for sidebar if needed, or same as bg */
+    --sidebar-ring: hsl(var(--ring));
 
-    /* 카테고리 아이콘 색상 (HSL 값) */
+    /* 카테고리 아이콘 색상 - Dark Theme */
     --category-icon-unity-hsl: 260 60% 70%;
     --category-icon-unreal-hsl: 200 60% 70%;
     --category-icon-godot-hsl: 150 60% 65%;
     --category-icon-general-hsl: 40 70% 70%;
   }
 
-  .dark {
-    /* Dark theme is already dark, we can refine if needed or make it distinct */
-    /* For now, using the same as base for a consistent dark fantasy feel */
-    --background: 220 15% 15%;
-    --foreground: 210 30% 85%;
+  .dark { /* CHZZK-inspired Light Theme */
+    --background: 0 0% 100%; /* White */
+    --foreground: 220 10% 15%; /* Dark grey/black text (e.g., #212329) */
 
-    --card: 220 15% 20%;
-    --card-foreground: 210 30% 85%;
-    --popover: 220 15% 12%;
-    --popover-foreground: 210 30% 85%;
+    --card: 0 0% 100%; /* White cards */
+    --card-foreground: 220 10% 15%;
+    --popover: 0 0% 100%; /* White popovers */
+    --popover-foreground: 220 10% 15%;
 
-    --primary: 260 70% 70%; /* Slightly brighter purple for dark mode primary */
-    --primary-foreground: 0 0% 100%;
+    --primary: 145 63% 42%; /* CHZZK Green (e.g., #25B060) */
+    --primary-foreground: 0 0% 100%; /* White */
 
-    --secondary: 180 50% 50%; /* Slightly brighter teal */
-    --secondary-foreground: 220 15% 15%;
+    --secondary: 220 20% 94%; /* Very light grey for secondary elements (e.g., #EBEFF2) */
+    --secondary-foreground: 220 10% 25%; /* Darker text on light secondary */
     
-    --muted: 220 10% 22%; /* Darker muted for dark mode */
-    --muted-foreground: 210 20% 55%;
+    --muted: 220 20% 96%; /* Very light muted grey (e.g., #F0F3F5) */
+    --muted-foreground: 220 10% 45%; /* Medium grey text for muted (e.g., #686D7B) */
 
-    --accent: 50 90% 65%; /* Slightly brighter gold */
-    --accent-foreground: 220 15% 15%;
+    --accent: 145 58% 50%; /* Brighter/Slightly different green for accents (e.g., #34D078) */
+    --accent-foreground: 0 0% 100%; /* White on accent */
     
-    --accent-orange: 30 85% 63%;
-    --accent-yellow: 50 95% 60%;
-
-    --destructive: 0 65% 55%; /* Slightly brighter red */
+    --destructive: 0 80% 55%; /* Standard destructive red for light theme */
     --destructive-foreground: 0 0% 100%;
 
-    --border: 220 10% 35%;
-    --input: 220 10% 25%;
-    --ring: 260 70% 70%;
+    --border: 220 15% 88%; /* Light grey border (e.g., #DADCDE) */
+    --input: 0 0% 97%; /* Light off-white input background (e.g., #F7F7F7) */
+    --ring: 145 63% 45%; /* Primary green for focus rings */
 
-    --sidebar-background: 220 15% 10%; /* Deepest Dark for Sidebar */
-    --sidebar-foreground: 210 30% 80%;
-    --sidebar-primary: 260 70% 70%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 220 10% 20%;
-    --sidebar-accent-foreground: 210 30% 85%;
-    --sidebar-border: 220 10% 30%;
-    --sidebar-ring: 260 70% 70%;
+    /* Sidebar - Light Theme */
+    --sidebar-background: 0 0% 98%; /* Off-white, slightly different from main bg (e.g., #F9FAFB) */
+    --sidebar-foreground: hsl(var(--foreground));
+    --sidebar-primary: hsl(var(--primary));
+    --sidebar-primary-foreground: hsl(var(--primary-foreground));
+    --sidebar-accent: 220 20% 92%; /* Hover for sidebar items (lighter grey) */
+    --sidebar-accent-foreground: hsl(var(--primary)); /* Text color on hover */
+    --sidebar-border: 220 15% 90%; /* Slightly darker border for sidebar (e.g., #E0E2E5) */
+    --sidebar-ring: hsl(var(--ring));
 
-     /* 카테고리 아이콘 색상 - Dark Theme (base와 동일하게 설정) */
-    --category-icon-unity-hsl: 260 70% 70%; 
-    --category-icon-unreal-hsl: 200 60% 70%;
-    --category-icon-godot-hsl: 150 60% 65%;
-    --category-icon-general-hsl: 40 70% 70%;
+     /* 카테고리 아이콘 색상 - Light Theme */
+    --category-icon-unity-hsl: 260 50% 55%; 
+    --category-icon-unreal-hsl: 200 55% 55%;
+    --category-icon-godot-hsl: 150 50% 50%;
+    --category-icon-general-hsl: 40 60% 60%;
   }
 }
 
@@ -131,43 +125,67 @@ body {
 @layer components {
   /* 텍스트 그라데이션 유틸리티 - 수정된 버전 */
   .text-gradient-gold { 
-    @apply font-semibold bg-gradient-to-r from-yellow-300 via-amber-400 to-yellow-500 text-transparent;
+    @apply font-semibold bg-gradient-to-r from-yellow-400 via-amber-500 to-yellow-600 text-transparent;
     background-clip: text;
     -webkit-background-clip: text;
   }
   .text-gradient-silver {
-    @apply font-semibold bg-gradient-to-r from-slate-300 via-slate-400 to-slate-200 text-transparent;
+    @apply font-semibold bg-gradient-to-r from-slate-400 via-slate-500 to-slate-300 text-transparent;
     background-clip: text;
     -webkit-background-clip: text;
   }
   .text-gradient-bronze {
-    @apply font-semibold bg-gradient-to-r from-orange-400 via-yellow-600 to-orange-300 text-transparent;
+    @apply font-semibold bg-gradient-to-r from-orange-500 via-yellow-700 to-orange-400 text-transparent;
     background-clip: text;
     -webkit-background-clip: text;
   }
 
-  .text-gradient-unity { /* 흰색-회색 계열 (연보라 느낌으로 조정) */
-    @apply font-semibold bg-gradient-to-r from-purple-300 via-gray-300 to-purple-400 text-transparent;
+  .text-gradient-unity { 
+    @apply font-semibold bg-gradient-to-r from-purple-400 via-gray-400 to-purple-500 text-transparent;
     background-clip: text;
     -webkit-background-clip: text;
   }
-  .text-gradient-unreal { /* 흰색-검은색 계열 (강한 파란색 느낌으로 조정) */
-    @apply font-semibold bg-gradient-to-r from-sky-300 via-slate-100 to-blue-500 text-transparent;
+  .dark .text-gradient-unity { /* Light theme version */
+     @apply font-semibold bg-gradient-to-r from-purple-500 via-gray-500 to-purple-600 text-transparent;
+  }
+
+  .text-gradient-unreal { 
+    @apply font-semibold bg-gradient-to-r from-sky-400 via-slate-200 to-blue-600 text-transparent;
     background-clip: text;
     -webkit-background-clip: text;
   }
-  .text-gradient-godot { /* 회색-하늘색 계열 (에메랄드 느낌으로 조정) */
-    @apply font-semibold bg-gradient-to-r from-gray-300 via-cyan-300 to-emerald-400 text-transparent;
+   .dark .text-gradient-unreal { /* Light theme version */
+     @apply font-semibold bg-gradient-to-r from-sky-500 via-slate-300 to-blue-700 text-transparent;
+  }
+
+  .text-gradient-godot { 
+    @apply font-semibold bg-gradient-to-r from-emerald-400 via-cyan-400 to-emerald-500 text-transparent;
     background-clip: text;
     -webkit-background-clip: text;
   }
-  .text-gradient-general-rainbow {
+  .dark .text-gradient-godot { /* Light theme version */
+    @apply font-semibold bg-gradient-to-r from-emerald-500 via-cyan-500 to-emerald-600 text-transparent;
+  }
+
+  .text-gradient-general-rainbow { /* For Dark mode */
     @apply font-medium text-transparent;
     background-image: linear-gradient(to right, 
       hsl(var(--primary)), 
-      hsl(var(--secondary)), 
+      hsl(180 50% 50%), /* Teal like */
       hsl(var(--accent)), 
-      hsl(var(--accent-orange)), 
+      hsl(30 85% 63%),  /* Orange like */
+      hsl(var(--destructive))
+    );
+    background-clip: text;
+    -webkit-background-clip: text;
+  }
+  .dark .text-gradient-general-rainbow { /* For Light mode */
+    @apply font-medium text-transparent;
+     background-image: linear-gradient(to right, 
+      hsl(var(--primary)), 
+      hsl(180 50% 45%), 
+      hsl(var(--accent)), 
+      hsl(30 85% 58%),
       hsl(var(--destructive))
     );
     background-clip: text;
@@ -177,28 +195,53 @@ body {
 
   /* 닉네임 감싸는 배경 그라데이션 래퍼 - 수정 */
   .bg-wrapper-gold {
+    @apply p-1.5 rounded-md bg-gradient-to-br from-yellow-500/40 via-amber-600/30 to-yellow-700/40 shadow-md border-2 border-amber-600/70;
+  }
+  .dark .bg-wrapper-gold {
     @apply p-1.5 rounded-md bg-gradient-to-br from-yellow-400/30 via-amber-500/20 to-yellow-600/30 shadow-md border-2 border-amber-500/70;
   }
+
   .bg-wrapper-silver {
+    @apply p-1.5 rounded-md bg-gradient-to-br from-slate-500/40 via-slate-600/30 to-slate-700/40 shadow-md border-2 border-slate-600/70;
+  }
+  .dark .bg-wrapper-silver {
     @apply p-1.5 rounded-md bg-gradient-to-br from-slate-400/30 via-slate-500/20 to-slate-600/30 shadow-md border-2 border-slate-500/70;
   }
+
   .bg-wrapper-bronze {
-    @apply p-1.5 rounded-md bg-gradient-to-br from-orange-500/30 via-yellow-600/20 to-orange-700/30 shadow-md border-2 border-orange-600/70;
+    @apply p-1.5 rounded-md bg-gradient-to-br from-orange-600/40 via-yellow-700/30 to-orange-800/40 shadow-md border-2 border-orange-700/70;
+  }
+  .dark .bg-wrapper-bronze {
+     @apply p-1.5 rounded-md bg-gradient-to-br from-orange-500/30 via-yellow-600/20 to-orange-700/30 shadow-md border-2 border-orange-600/70;
   }
 
-  .bg-wrapper-unity { /* 흰색-회색 계열 래퍼 (연보라 배경) */
-    @apply p-1.5 rounded-md bg-gradient-to-br from-purple-600/20 via-gray-500/10 to-purple-700/20 shadow-sm;
+
+  .bg-wrapper-unity { 
+    @apply p-1.5 rounded-md bg-gradient-to-br from-purple-700/30 via-gray-600/20 to-purple-800/30 shadow-sm;
   }
-  .bg-wrapper-unreal { /* 흰색-검은색 계열 래퍼 (어두운 파랑 배경) */
+  .dark .bg-wrapper-unity {
+     @apply p-1.5 rounded-md bg-gradient-to-br from-purple-600/20 via-gray-500/10 to-purple-700/20 shadow-sm;
+  }
+
+  .bg-wrapper-unreal { 
+    @apply p-1.5 rounded-md bg-gradient-to-br from-sky-800/30 via-slate-900/20 to-blue-900/30 shadow-sm;
+  }
+  .dark .bg-wrapper-unreal {
     @apply p-1.5 rounded-md bg-gradient-to-br from-sky-700/20 via-slate-800/10 to-blue-800/20 shadow-sm;
   }
-  .bg-wrapper-godot { /* 회색-하늘색 계열 래퍼 (청록색 배경) */
+
+  .bg-wrapper-godot { 
+    @apply p-1.5 rounded-md bg-gradient-to-br from-emerald-700/30 via-cyan-800/20 to-emerald-800/30 shadow-sm;
+  }
+  .dark .bg-wrapper-godot {
     @apply p-1.5 rounded-md bg-gradient-to-br from-gray-600/20 via-cyan-700/10 to-emerald-700/20 shadow-sm;
   }
+  
   .bg-wrapper-general-rainbow {
-    @apply p-1.5 rounded-md shadow-sm bg-muted/30; /* 기본 단색 배경 */
-    /* 복잡한 그라데이션 배경은 Tailwind JIT의 한계로 인해 인라인 스타일 또는 별도 CSS 클래스로 관리하는 것이 더 안정적일 수 있습니다. */
-    /* 예시: background-image: linear-gradient(to right, hsla(var(--primary),0.15), hsla(var(--secondary),0.15), ...); */
+    @apply p-1.5 rounded-md shadow-sm bg-muted/50; 
+  }
+  .dark .bg-wrapper-general-rainbow {
+    @apply p-1.5 rounded-md shadow-sm bg-muted/30;
   }
 
 
@@ -206,9 +249,15 @@ body {
   .admin-badge {
     @apply inline-flex items-center gap-1 px-2 py-1 rounded-md bg-primary/20 border border-primary shadow-sm;
   }
-  .admin-text {
+  .admin-text { /* For Dark Mode */
     @apply font-semibold text-transparent;
-    background-image: linear-gradient(to right, hsl(var(--primary)), hsl(var(--accent-orange)), hsl(var(--accent-yellow)));
+    background-image: linear-gradient(to right, hsl(var(--primary)), hsl(30 85% 63%), hsl(50 90% 65%));
+    background-clip: text;
+    -webkit-background-clip: text;
+  }
+  .dark .admin-text { /* For Light Mode */
+    @apply font-semibold text-transparent;
+    background-image: linear-gradient(to right, hsl(var(--primary)), hsl(30 85% 58%), hsl(50 90% 60%));
     background-clip: text;
     -webkit-background-clip: text;
   }
@@ -223,3 +272,5 @@ body {
 .icon-unreal { color: hsl(var(--category-icon-unreal-hsl)); }
 .icon-godot { color: hsl(var(--category-icon-godot-hsl)); }
 .icon-general { color: hsl(var(--category-icon-general-hsl)); }
+
+    
