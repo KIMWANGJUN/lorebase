@@ -23,7 +23,7 @@ const MAX_REPLY_DEPTH = 3;
 interface CommentEntryProps {
   comment: CommentType;
   currentUser: UserType | null;
-  postMainCategory: PostMainCategory; // Pass this from the parent (PostDetail Page)
+  postMainCategory: PostMainCategory; 
   onAddReply: (parentId: string, replyContent: string) => void;
   onEditComment: (commentId: string, newContent: string) => void;
   depth?: number;
@@ -86,8 +86,10 @@ const CommentEntry = ({ comment, currentUser, postMainCategory, onAddReply, onEd
         </Avatar>
         <div className="flex-1">
           <div className="flex items-center justify-between">
-            {author ? <NicknameDisplay user={author} context="commentAuthor" postMainCategoryForAuthor={postMainCategory} /> : <p className="text-sm font-medium text-foreground">{comment.authorNickname}</p>}
-            <p className="text-xs text-muted-foreground">
+            {/* CHZZK: Chat nickname ~13px bold */}
+            {author ? <NicknameDisplay user={author} context="commentAuthor" postMainCategoryForAuthor={postMainCategory} /> : <p className="text-sm font-bold text-foreground">{comment.authorNickname}</p>}
+             {/* CHZZK: Chat timestamp ~10px normal */}
+            <p className="text-[10px] text-muted-foreground">
               {formattedDate}
               {comment.isEdited && <span className="ml-1 text-muted-foreground/80">(수정함)</span>}
             </p>
@@ -106,6 +108,7 @@ const CommentEntry = ({ comment, currentUser, postMainCategory, onAddReply, onEd
               </div>
             </div>
           ) : (
+             // CHZZK: Chat content ~13px normal
             <p className="text-sm mt-1 whitespace-pre-wrap text-foreground/90">{comment.content}</p>
           )}
           {!isEditing && (
@@ -133,7 +136,7 @@ const CommentEntry = ({ comment, currentUser, postMainCategory, onAddReply, onEd
             className="min-h-[60px] text-sm bg-input border-input text-foreground"
             rows={2}
           />
-          <Button size="sm" onClick={handleReplySubmit} className="mt-2 bg-primary text-primary-foreground hover:bg-primary/90">
+          <Button size="sm" onClick={handleReplySubmit} className="mt-2 bg-primary text-primary-foreground hover:bg-primary/90 text-xs">
             <Send className="h-3.5 w-3.5 mr-1.5" /> 답글 등록
           </Button>
         </div>
@@ -145,7 +148,7 @@ const CommentEntry = ({ comment, currentUser, postMainCategory, onAddReply, onEd
               key={reply.id}
               comment={reply}
               currentUser={currentUser}
-              postMainCategory={postMainCategory} // Pass down
+              postMainCategory={postMainCategory} 
               onAddReply={onAddReply}
               onEditComment={onEditComment}
               depth={depth + 1}
@@ -163,7 +166,7 @@ const CommentEntry = ({ comment, currentUser, postMainCategory, onAddReply, onEd
 interface CommentSectionProps {
   postId: string;
   initialComments: CommentType[];
-  postMainCategory: PostMainCategory; // Added to provide context to NicknameDisplay
+  postMainCategory: PostMainCategory; 
 }
 
 export default function CommentSection({ postId, initialComments, postMainCategory }: CommentSectionProps) {
@@ -258,7 +261,7 @@ export default function CommentSection({ postId, initialComments, postMainCatego
   return (
     <Card className="mt-8 shadow-md bg-card border-border">
       <CardHeader>
-        <h3 className="text-xl font-semibold flex items-center text-foreground">
+        <h3 className="text-lg font-semibold flex items-center text-foreground"> {/* CHZZK: Section titles ~15px bold/semibold */}
           <MessageSquare className="h-5 w-5 mr-2 text-primary" /> 댓글 ({totalCommentCount})
         </h3>
       </CardHeader>
@@ -275,11 +278,11 @@ export default function CommentSection({ postId, initialComments, postMainCatego
                   placeholder="따뜻한 댓글을 남겨주세요."
                   value={newCommentContent}
                   onChange={(e) => setNewCommentContent(e.target.value)}
-                  className="min-h-[70px] bg-input border-input text-foreground"
+                  className="min-h-[70px] bg-input border-input text-foreground text-sm" // CHZZK: Chat input area ~13px
                   rows={3}
                 />
                 <div className="flex justify-end mt-2">
-                  <Button onClick={handleTopLevelCommentSubmit} disabled={!newCommentContent.trim()} className="bg-primary text-primary-foreground hover:bg-primary/90">
+                  <Button onClick={handleTopLevelCommentSubmit} disabled={!newCommentContent.trim()} className="bg-primary text-primary-foreground hover:bg-primary/90 text-sm"> {/* CHZZK: Button text ~14px */}
                     <Send className="h-4 w-4 mr-2" /> 댓글 등록
                   </Button>
                 </div>
@@ -299,7 +302,7 @@ export default function CommentSection({ postId, initialComments, postMainCatego
                 key={comment.id}
                 comment={comment}
                 currentUser={currentUser}
-                postMainCategory={postMainCategory} // Pass postMainCategory here
+                postMainCategory={postMainCategory} 
                 onAddReply={handleAddReplyToComment}
                 onEditComment={handleEditCommentInternal}
                 activeReplyBoxId={activeReplyBoxId}

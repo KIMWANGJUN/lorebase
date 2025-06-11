@@ -18,8 +18,8 @@ import NicknameDisplay from '@/components/shared/NicknameDisplay';
 
 const POSTS_PER_PAGE = 10;
 const MAX_PAGES = 10;
-const RANKERS_TO_SHOW = 20;
-const COMMUNITY_RANKERS_PER_PAGE = 10;
+const RANKERS_TO_SHOW = 20; // Max community rankers to consider for pagination
+const COMMUNITY_RANKERS_PER_PAGE = 10; // Rankers per page for community list
 
 const CategorySpecificIcon: React.FC<{ category: PostMainCategory, className?: string }> = ({ category, className }) => {
   const defaultClassName = "h-3.5 w-3.5 shrink-0";
@@ -101,18 +101,15 @@ export default function HomePage() {
     const countToShow = activeRankingTab === 'Global' ? COMMUNITY_RANKERS_PER_PAGE : RANKERS_TO_SHOW;
     return getTopNUsers(mockUsers, activeRankingTab, countToShow);
   }, [activeRankingTab, getTopNUsers, mockUsers, COMMUNITY_RANKERS_PER_PAGE, RANKERS_TO_SHOW]);
-
+  
   const totalCommunityRankingPages = useMemo(() => {
-    if (activeRankingTab === 'Global') {
-        return 1;
-    }
+    if (activeRankingTab === 'Global') return 1; // Global tab shows only 10, no pagination
     return Math.ceil(rankedUsersToDisplay.length / COMMUNITY_RANKERS_PER_PAGE);
   }, [activeRankingTab, rankedUsersToDisplay, COMMUNITY_RANKERS_PER_PAGE]);
 
   const currentCommunityRankersToDisplay = useMemo(() => {
-    if (activeRankingTab === 'Global') {
-        return rankedUsersToDisplay;
-    }
+    if (activeRankingTab === 'Global') return rankedUsersToDisplay.slice(0, COMMUNITY_RANKERS_PER_PAGE);
+    
     const startIndex = (communityRankingCurrentPage - 1) * COMMUNITY_RANKERS_PER_PAGE;
     const endIndex = startIndex + COMMUNITY_RANKERS_PER_PAGE;
     return rankedUsersToDisplay.slice(startIndex, endIndex);
@@ -129,8 +126,8 @@ export default function HomePage() {
         <div className="lg:col-span-2">
           <Card className="shadow-xl bg-card border-border h-full">
             <CardHeader>
-              <CardTitle className="text-center font-headline text-2xl text-primary flex items-center justify-center">
-                <Gamepad2 className="inline-block h-7 w-7 mr-2 text-accent" />
+              <CardTitle className="text-center text-xl lg:text-2xl font-bold text-primary flex items-center justify-center">
+                <Gamepad2 className="inline-block h-6 w-6 lg:h-7 lg:w-7 mr-2 text-accent" />
                 플레이 테트리스
               </CardTitle>
             </CardHeader>
@@ -143,7 +140,7 @@ export default function HomePage() {
                 className="rounded-lg shadow-md border border-border"
                 data-ai-hint="tetris game screen"
               />
-              <Button className="mt-6 bg-gradient-to-r from-green-500 to-teal-500 text-primary-foreground hover:opacity-90 shadow-lg text-lg px-8 py-3">
+              <Button className="mt-6 bg-gradient-to-r from-primary to-accent text-primary-foreground hover:opacity-90 shadow-lg text-lg px-8 py-3">
                 <Gamepad2 className="mr-2 h-5 w-5" /> 게임 시작
               </Button>
             </CardContent>
@@ -152,8 +149,8 @@ export default function HomePage() {
         <div className="lg:col-span-1">
           <Card className="shadow-xl bg-card border-border h-full">
             <CardHeader>
-              <CardTitle className="text-center font-headline text-xl text-foreground flex items-center justify-center">
-                <Trophy className="inline-block h-6 w-6 mr-2 text-accent" />
+              <CardTitle className="text-center text-lg lg:text-xl font-bold text-foreground flex items-center justify-center">
+                <Trophy className="inline-block h-5 w-5 lg:h-6 lg:w-6 mr-2 text-accent" />
                 테트리스 월간 랭킹
               </CardTitle>
             </CardHeader>
@@ -163,7 +160,7 @@ export default function HomePage() {
                   const user = mockUsers.find(u => u.id === rankerData.userId);
                   if (!user) return null;
 
-                  const rankNumberClasses = "font-bold w-5 text-center shrink-0 text-muted-foreground";
+                  const rankNumberClasses = "font-bold w-5 text-center shrink-0 text-muted-foreground text-sm";
 
                   return (
                     <div key={rankerData.userId} className="flex items-center justify-between p-2.5 bg-card/50 border-border/70 rounded-md shadow-sm">
@@ -194,9 +191,9 @@ export default function HomePage() {
 
       <section className="grid lg:grid-cols-3 gap-12 mb-16 mt-12">
         <div className="lg:col-span-2">
-          <div className="flex justify-between items-center mb-8">
-            <h2 className="text-3xl font-bold font-headline text-primary">최신 인기 글</h2>
-            <Button variant="outline" asChild className="border-primary/50 text-primary hover:bg-primary/10 hover:text-primary">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-2xl lg:text-3xl font-bold text-primary">최신 인기 글</h2>
+            <Button variant="outline" asChild className="border-primary/50 text-primary hover:bg-primary/10 hover:text-primary text-sm">
               <Link href="/tavern">모든 글 보기 <ArrowRight className="ml-2 h-4 w-4" /></Link>
             </Button>
           </div>
@@ -208,7 +205,7 @@ export default function HomePage() {
                     <Card className="shadow-md hover:shadow-lg transition-shadow duration-300 bg-card border-border group-hover:border-primary/50 cursor-pointer">
                       <CardHeader className="py-3 px-4">
                        <div className="flex justify-between items-center">
-                          <CardTitle className="font-headline text-lg text-foreground group-hover:text-primary transition-colors line-clamp-1">
+                          <CardTitle className="text-base lg:text-lg font-semibold text-foreground group-hover:text-primary transition-colors line-clamp-1">
                             {post.title}
                              {post.isEdited && <span className="ml-2 text-xs font-normal text-muted-foreground">(수정됨)</span>}
                           </CardTitle>
@@ -224,7 +221,7 @@ export default function HomePage() {
                         <div className="text-xs text-muted-foreground mt-1">
                            <span>{new Date(post.createdAt).toLocaleDateString()}</span>
                            <span className="mx-1">·</span>
-                           <span>{post.mainCategory} / {post.type}</span>
+                           <span className="capitalize">{post.mainCategory} / {post.type}</span>
                         </div>
                       </CardHeader>
                     </Card>
@@ -255,8 +252,8 @@ export default function HomePage() {
         <div>
           <Card className="shadow-xl bg-card border-border">
             <CardHeader>
-              <CardTitle className="text-center font-headline text-xl text-foreground">
-                <Trophy className="inline-block h-6 w-6 mr-2 text-accent" />
+              <CardTitle className="text-center text-lg lg:text-xl font-bold text-foreground">
+                <Trophy className="inline-block h-5 w-5 lg:h-6 lg:w-6 mr-2 text-accent" />
                 커뮤니티 랭킹
               </CardTitle>
             </CardHeader>
@@ -277,7 +274,7 @@ export default function HomePage() {
                         {currentCommunityRankersToDisplay.map((user) => {
                           if (user.username === 'WANGJUNLAND' && tabValue !== 'Global') return null;
 
-                          const rankNumberTextClasses = "font-bold text-md w-5 text-center shrink-0 text-muted-foreground";
+                          const rankNumberTextClasses = "font-bold text-sm w-5 text-center shrink-0 text-muted-foreground";
                           const itemContainerClasses = "flex items-center justify-between p-2.5 bg-card/50 border-border/70 rounded-md shadow-sm";
 
                           const displayRankNumberToShow = tabValue === 'Global' ? user.rank : user.categoryStats?.[tabValue as PostMainCategory]?.rankInCate || 0;
@@ -338,7 +335,7 @@ export default function HomePage() {
               )}
             </CardContent>
             <CardFooter className="justify-center pt-2">
-              <Button variant="outline" asChild className="border-accent/50 text-accent hover:bg-accent/10 hover:text-accent/90">
+              <Button variant="outline" asChild className="border-accent/50 text-accent hover:bg-accent/10 hover:text-accent/90 text-sm">
                 <Link href="/profile#ranking">전체 순위표 보기</Link>
               </Button>
             </CardFooter>

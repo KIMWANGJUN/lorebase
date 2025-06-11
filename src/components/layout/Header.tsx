@@ -5,7 +5,7 @@ import { Gamepad2, Home, Users, Store, UserCircle, LogIn, LogOut, ShieldCheck, S
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import UserAvatarDropdown from '@/components/shared/UserAvatarDropdown';
-// import { ThemeToggleButton } from '@/components/shared/ThemeToggleButton'; // 제거
+import { ThemeToggleButton } from '@/components/shared/ThemeToggleButton';
 import { cn } from '@/lib/utils';
 
 const navItems = [
@@ -23,7 +23,7 @@ export default function Header() {
       <div className="container flex h-16 items-center justify-between">
         <Link href="/" className="flex items-center gap-2 group">
           <Wand2 className="h-7 w-7 text-primary group-hover:text-accent transition-colors duration-300" />
-          <h1 className="text-xl font-bold font-headline text-foreground group-hover:text-primary transition-colors duration-300">인디 커뮤니티</h1>
+          <h1 className="text-xl font-bold text-foreground group-hover:text-primary transition-colors duration-300">인디 커뮤니티</h1>
         </Link>
         
         <nav className="hidden md:flex items-center space-x-6 text-sm font-medium">
@@ -41,8 +41,8 @@ export default function Header() {
           )}
         </nav>
 
-        <div className="flex items-center gap-3">
-          {/* <ThemeToggleButton /> 제거 */}
+        <div className="flex items-center gap-2">
+          <ThemeToggleButton />
           {user ? (
             <UserAvatarDropdown user={user} isAdmin={isAdmin} onLogout={logout} />
           ) : (

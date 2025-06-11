@@ -7,102 +7,102 @@ body {
 }
 
 @layer base {
-  :root { /* CHZZK-inspired Dark Theme */
-    --background: 220 10% 10%; /* Very dark, slightly blueish grey (e.g., #17181B) */
-    --foreground: 220 10% 85%; /* Light grey text (e.g., #D0D1D9) */
+  :root { /* New Dark Theme (Gold Accent) */
+    --background: 220 10% 4%; /* Very Dark Almost Black/Blue -- Adjust from #010002 */
+    --foreground: 220 10% 85%; /* Light grey text */
 
-    --card: 220 10% 15%; /* Slightly lighter dark for cards (e.g., #212329) */
+    --card: 220 10% 8%; /* Slightly lighter dark for cards */
     --card-foreground: 220 10% 85%;
-    --popover: 220 10% 8%; /* Even darker for popovers */
+    --popover: 220 10% 6%; /* Even darker for popovers */
     --popover-foreground: 220 10% 85%;
 
-    --primary: 145 65% 40%; /* CHZZK Green (e.g., #1FAF5F, a bit desaturated for dark mode) */
-    --primary-foreground: 0 0% 100%; /* White */
+    --primary: 43 74% 49%; /* Gold - #DAA520 */
+    --primary-foreground: 220 10% 4%; /* Dark text on gold for contrast */
 
-    --secondary: 220 10% 25%; /* Medium-dark grey for secondary elements */
+    --secondary: 220 10% 15%; /* Medium-dark grey for secondary elements */
     --secondary-foreground: 220 10% 85%; /* Light text on secondary */
 
-    --muted: 220 10% 20%; /* Dark muted */
+    --muted: 220 10% 12%; /* Dark muted */
     --muted-foreground: 220 10% 55%; /* Greyed out text */
 
-    --accent: 145 60% 50%; /* Brighter green for highlights (e.g., #2ECC71) */
-    --accent-foreground: 0 0% 100%; /* White on accent */
+    --accent: 43 74% 49%; /* Gold - #DAA520 */
+    --accent-foreground: 220 10% 4%; /* Dark text on gold */
     
     --destructive: 0 70% 50%; /* Standard destructive red */
     --destructive-foreground: 0 0% 100%;
 
-    --border: 220 10% 22%; /* Darker border, slightly visible (e.g., #2E3039) */
-    --input: 220 10% 12%; /* Dark input background (e.g., #1A1C20) */
-    --ring: 145 65% 45%; /* Primary green for focus rings */
+    --border: 220 10% 12%; /* Darker border, slightly visible */
+    --input: 220 10% 10%; /* Dark input background */
+    --ring: 43 74% 55%; /* Brighter Gold for focus rings */
 
-    --radius: 0.375rem; /* Slightly more squared, common in modern UIs */
+    --radius: 0.375rem; 
 
     --chart-1: hsl(var(--primary));
     --chart-2: hsl(var(--accent));
-    --chart-3: 145 60% 70%; /* Lighter green */
+    --chart-3: 43 70% 60%; /* Lighter Gold */
     --chart-4: 220 10% 60%; /* Medium grey */
     --chart-5: 220 10% 40%; /* Darker grey */
 
     /* Sidebar - Dark Theme */
-    --sidebar-background: 220 10% 12%; /* Darker than cards for distinct sidebar */
+    --sidebar-background: 220 10% 6%; 
     --sidebar-foreground: hsl(var(--foreground));
     --sidebar-primary: hsl(var(--primary));
     --sidebar-primary-foreground: hsl(var(--primary-foreground));
-    --sidebar-accent: 220 10% 18%; /* Hover for sidebar items */
-    --sidebar-accent-foreground: hsl(var(--primary)); /* Text color on hover */
-    --sidebar-border: 220 10% 18%; /* Border for sidebar if needed, or same as bg */
+    --sidebar-accent: 220 10% 10%; /* Hover for sidebar items */
+    --sidebar-accent-foreground: hsl(var(--primary)); 
+    --sidebar-border: 220 10% 10%; 
     --sidebar-ring: hsl(var(--ring));
 
     /* 카테고리 아이콘 색상 - Dark Theme */
     --category-icon-unity-hsl: 260 60% 70%;
     --category-icon-unreal-hsl: 200 60% 70%;
     --category-icon-godot-hsl: 150 60% 65%;
-    --category-icon-general-hsl: 40 70% 70%;
+    --category-icon-general-hsl: 50 70% 70%; /* Adjusted general to be slightly more distinct if needed */
   }
 
-  .dark { /* CHZZK-inspired Light Theme */
-    --background: 0 0% 100%; /* White */
-    --foreground: 220 10% 15%; /* Dark grey/black text (e.g., #212329) */
+  .dark { /* New Light Theme (Gold Accent) - maps to when 'light' theme is active in next-themes */
+    --background: 0 0% 100%; /* White - #FFFFFF */
+    --foreground: 220 10% 10%; /* Dark grey/black text */
 
-    --card: 0 0% 100%; /* White cards */
-    --card-foreground: 220 10% 15%;
-    --popover: 0 0% 100%; /* White popovers */
-    --popover-foreground: 220 10% 15%;
+    --card: 0 0% 98%; /* Very light off-white for cards */
+    --card-foreground: 220 10% 10%;
+    --popover: 0 0% 100%; 
+    --popover-foreground: 220 10% 10%;
 
-    --primary: 145 63% 42%; /* CHZZK Green (e.g., #25B060) */
-    --primary-foreground: 0 0% 100%; /* White */
+    --primary: 43 74% 49%; /* Gold - #DAA520 */
+    --primary-foreground: 0 0% 100%; /* White text on gold */
 
-    --secondary: 220 20% 94%; /* Very light grey for secondary elements (e.g., #EBEFF2) */
-    --secondary-foreground: 220 10% 25%; /* Darker text on light secondary */
+    --secondary: 220 10% 94%; /* Very light grey for secondary elements */
+    --secondary-foreground: 220 10% 25%; 
     
-    --muted: 220 20% 96%; /* Very light muted grey (e.g., #F0F3F5) */
-    --muted-foreground: 220 10% 45%; /* Medium grey text for muted (e.g., #686D7B) */
+    --muted: 220 10% 96%; /* Very light muted grey */
+    --muted-foreground: 220 10% 45%; 
 
-    --accent: 145 58% 50%; /* Brighter/Slightly different green for accents (e.g., #34D078) */
-    --accent-foreground: 0 0% 100%; /* White on accent */
+    --accent: 43 74% 49%; /* Gold - #DAA520 */
+    --accent-foreground: 0 0% 100%; /* White text on gold */
     
-    --destructive: 0 80% 55%; /* Standard destructive red for light theme */
+    --destructive: 0 80% 55%; 
     --destructive-foreground: 0 0% 100%;
 
-    --border: 220 15% 88%; /* Light grey border (e.g., #DADCDE) */
-    --input: 0 0% 97%; /* Light off-white input background (e.g., #F7F7F7) */
-    --ring: 145 63% 45%; /* Primary green for focus rings */
+    --border: 220 7% 88%; /* Light Grey - #E0E1E3 */
+    --input: 0 0% 97%; 
+    --ring: 43 74% 55%; /* Brighter Gold for focus rings */
 
     /* Sidebar - Light Theme */
-    --sidebar-background: 0 0% 98%; /* Off-white, slightly different from main bg (e.g., #F9FAFB) */
+    --sidebar-background: 0 0% 97%; 
     --sidebar-foreground: hsl(var(--foreground));
     --sidebar-primary: hsl(var(--primary));
     --sidebar-primary-foreground: hsl(var(--primary-foreground));
-    --sidebar-accent: 220 20% 92%; /* Hover for sidebar items (lighter grey) */
-    --sidebar-accent-foreground: hsl(var(--primary)); /* Text color on hover */
-    --sidebar-border: 220 15% 90%; /* Slightly darker border for sidebar (e.g., #E0E2E5) */
+    --sidebar-accent: 220 10% 92%; 
+    --sidebar-accent-foreground: hsl(var(--primary)); 
+    --sidebar-border: 220 10% 90%; 
     --sidebar-ring: hsl(var(--ring));
 
      /* 카테고리 아이콘 색상 - Light Theme */
     --category-icon-unity-hsl: 260 50% 55%; 
     --category-icon-unreal-hsl: 200 55% 55%;
     --category-icon-godot-hsl: 150 50% 50%;
-    --category-icon-general-hsl: 40 60% 60%;
+    --category-icon-general-hsl: 43 60% 60%; /* Adjusted general to goldish */
   }
 }
 
@@ -123,7 +123,7 @@ body {
 }
 
 @layer components {
-  /* 텍스트 그라데이션 유틸리티 - 수정된 버전 */
+  /* 텍스트 그라데이션 유틸리티 - Gold/Silver/Bronze remain, others can be theme-dependent */
   .text-gradient-gold { 
     @apply font-semibold bg-gradient-to-r from-yellow-400 via-amber-500 to-yellow-600 text-transparent;
     background-clip: text;
@@ -140,46 +140,44 @@ body {
     -webkit-background-clip: text;
   }
 
+  /* Category specific gradients - will rely more on primary/accent for theming */
   .text-gradient-unity { 
-    @apply font-semibold bg-gradient-to-r from-purple-400 via-gray-400 to-purple-500 text-transparent;
-    background-clip: text;
-    -webkit-background-clip: text;
+    @apply font-semibold text-transparent bg-gradient-to-r from-purple-500 via-purple-400 to-indigo-500;
+    background-clip: text; -webkit-background-clip: text;
   }
-  .dark .text-gradient-unity { /* Light theme version */
-     @apply font-semibold bg-gradient-to-r from-purple-500 via-gray-500 to-purple-600 text-transparent;
+  .dark .text-gradient-unity {
+     @apply from-purple-400 via-purple-300 to-indigo-400;
   }
 
   .text-gradient-unreal { 
-    @apply font-semibold bg-gradient-to-r from-sky-400 via-slate-200 to-blue-600 text-transparent;
-    background-clip: text;
-    -webkit-background-clip: text;
+    @apply font-semibold text-transparent bg-gradient-to-r from-sky-500 via-sky-400 to-blue-500;
+    background-clip: text; -webkit-background-clip: text;
   }
-   .dark .text-gradient-unreal { /* Light theme version */
-     @apply font-semibold bg-gradient-to-r from-sky-500 via-slate-300 to-blue-700 text-transparent;
+   .dark .text-gradient-unreal {
+     @apply from-sky-400 via-sky-300 to-blue-400;
   }
 
   .text-gradient-godot { 
-    @apply font-semibold bg-gradient-to-r from-emerald-400 via-cyan-400 to-emerald-500 text-transparent;
-    background-clip: text;
-    -webkit-background-clip: text;
+    @apply font-semibold text-transparent bg-gradient-to-r from-emerald-500 via-emerald-400 to-green-500;
+    background-clip: text; -webkit-background-clip: text;
   }
-  .dark .text-gradient-godot { /* Light theme version */
-    @apply font-semibold bg-gradient-to-r from-emerald-500 via-cyan-500 to-emerald-600 text-transparent;
+  .dark .text-gradient-godot {
+    @apply from-emerald-400 via-emerald-300 to-green-400;
   }
-
-  .text-gradient-general-rainbow { /* For Dark mode */
+  
+  .text-gradient-general-rainbow { 
     @apply font-medium text-transparent;
     background-image: linear-gradient(to right, 
       hsl(var(--primary)), 
-      hsl(180 50% 50%), /* Teal like */
+      hsl(180 50% 50%), 
       hsl(var(--accent)), 
-      hsl(30 85% 63%),  /* Orange like */
+      hsl(30 85% 63%),  
       hsl(var(--destructive))
     );
     background-clip: text;
     -webkit-background-clip: text;
   }
-  .dark .text-gradient-general-rainbow { /* For Light mode */
+  .dark .text-gradient-general-rainbow { 
     @apply font-medium text-transparent;
      background-image: linear-gradient(to right, 
       hsl(var(--primary)), 
@@ -193,12 +191,12 @@ body {
   }
 
 
-  /* 닉네임 감싸는 배경 그라데이션 래퍼 - 수정 */
+  /* 닉네임 감싸는 배경 그라데이션 래퍼 - Gold/Silver/Bronze primary, others more subtle */
   .bg-wrapper-gold {
-    @apply p-1.5 rounded-md bg-gradient-to-br from-yellow-500/40 via-amber-600/30 to-yellow-700/40 shadow-md border-2 border-amber-600/70;
+    @apply p-1.5 rounded-md bg-gradient-to-br from-yellow-500/40 via-amber-600/30 to-yellow-700/40 shadow-md border-2 border-yellow-600/70;
   }
   .dark .bg-wrapper-gold {
-    @apply p-1.5 rounded-md bg-gradient-to-br from-yellow-400/30 via-amber-500/20 to-yellow-600/30 shadow-md border-2 border-amber-500/70;
+    @apply p-1.5 rounded-md bg-gradient-to-br from-yellow-400/30 via-amber-500/20 to-yellow-600/30 shadow-md border-2 border-yellow-500/70;
   }
 
   .bg-wrapper-silver {
@@ -217,31 +215,31 @@ body {
 
 
   .bg-wrapper-unity { 
-    @apply p-1.5 rounded-md bg-gradient-to-br from-purple-700/30 via-gray-600/20 to-purple-800/30 shadow-sm;
+    @apply p-1.5 rounded-md bg-purple-700/10 shadow-sm border border-purple-700/30;
   }
   .dark .bg-wrapper-unity {
-     @apply p-1.5 rounded-md bg-gradient-to-br from-purple-600/20 via-gray-500/10 to-purple-700/20 shadow-sm;
+     @apply p-1.5 rounded-md bg-purple-600/5 shadow-sm border border-purple-600/20;
   }
 
   .bg-wrapper-unreal { 
-    @apply p-1.5 rounded-md bg-gradient-to-br from-sky-800/30 via-slate-900/20 to-blue-900/30 shadow-sm;
+    @apply p-1.5 rounded-md bg-sky-800/10 shadow-sm border border-sky-800/30;
   }
   .dark .bg-wrapper-unreal {
-    @apply p-1.5 rounded-md bg-gradient-to-br from-sky-700/20 via-slate-800/10 to-blue-800/20 shadow-sm;
+    @apply p-1.5 rounded-md bg-sky-700/5 shadow-sm border border-sky-700/20;
   }
 
   .bg-wrapper-godot { 
-    @apply p-1.5 rounded-md bg-gradient-to-br from-emerald-700/30 via-cyan-800/20 to-emerald-800/30 shadow-sm;
+    @apply p-1.5 rounded-md bg-emerald-700/10 shadow-sm border border-emerald-700/30;
   }
   .dark .bg-wrapper-godot {
-    @apply p-1.5 rounded-md bg-gradient-to-br from-gray-600/20 via-cyan-700/10 to-emerald-700/20 shadow-sm;
+    @apply p-1.5 rounded-md bg-emerald-600/5 shadow-sm border border-emerald-600/20;
   }
   
   .bg-wrapper-general-rainbow {
-    @apply p-1.5 rounded-md shadow-sm bg-muted/50; 
+    @apply p-1.5 rounded-md shadow-sm bg-muted/50 border border-border; 
   }
   .dark .bg-wrapper-general-rainbow {
-    @apply p-1.5 rounded-md shadow-sm bg-muted/30;
+    @apply p-1.5 rounded-md shadow-sm bg-muted/30 border border-border;
   }
 
 
@@ -250,13 +248,13 @@ body {
     @apply inline-flex items-center gap-1 px-2 py-1 rounded-md bg-primary/20 border border-primary shadow-sm;
   }
   .admin-text { /* For Dark Mode */
-    @apply font-semibold text-transparent;
+    @apply font-bold text-transparent; /* Changed from font-semibold to font-bold */
     background-image: linear-gradient(to right, hsl(var(--primary)), hsl(30 85% 63%), hsl(50 90% 65%));
     background-clip: text;
     -webkit-background-clip: text;
   }
   .dark .admin-text { /* For Light Mode */
-    @apply font-semibold text-transparent;
+    @apply font-bold text-transparent; /* Changed from font-semibold to font-bold */
     background-image: linear-gradient(to right, hsl(var(--primary)), hsl(30 85% 58%), hsl(50 90% 60%));
     background-clip: text;
     -webkit-background-clip: text;
@@ -264,7 +262,7 @@ body {
 }
 /* 칭호가 닉네임 위에 있을 때의 컨테이너 (NicknameDisplay에서 사용) */
 .title-on-nickname-wrapper {
-  @apply block w-full text-center; /* 칭호 텍스트가 중앙 정렬되도록 함 */
+  @apply block w-full text-center; 
 }
 
 /* 카테고리 아이콘 색상 적용 클래스 */
@@ -272,5 +270,3 @@ body {
 .icon-unreal { color: hsl(var(--category-icon-unreal-hsl)); }
 .icon-godot { color: hsl(var(--category-icon-godot-hsl)); }
 .icon-general { color: hsl(var(--category-icon-general-hsl)); }
-
-    

@@ -8,7 +8,6 @@ export default {
     './src/app/**/*.{js,ts,jsx,tsx,mdx}',
   ],
   safelist: [
-    // 텍스트 그라데이션 클래스
     'text-gradient-gold',
     'text-gradient-silver',
     'text-gradient-bronze',
@@ -17,7 +16,6 @@ export default {
     'text-gradient-godot',
     'text-gradient-general-rainbow',
     
-    // 배경 래퍼 클래스
     'bg-wrapper-gold',
     'bg-wrapper-silver',
     'bg-wrapper-bronze',
@@ -26,24 +24,20 @@ export default {
     'bg-wrapper-godot',
     'bg-wrapper-general-rainbow',
     
-    // 기타 커스텀 클래스
     'admin-badge',
     'admin-text',
     'title-on-nickname-wrapper',
     'title-text-base',
     
-    // 카테고리 아이콘 클래스 (HSL 변수를 사용하므로 safelist 필요 없을 수 있으나, 만약을 위해 추가)
     'icon-unity',
     'icon-unreal',
     'icon-godot',
     'icon-general',
 
-    // NicknameDisplay에서 동적으로 사용될 수 있는 기본 Tailwind 클래스들
     'text-transparent',
-    // 'bg-clip-text', // This is a CSS property, not a Tailwind class. text-gradient-* handles this.
     'font-semibold',
     'font-medium',
-    'font-bold', // Added for global rankers
+    'font-bold',
     'text-primary',
     'text-foreground',
     'inline-flex',
@@ -61,15 +55,22 @@ export default {
     'w-4',
     'shrink-0',
     'border-2', 
-    'border-amber-500/70',
+    'border-yellow-600/70', // Updated to match gold theme from globals.css
+    'border-yellow-500/70',
+    'border-slate-600/70',
     'border-slate-500/70',
-    'border-orange-600/70'
+    'border-orange-700/70',
+    'border-orange-600/70',
+    // CHZZK inspired text sizes - if specific pixel values are strictly needed and not covered by default tailwind
+    'text-[10px]',
+    'text-[11px]',
+    'text-[13px]',
   ],
   theme: {
     extend: {
       fontFamily: {
         body: ['Noto Sans KR', 'sans-serif'],
-        headline: ['Noto Sans KR', 'sans-serif'],
+        headline: ['Noto Sans KR', 'sans-serif'], // Default weight for headlines will be bold
         code: ['monospace'],
       },
       colors: {
@@ -98,8 +99,6 @@ export default {
         accent: {
           DEFAULT: 'hsl(var(--accent))',
           foreground: 'hsl(var(--accent-foreground))',
-          orange: 'hsl(var(--accent-orange))',
-          yellow: 'hsl(var(--accent-yellow))',
         },
         destructive: {
           DEFAULT: 'hsl(var(--destructive))',
@@ -153,6 +152,12 @@ export default {
         'accordion-down': 'accordion-down 0.2s ease-out',
         'accordion-up': 'accordion-up 0.2s ease-out',
       },
+      // Example for custom font sizes if needed, though prefer mapping to Tailwind defaults
+      // fontSize: {
+      //   '2xs': '0.625rem', // 10px
+      //   '3xs': '0.6875rem', // 11px
+      //   'sm-13': '0.8125rem', // 13px
+      // },
     },
   },
   plugins: [require('tailwindcss-animate')],
