@@ -55,13 +55,12 @@ export default {
     'w-4',
     'shrink-0',
     'border-2', 
-    'border-yellow-600/70', // Updated to match gold theme from globals.css
+    'border-yellow-600/70', 
     'border-yellow-500/70',
     'border-slate-600/70',
     'border-slate-500/70',
     'border-orange-700/70',
     'border-orange-600/70',
-    // CHZZK inspired text sizes - if specific pixel values are strictly needed and not covered by default tailwind
     'text-[10px]',
     'text-[11px]',
     'text-[13px]',
@@ -69,8 +68,9 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        body: ['Noto Sans KR', 'sans-serif'],
-        headline: ['Noto Sans KR', 'sans-serif'], // Default weight for headlines will be bold
+        // Changed from Noto Sans KR to Jua, keeping sans-serif as fallback
+        body: ['Jua', 'sans-serif'],
+        headline: ['Jua', 'sans-serif'], 
         code: ['monospace'],
       },
       colors: {
@@ -152,12 +152,6 @@ export default {
         'accordion-down': 'accordion-down 0.2s ease-out',
         'accordion-up': 'accordion-up 0.2s ease-out',
       },
-      // Example for custom font sizes if needed, though prefer mapping to Tailwind defaults
-      // fontSize: {
-      //   '2xs': '0.625rem', // 10px
-      //   '3xs': '0.6875rem', // 11px
-      //   'sm-13': '0.8125rem', // 13px
-      // },
     },
   },
   plugins: [require('tailwindcss-animate')],
