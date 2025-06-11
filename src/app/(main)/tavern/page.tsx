@@ -266,11 +266,11 @@ export default function TavernPage() {
           />
         </div>
         {user && (
-          <Button asChild className="w-full md:w-auto bg-gradient-to-r from-primary to-accent text-primary-foreground hover:opacity-90 shadow-md text-sm"> {/* CHZZK: ~14px semi-bold for buttons */}
-            <Link href="/tavern/new">
+          <Link href="/tavern/new" legacyBehavior={false} passHref>
+            <Button className="w-full md:w-auto bg-gradient-to-r from-primary to-accent text-primary-foreground hover:opacity-90 shadow-md text-sm"> {/* CHZZK: ~14px semi-bold for buttons */}
               <PlusCircle className="mr-2 h-5 w-5" /> 새 글 작성
-            </Link>
-          </Button>
+            </Button>
+          </Link>
         )}
       </div>
 
@@ -320,9 +320,10 @@ export default function TavernPage() {
           )}
         </div>
         <aside className="lg:col-span-1 space-y-6 sticky top-20 self-start">
-           <CategoryRankingSidebar category={mainCategory} currentUser={user} />
+           <CategoryRankingSidebar category={mainCategory} />
         </aside>
       </div>
     </div>
   );
 }
+
