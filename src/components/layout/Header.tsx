@@ -26,20 +26,27 @@ export default function Header() {
         <div className="flex-shrink-0"> 
           <Link href="/" className="flex items-center gap-2 group">
             <Wand2 className="h-7 w-7 text-primary group-hover:text-accent transition-colors duration-300" />
-            <h1 className="font-headline text-xl font-bold text-foreground group-hover:text-primary transition-colors duration-300 font-headline">인디 커뮤니티</h1>
+            <h1 className="font-logo text-2xl font-bold text-foreground group-hover:text-primary transition-colors duration-300">LOREBASE</h1>
           </Link>
         </div>
         
         {/* Nav Items Group */}
-        <nav className="hidden md:flex items-center space-x-6 text-sm font-medium font-body">
+        <nav className="hidden md:flex items-center space-x-6">
           {navItems.map((item) => (
-            <Link key={item.label} href={item.href} className="flex items-center gap-1 text-muted-foreground transition-colors hover:text-accent font-body">
+            <Link 
+              key={item.label} 
+              href={item.href} 
+              className="flex items-center gap-1 text-muted-foreground transition-colors hover:text-accent font-headline text-base hover:font-bold active:font-bold"
+            >
               <item.icon className="h-4 w-4" />
               {item.label}
             </Link>
           ))}
           {isAdmin && (
-            <Link href="/admin" className="flex items-center gap-1 text-destructive/80 transition-colors hover:text-destructive font-body">
+            <Link 
+              href="/admin" 
+              className="flex items-center gap-1 text-destructive/80 transition-colors hover:text-destructive font-headline text-base hover:font-bold active:font-bold"
+            >
               <ShieldCheck className="h-4 w-4" />
               관리자
             </Link>
@@ -64,3 +71,4 @@ export default function Header() {
     </header>
   );
 }
+

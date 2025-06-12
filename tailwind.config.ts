@@ -68,8 +68,9 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        body: ['Jua', 'sans-serif'], // 본문 폰트: 주아체
-        headline: ['Do Hyeon', 'sans-serif'], // 제목 폰트: 도현체
+        body: ['Jua', 'sans-serif'], 
+        headline: ['Do Hyeon', 'sans-serif'], 
+        logo: ['Black Han Sans', 'sans-serif'], // 로고 폰트 추가
         code: ['monospace'],
       },
       colors: {
@@ -155,3 +156,4 @@ export default {
   },
   plugins: [require('tailwindcss-animate')],
 } satisfies Config;
+
