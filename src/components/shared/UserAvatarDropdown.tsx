@@ -46,14 +46,14 @@ export default function UserAvatarDropdown({ user, isAdmin, onLogout }: UserAvat
           {user.email && <div className="text-xs text-muted-foreground">{user.email}</div>}
         </DropdownMenuLabel>
         <DropdownMenuSeparator className="bg-border/50"/>
-        <DropdownMenuItem asChild className="hover:bg-muted/50 focus:bg-muted/50">
+        <DropdownMenuItem asChild>
           <Link href="/profile" className="flex items-center text-popover-foreground">
             <UserCircle className="mr-2 h-4 w-4" />
             내 프로필
           </Link>
         </DropdownMenuItem>
         {isAdmin && (
-          <DropdownMenuItem asChild className="hover:bg-muted/50 focus:bg-muted/50">
+          <DropdownMenuItem asChild>
             <Link href="/admin" className="flex items-center text-destructive/90 hover:text-destructive">
               <ShieldCheck className="mr-2 h-4 w-4" />
               관리자 페이지
@@ -61,7 +61,7 @@ export default function UserAvatarDropdown({ user, isAdmin, onLogout }: UserAvat
           </DropdownMenuItem>
         )}
         <DropdownMenuSeparator className="bg-border/50"/>
-        <DropdownMenuItem onClick={onLogout} className="flex items-center cursor-pointer text-popover-foreground hover:bg-muted/50 focus:bg-muted/50">
+        <DropdownMenuItem onClick={onLogout} className="flex items-center cursor-pointer text-popover-foreground">
           <LogOut className="mr-2 h-4 w-4" />
           로그아웃
         </DropdownMenuItem>
