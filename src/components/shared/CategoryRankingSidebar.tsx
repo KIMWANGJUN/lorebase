@@ -68,7 +68,7 @@ export default function CategoryRankingSidebar({ category }: CategoryRankingSide
     return (
       <Card className="shadow-lg bg-card border-border">
         <CardHeader>
-          <CardTitle className="font-headline text-foreground text-lg flex items-center gap-2">
+          <CardTitle className="font-headline text-foreground text-lg flex items-center justify-center gap-2">
             <CategorySpecificIcon category={category} />
             {getCategoryDisplayName(category)} 랭킹
           </CardTitle>
@@ -83,7 +83,7 @@ export default function CategoryRankingSidebar({ category }: CategoryRankingSide
   return (
     <Card className="shadow-lg bg-card border-border">
       <CardHeader>
-        <CardTitle className="font-headline text-foreground text-lg flex items-center gap-2">
+        <CardTitle className="font-headline text-foreground text-lg flex items-center justify-center gap-2">
           <CategorySpecificIcon category={category} />
           {getCategoryDisplayName(category)} 랭킹 (TOP 20)
         </CardTitle>
@@ -143,3 +143,4 @@ export default function CategoryRankingSidebar({ category }: CategoryRankingSide
     </Card>
   );
 }
+
