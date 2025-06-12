@@ -1,3 +1,4 @@
+
 // src/components/layout/Header.tsx
 "use client";
 import Link from 'next/link';
@@ -20,28 +21,33 @@ export default function Header() {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/50 bg-background/85 backdrop-blur supports-[backdrop-filter]:bg-background/60 shadow-md">
-      <div className="container flex h-16 items-center justify-between">
-        <Link href="/" className="flex items-center gap-2 group">
-          <Wand2 className="h-7 w-7 text-primary group-hover:text-accent transition-colors duration-300" />
-          <h1 className="font-headline text-xl font-bold text-foreground group-hover:text-primary transition-colors duration-300">인디 커뮤니티</h1>
-        </Link>
+      <div className="container flex h-16 items-center"> {/* Removed justify-between */}
+        {/* Logo */}
+        <div className="flex-shrink-0">
+          <Link href="/" className="flex items-center gap-2 group">
+            <Wand2 className="h-7 w-7 text-primary group-hover:text-accent transition-colors duration-300" />
+            <h1 className="font-headline text-xl font-bold text-foreground group-hover:text-primary transition-colors duration-300">인디 커뮤니티</h1>
+          </Link>
+        </div>
         
-        <nav className="hidden md:flex items-center space-x-6 text-sm font-medium">
+        {/* Nav Items - Centered and takes available space */}
+        <nav className="hidden md:flex flex-grow items-center justify-center space-x-6 text-sm font-medium">
           {navItems.map((item) => (
-            <Link key={item.label} href={item.href} className="flex items-center gap-1 text-muted-foreground transition-colors hover:text-accent">
+            <Link key={item.label} href={item.href} className="flex items-center gap-1 text-muted-foreground transition-colors hover:text-accent font-body"> {/* Added font-body */}
               <item.icon className="h-4 w-4" />
               {item.label}
             </Link>
           ))}
           {isAdmin && (
-            <Link href="/admin" className="flex items-center gap-1 text-destructive/80 transition-colors hover:text-destructive">
+            <Link href="/admin" className="flex items-center gap-1 text-destructive/80 transition-colors hover:text-destructive font-body"> {/* Added font-body */}
               <ShieldCheck className="h-4 w-4" />
               관리자
             </Link>
           )}
         </nav>
 
-        <div className="flex items-center gap-2">
+        {/* Theme Toggle & User/Login - Pushed to the right */}
+        <div className="flex flex-shrink-0 items-center gap-2 ml-auto"> {/* Added ml-auto */}
           <ThemeToggleButton />
           {user ? (
             <UserAvatarDropdown user={user} isAdmin={isAdmin} onLogout={logout} />
