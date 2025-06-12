@@ -249,7 +249,7 @@ export default function TavernPage() {
       >
         <div className="absolute inset-0 bg-gradient-to-r from-accent/70 via-primary/50 to-background/70 rounded-xl z-0 opacity-80"></div>
         <div className="relative z-10">
-            <h1 className="text-3xl md:text-5xl font-bold text-primary-foreground drop-shadow-lg">선술집 (커뮤니티)</h1> {/* CHZZK: 18-24px bold for main titles */}
+            <h1 className="text-3xl md:text-5xl font-bold text-primary-foreground drop-shadow-lg font-headline">선술집 (커뮤니티)</h1> {/* CHZZK: 18-24px bold for main titles */}
             <p className="text-base md:text-lg text-primary-foreground/90 mt-2 drop-shadow-sm">개발자들과 자유롭게 소통하고 정보를 공유하세요.</p> {/* CHZZK: ~16px for subtitles */}
         </div>
       </section>
@@ -315,7 +315,7 @@ export default function TavernPage() {
                     <Button variant="outline" size="icon" onClick={() => paginate(currentPage + 1)} disabled={currentPage === totalPages} className="text-muted-foreground border-border hover:bg-muted/50 hover:border-accent/50 h-8 w-8" aria-label="Next page"><ChevronRight className="h-4 w-4"/></Button>
                     <Button variant="outline" size="icon" onClick={() => paginate(totalPages)} disabled={currentPage === totalPages} className="text-muted-foreground border-border hover:bg-muted/50 hover:border-accent/50 h-8 w-8" aria-label="Last page"><ChevronsRight className="h-4 w-4"/></Button>
                 </div>
-                <p className="text-sm text-muted-foreground">총 {totalPages} 페이지 중 {currentPage} 페이지</p>
+                <p className="text-sm text-muted-foreground font-headline">총 {totalPages} 페이지 중 {currentPage} 페이지</p>
             </div>
           )}
         </div>
