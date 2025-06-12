@@ -126,7 +126,7 @@ export default function HomePage() {
         <div className="lg:col-span-2">
           <Card className="shadow-xl bg-card border-border h-full">
             <CardHeader>
-              <CardTitle className="text-center text-xl lg:text-2xl font-bold text-primary flex items-center justify-center">
+              <CardTitle className="font-headline text-center text-xl lg:text-2xl font-bold text-primary flex items-center justify-center">
                 <Gamepad2 className="inline-block h-6 w-6 lg:h-7 lg:w-7 mr-2 text-accent" />
                 플레이 테트리스
               </CardTitle>
@@ -149,7 +149,7 @@ export default function HomePage() {
         <div className="lg:col-span-1">
           <Card className="shadow-xl bg-card border-border h-full">
             <CardHeader>
-              <CardTitle className="text-center text-lg lg:text-xl font-bold text-foreground flex items-center justify-center">
+              <CardTitle className="font-headline text-center text-lg lg:text-xl font-bold text-foreground flex items-center justify-center">
                 <Trophy className="inline-block h-5 w-5 lg:h-6 lg:w-6 mr-2 text-accent" />
                 테트리스 월간 랭킹
               </CardTitle>
@@ -192,7 +192,7 @@ export default function HomePage() {
       <section className="grid lg:grid-cols-3 gap-12 mb-16 mt-12">
         <div className="lg:col-span-2">
           <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl lg:text-3xl font-bold text-primary">최신 인기 글</h2>
+            <h2 className="font-headline text-2xl lg:text-3xl font-bold text-primary">최신 인기 글</h2>
             <Button variant="outline" asChild className="border-primary/50 text-primary hover:bg-primary/10 hover:text-primary text-sm">
               <Link href="/tavern">모든 글 보기 <ArrowRight className="ml-2 h-4 w-4" /></Link>
             </Button>
@@ -252,7 +252,7 @@ export default function HomePage() {
         <div>
           <Card className="shadow-xl bg-card border-border">
             <CardHeader>
-              <CardTitle className="text-center text-lg lg:text-xl font-bold text-foreground">
+              <CardTitle className="font-headline text-center text-lg lg:text-xl font-bold text-foreground">
                 <Trophy className="inline-block h-5 w-5 lg:h-6 lg:w-6 mr-2 text-accent" />
                 커뮤니티 랭킹
               </CardTitle>

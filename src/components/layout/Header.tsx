@@ -23,7 +23,7 @@ export default function Header() {
       <div className="container flex h-16 items-center justify-between">
         <Link href="/" className="flex items-center gap-2 group">
           <Wand2 className="h-7 w-7 text-primary group-hover:text-accent transition-colors duration-300" />
-          <h1 className="text-xl font-bold text-foreground group-hover:text-primary transition-colors duration-300">인디 커뮤니티</h1>
+          <h1 className="font-headline text-xl font-bold text-foreground group-hover:text-primary transition-colors duration-300">인디 커뮤니티</h1>
         </Link>
         
         <nav className="hidden md:flex items-center space-x-6 text-sm font-medium">
