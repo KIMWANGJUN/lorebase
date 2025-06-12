@@ -66,7 +66,7 @@ const PostItem = ({
       <Link href={`/tavern/${post.id}`} className="block hover:bg-card/5 transition-colors rounded-lg relative">
         <CardHeader className="pb-1 pt-2 px-3">
           <div className="flex justify-between items-start">
-            <CardTitle className={cn("font-semibold text-base mb-0.5 flex items-center text-foreground", isNotice && "font-bold font-headline")}>
+            <CardTitle className={cn("text-base mb-0.5 flex items-center text-foreground font-headline font-bold", isNotice && "text-primary")}>
               {post.isPinned && <Pin className="h-4 w-4 mr-2 text-accent" />}
               {isNotice && <ScrollText className="h-4 w-4 mr-2 text-primary" />}
               {post.title}
@@ -387,5 +387,6 @@ export default function TavernPage() {
     </div>
   );
 }
+
 
 
