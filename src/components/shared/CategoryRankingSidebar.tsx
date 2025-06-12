@@ -92,16 +92,11 @@ export default function CategoryRankingSidebar({ category }: CategoryRankingSide
         {currentDisplayRankers.map((rankerUser) => {
           const rankInCate = rankerUser.categoryStats?.[category]?.rankInCate || 0;
           return (
-            <div key={rankerUser.id} className={cn(
- rankInCate >= 1 && rankInCate <= 3 && category === 'General' && 'bg-wrapper-general-rainbow',
- rankInCate >= 4 && rankInCate <= 10 && category === 'General' && 'bg-wrapper-general-mid',
- rankInCate >= 1 && rankInCate <= 3 && category !== 'General' && `bg-wrapper-${category.toLowerCase()}-top`, // Ranking styles
- rankInCate >= 4 && rankInCate <= 10 && category !== 'General' && `bg-wrapper-${category.toLowerCase()}`,
- // Default background if not in top 10 or General category
- (rankInCate === 0 || rankInCate > 10 || (category !== 'General' && rankInCate > 10)) && "bg-card/50 border border-border/70",
-              "flex items-center justify-between p-2.5 rounded-md shadow-sm", // Base styles
-              // Existing conditional class for current user
- rankerUser.id === currentUser?.id && "ring-2 ring-primary/50"
+            <div 
+              key={rankerUser.id} 
+              className={cn(
+                "flex items-center justify-between p-2.5 rounded-md shadow-sm border border-border/70", // Base styles for all items
+                rankerUser.id === currentUser?.id && "ring-2 ring-primary/50" // Highlight for current user
             )}>
               <div className="flex items-center gap-2.5">
                 <span className="font-bold text-md w-6 text-center shrink-0 text-muted-foreground">
