@@ -24,7 +24,7 @@ import CategoryRankingSidebar from '@/components/shared/CategoryRankingSidebar';
 
 const POSTS_PER_PAGE = 10;
 
-const PostItem = ({ post, currentUser, router }: { post: Post, currentUser: UserType | null, router: AppRouterInstance }) => {
+const PostItem = ({ post, currentUser, isAdmin, router }: { post: Post, currentUser: UserType | null, isAdmin: boolean, router: AppRouterInstance }) => {
   const author = mockUsers.find(u => u.id === post.authorId);
 
   const postDateToShow = post.isEdited && post.updatedAt ? new Date(post.updatedAt) : new Date(post.createdAt);
@@ -44,7 +44,7 @@ const PostItem = ({ post, currentUser, router }: { post: Post, currentUser: User
       <Link href={`/tavern/${post.id}`} className="block hover:bg-card/5 transition-colors rounded-lg relative">
         <CardHeader className="pb-1 pt-2 px-3">
           <div className="flex justify-between items-start">
-            <CardTitle className={cn("font-semibold text-base mb-0.5 flex items-center text-foreground", isNotice && "font-bold")}> {/* CHZZK: 14-15px semi-bold for list item title */}
+            <CardTitle className={cn("font-semibold text-base mb-0.5 flex items-center text-foreground", isNotice && "font-bold")}>
               {post.isPinned && <Pin className="h-4 w-4 mr-2 text-accent" />}
               {isNotice && <ScrollText className="h-4 w-4 mr-2 text-primary" />}
               {post.title}
@@ -61,15 +61,14 @@ const PostItem = ({ post, currentUser, router }: { post: Post, currentUser: User
               </div>
             )}
           </div>
-          <div className="flex items-center text-xs text-muted-foreground space-x-1.5 mt-1"> {/* CHZZK: 11-12px for tags/metadata */}
+          <div className="flex items-center text-xs text-muted-foreground space-x-1.5 mt-1">
             <Avatar className="h-4 w-4 border border-border shrink-0">
               <AvatarImage src={author?.avatar || `https://placehold.co/40x40.png?text=${post.authorNickname.substring(0,1)}`} />
               <AvatarFallback className="text-[10px]">{author?.nickname.substring(0, 1).toUpperCase() || 'U'}</AvatarFallback>
             </Avatar>
-             {/* CHZZK: 13-14px normal for author nickname in list */}
             {author ? <NicknameDisplay user={author} context="postAuthor" postMainCategoryForAuthor={post.mainCategory} /> : <span className="text-sm text-foreground font-normal">{post.authorNickname}</span>}
             <span>·</span>
-            <span className="text-xs">{formattedDate}</span> {/* CHZZK: ~10px for timestamp */}
+            <span className="text-xs">{formattedDate}</span>
             <span>·</span>
             <span className="capitalize text-xs">{post.type}</span>
           </div>
@@ -128,7 +127,7 @@ const SubTabsComponent: FC<SubTabsComponentProps> = ({ activeSubTab, setActiveSu
           <TabsTrigger
             key={tab.value}
             value={tab.value}
-            className="data-[state=active]:bg-secondary data-[state=active]:text-secondary-foreground flex-1 lg:flex-none text-sm font-headline" // CHZZK: ~14px for tab text
+            className="data-[state=active]:bg-secondary data-[state=active]:text-secondary-foreground flex-1 lg:flex-none text-sm font-headline"
           >
             {tab.icon && <tab.icon className="mr-1.5 h-4 w-4" />}
             {tab.label}
@@ -152,13 +151,13 @@ export default function TavernPage() {
   useEffect(() => {
     const currentNewSubTabs = mainCategory === 'General' ? generalSubTabs : engineSubTabs;
     if (!currentNewSubTabs.find(tab => tab.value === subCategory)) {
-       setSubCategory('all'); 
+       setSubCategory('all');
     }
   }, [mainCategory, subCategory]);
 
   const handleMainCategoryChange = (newMainCategory: PostMainCategory) => {
     setMainCategory(newMainCategory);
-    setSubCategory('all'); 
+    setSubCategory('all');
     setCurrentPage(1);
   };
 
@@ -186,7 +185,7 @@ export default function TavernPage() {
     } else if (subCategory !== 'all') {
       posts = posts.filter(p => p.type === subCategory);
       posts = posts.sort((a,b) => (b.isPinned ? 1 : 0) - (a.isPinned ? 1 : 0) || new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-    } else { 
+    } else {
       posts = posts.sort((a,b) => (b.isPinned ? 1 : 0) - (a.isPinned ? 1 : 0) || new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
     }
 
@@ -249,8 +248,8 @@ export default function TavernPage() {
       >
         <div className="absolute inset-0 bg-gradient-to-r from-accent/70 via-primary/50 to-background/70 rounded-xl z-0 opacity-80"></div>
         <div className="relative z-10">
-            <h1 className="text-3xl md:text-5xl font-bold text-primary-foreground drop-shadow-lg font-headline">선술집 (커뮤니티)</h1> {/* CHZZK: 18-24px bold for main titles */}
-            <p className="text-base md:text-lg text-primary-foreground/90 mt-2 drop-shadow-sm font-body">개발자들과 자유롭게 소통하고 정보를 공유하세요.</p> {/* CHZZK: ~16px for subtitles */}
+            <h1 className="text-3xl md:text-5xl font-bold text-primary-foreground drop-shadow-lg font-headline">선술집 (커뮤니티)</h1>
+            <p className="text-base md:text-lg text-primary-foreground/90 mt-2 drop-shadow-sm font-body">개발자들과 자유롭게 소통하고 정보를 공유하세요.</p>
         </div>
       </section>
 
@@ -259,7 +258,7 @@ export default function TavernPage() {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
           <Input
             type="text"
-            placeholder="게시글 검색 (제목, 작성자)..." // CHZZK: ~14px normal for placeholder
+            placeholder="게시글 검색 (제목, 작성자)..."
             className="pl-10 w-full bg-card border-border focus:ring-accent text-sm"
             value={searchTerm}
             onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1);}}
@@ -267,7 +266,7 @@ export default function TavernPage() {
         </div>
         {user && (
           <Link href="/tavern/new" legacyBehavior={false} passHref>
-            <Button className="w-full md:w-auto bg-gradient-to-r from-primary to-accent text-primary-foreground hover:opacity-90 shadow-md text-sm"> {/* CHZZK: ~14px semi-bold for buttons */}
+            <Button className="w-full md:w-auto bg-gradient-to-r from-primary to-accent text-primary-foreground hover:opacity-90 shadow-md text-sm">
               <PlusCircle className="mr-2 h-5 w-5" /> 새 글 작성
             </Button>
           </Link>
@@ -276,7 +275,7 @@ export default function TavernPage() {
 
       <Tabs value={mainCategory} onValueChange={(value) => handleMainCategoryChange(value as PostMainCategory)} className="mb-8">
         <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 bg-card border-border p-1.5 rounded-lg shadow-inner items-center">
-          <TabsTrigger value="Unity" className="font-headline rounded-md px-4 py-1.5 flex items-center justify-center gap-1.5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-sm"><Box className="h-4 w-4" />Unity</TabsTrigger> {/* CHZZK: ~14px for tab text */}
+          <TabsTrigger value="Unity" className="font-headline rounded-md px-4 py-1.5 flex items-center justify-center gap-1.5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-sm"><Box className="h-4 w-4" />Unity</TabsTrigger>
           <TabsTrigger value="Unreal" className="font-headline rounded-md px-4 py-1.5 flex items-center justify-center gap-1.5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-sm"><AppWindow className="h-4 w-4" />Unreal</TabsTrigger>
           <TabsTrigger value="Godot" className="font-headline rounded-md px-4 py-1.5 flex items-center justify-center gap-1.5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-sm"><PenTool className="h-4 w-4" />Godot</TabsTrigger>
           <TabsTrigger value="General" className="font-headline rounded-md px-4 py-1.5 flex items-center justify-center gap-1.5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-sm"><LayoutGrid className="h-4 w-4" />일반 & 유머</TabsTrigger>
@@ -295,7 +294,7 @@ export default function TavernPage() {
           {currentPostsToDisplay.length > 0 ? (
             <div className="space-y-3">
               {currentPostsToDisplay.map((post) => (
-                <PostItem key={post.id} post={post} currentUser={user} router={router} />
+                <PostItem key={post.id} post={post} currentUser={user} isAdmin={isAdmin} router={router} />
               ))}
             </div>
           ) : (
@@ -326,5 +325,3 @@ export default function TavernPage() {
     </div>
   );
 }
-
-
