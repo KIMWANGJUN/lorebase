@@ -21,10 +21,26 @@ import { useAuth } from '@/contexts/AuthContext';
 import { cn } from '@/lib/utils';
 import NicknameDisplay from '@/components/shared/NicknameDisplay';
 import CategoryRankingSidebar from '@/components/shared/CategoryRankingSidebar';
+import { getAllUserRecommendations, toggleUserRecommendation } from '@/lib/recommendationUtils';
+import { useToast } from '@/hooks/use-toast';
 
 const POSTS_PER_PAGE = 10;
 
-const PostItem = ({ post, currentUser, isAdmin, router }: { post: Post, currentUser: UserType | null, isAdmin: boolean, router: AppRouterInstance }) => {
+const PostItem = ({ 
+  post, 
+  currentUser, 
+  isAdmin, 
+  router,
+  isRecommended,
+  onToggleRecommend 
+}: { 
+  post: Post, 
+  currentUser: UserType | null, 
+  isAdmin: boolean, 
+  router: AppRouterInstance,
+  isRecommended: boolean,
+  onToggleRecommend: (postId: string) => void
+}) => {
   const author = mockUsers.find(u => u.id === post.authorId);
 
   const postDateToShow = post.isEdited && post.updatedAt ? new Date(post.updatedAt) : new Date(post.createdAt);
@@ -32,6 +48,12 @@ const PostItem = ({ post, currentUser, isAdmin, router }: { post: Post, currentU
 
   const isNotice = post.type === 'Notice' || post.type === 'Announcement';
   const isAdminPost = author?.username === 'WANGJUNLAND';
+
+  const handleRecommendClick = (e: React.MouseEvent) => {
+    e.preventDefault(); // Prevent link navigation
+    e.stopPropagation(); // Stop event bubbling
+    onToggleRecommend(post.id);
+  };
 
   return (
     <Card
@@ -44,7 +66,7 @@ const PostItem = ({ post, currentUser, isAdmin, router }: { post: Post, currentU
       <Link href={`/tavern/${post.id}`} className="block hover:bg-card/5 transition-colors rounded-lg relative">
         <CardHeader className="pb-1 pt-2 px-3">
           <div className="flex justify-between items-start">
-            <CardTitle className={cn("font-semibold text-base mb-0.5 flex items-center text-foreground", isNotice && "font-bold")}>
+            <CardTitle className={cn("font-semibold text-base mb-0.5 flex items-center text-foreground", isNotice && "font-bold font-headline")}>
               {post.isPinned && <Pin className="h-4 w-4 mr-2 text-accent" />}
               {isNotice && <ScrollText className="h-4 w-4 mr-2 text-primary" />}
               {post.title}
@@ -75,7 +97,19 @@ const PostItem = ({ post, currentUser, isAdmin, router }: { post: Post, currentU
         </CardHeader>
         <CardFooter className="flex justify-start items-center text-xs text-muted-foreground px-3 py-1 mt-1">
           <div className="flex gap-2 items-center">
-            <span className="flex items-center text-[10px]"><ThumbsUp className="h-2.5 w-2.5 mr-0.5" /> {post.upvotes}</span>
+             <Button 
+              variant="ghost" 
+              size="xs" 
+              onClick={handleRecommendClick}
+              className={cn(
+                "p-0 h-auto text-[10px] flex items-center gap-0.5 hover:bg-accent/10",
+                isRecommended ? "text-primary hover:text-primary/80" : "text-muted-foreground hover:text-accent-foreground"
+              )}
+              aria-pressed={isRecommended}
+            >
+              <ThumbsUp className={cn("h-2.5 w-2.5", isRecommended && "fill-primary")} /> 
+              {post.upvotes}
+            </Button>
             {isAdmin && <span className="flex items-center text-[10px]"><ThumbsDown className="h-2.5 w-2.5 mr-0.5" /> {post.downvotes}</span>}
             <span className="flex items-center text-[10px]"><MessageSquare className="h-2.5 w-2.5 mr-0.5" /> {post.commentCount}</span>
             <span className="flex items-center text-[10px]"><Eye className="h-2.5 w-2.5 mr-0.5" /> {post.views}</span>
@@ -86,7 +120,6 @@ const PostItem = ({ post, currentUser, isAdmin, router }: { post: Post, currentU
   );
 };
 
-// ... (rest of the TavernPage component remains the same)
 interface SubTabInfo {
   value: PostType | 'popular' | 'all';
   label: string;
@@ -142,11 +175,21 @@ const SubTabsComponent: FC<SubTabsComponentProps> = ({ activeSubTab, setActiveSu
 export default function TavernPage() {
   const [mainCategory, setMainCategory] = useState<PostMainCategory>('Unity');
   const [subCategory, setSubCategory] = useState<PostType | 'popular' | 'all'>('all');
-
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const { user, isAdmin } = useAuth();
+  const { toast } = useToast();
   const router = useRouter();
+  const [forceUpdateKey, setForceUpdateKey] = useState(0);
+  const [userRecommendations, setUserRecommendations] = useState<{ [postId: string]: boolean }>({});
+
+  useEffect(() => {
+    if (user) {
+      setUserRecommendations(getAllUserRecommendations(user.id));
+    } else {
+      setUserRecommendations({});
+    }
+  }, [user, forceUpdateKey]);
 
   useEffect(() => {
     const currentNewSubTabs = mainCategory === 'General' ? generalSubTabs : engineSubTabs;
@@ -166,9 +209,18 @@ export default function TavernPage() {
     setCurrentPage(1);
   }
 
-  const currentSubTabSet = useMemo(() => {
-    return mainCategory === 'General' ? generalSubTabs : engineSubTabs;
-  }, [mainCategory]);
+  const handleToggleRecommendForPost = (postId: string) => {
+    if (!user) {
+      toast({ title: "로그인 필요", description: "추천하시려면 로그인이 필요합니다.", variant: "destructive" });
+      return;
+    }
+    const result = toggleUserRecommendation(postId, user.id);
+    if (result) {
+      setUserRecommendations(prev => ({ ...prev, [postId]: result.newStatus }));
+      // Force re-render to update upvote counts in the list from mockPosts
+      setForceUpdateKey(k => k + 1); 
+    }
+  };
 
   const filteredPosts = useMemo(() => {
     let posts = [...mockPosts].filter(p => p.mainCategory === mainCategory && p.authorId !== 'admin');
@@ -195,7 +247,7 @@ export default function TavernPage() {
 
     return [...notices.sort((a,b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()), ...pinnedPosts, ...otherPosts];
 
-  }, [mainCategory, subCategory, searchTerm]);
+  }, [mainCategory, subCategory, searchTerm, forceUpdateKey]); // Added forceUpdateKey
 
   const totalPages = Math.ceil(filteredPosts.length / POSTS_PER_PAGE);
   const indexOfLastPost = currentPage * POSTS_PER_PAGE;
@@ -228,7 +280,7 @@ export default function TavernPage() {
           variant={currentPage === i ? 'default' : 'outline'}
           size="sm"
           onClick={() => paginate(i)}
-          className={cn("h-8 w-8 p-0", currentPage === i ? "bg-primary text-primary-foreground border-primary" : "text-muted-foreground border-border hover:bg-muted/50 hover:border-accent/50")}
+          className={cn("h-8 w-8 p-0 font-headline", currentPage === i ? "bg-primary text-primary-foreground border-primary" : "text-muted-foreground border-border hover:bg-muted/50 hover:border-accent/50")}
         >
           {i}
         </Button>
@@ -266,7 +318,7 @@ export default function TavernPage() {
         </div>
         {user && (
           <Link href="/tavern/new" legacyBehavior={false} passHref>
-            <Button className="w-full md:w-auto bg-gradient-to-r from-primary to-accent text-primary-foreground hover:opacity-90 shadow-md text-sm">
+            <Button className="w-full md:w-auto bg-gradient-to-r from-primary to-accent text-primary-foreground hover:opacity-90 shadow-md text-sm font-headline">
               <PlusCircle className="mr-2 h-5 w-5" /> 새 글 작성
             </Button>
           </Link>
@@ -294,7 +346,15 @@ export default function TavernPage() {
           {currentPostsToDisplay.length > 0 ? (
             <div className="space-y-3">
               {currentPostsToDisplay.map((post) => (
-                <PostItem key={post.id} post={post} currentUser={user} isAdmin={isAdmin} router={router} />
+                <PostItem 
+                  key={post.id} 
+                  post={post} 
+                  currentUser={user} 
+                  isAdmin={isAdmin} 
+                  router={router}
+                  isRecommended={!!userRecommendations[post.id]}
+                  onToggleRecommend={handleToggleRecommendForPost}
+                />
               ))}
             </div>
           ) : (
@@ -308,11 +368,11 @@ export default function TavernPage() {
           {totalPages > 0 && (
             <div className="mt-8 flex flex-col items-center gap-4">
                 <div className="flex items-center gap-1 sm:gap-2">
-                    <Button variant="outline" size="icon" onClick={() => paginate(1)} disabled={currentPage === 1} className="text-muted-foreground border-border hover:bg-muted/50 hover:border-accent/50 h-8 w-8" aria-label="First page"><ChevronsLeft className="h-4 w-4"/></Button>
-                    <Button variant="outline" size="icon" onClick={() => paginate(currentPage - 1)} disabled={currentPage === 1} className="text-muted-foreground border-border hover:bg-muted/50 hover:border-accent/50 h-8 w-8" aria-label="Previous page"><ChevronLeft className="h-4 w-4"/></Button>
+                    <Button variant="outline" size="icon" onClick={() => paginate(1)} disabled={currentPage === 1} className="text-muted-foreground border-border hover:bg-muted/50 hover:border-accent/50 h-8 w-8 font-headline" aria-label="First page"><ChevronsLeft className="h-4 w-4"/></Button>
+                    <Button variant="outline" size="icon" onClick={() => paginate(currentPage - 1)} disabled={currentPage === 1} className="text-muted-foreground border-border hover:bg-muted/50 hover:border-accent/50 h-8 w-8 font-headline" aria-label="Previous page"><ChevronLeft className="h-4 w-4"/></Button>
                     {renderPageNumbers()}
-                    <Button variant="outline" size="icon" onClick={() => paginate(currentPage + 1)} disabled={currentPage === totalPages} className="text-muted-foreground border-border hover:bg-muted/50 hover:border-accent/50 h-8 w-8" aria-label="Next page"><ChevronRight className="h-4 w-4"/></Button>
-                    <Button variant="outline" size="icon" onClick={() => paginate(totalPages)} disabled={currentPage === totalPages} className="text-muted-foreground border-border hover:bg-muted/50 hover:border-accent/50 h-8 w-8" aria-label="Last page"><ChevronsRight className="h-4 w-4"/></Button>
+                    <Button variant="outline" size="icon" onClick={() => paginate(currentPage + 1)} disabled={currentPage === totalPages} className="text-muted-foreground border-border hover:bg-muted/50 hover:border-accent/50 h-8 w-8 font-headline" aria-label="Next page"><ChevronRight className="h-4 w-4"/></Button>
+                    <Button variant="outline" size="icon" onClick={() => paginate(totalPages)} disabled={currentPage === totalPages} className="text-muted-foreground border-border hover:bg-muted/50 hover:border-accent/50 h-8 w-8 font-headline" aria-label="Last page"><ChevronsRight className="h-4 w-4"/></Button>
                 </div>
                 <p className="text-sm text-muted-foreground font-headline">총 {totalPages} 페이지 중 {currentPage} 페이지</p>
             </div>
