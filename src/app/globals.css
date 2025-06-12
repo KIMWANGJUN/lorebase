@@ -38,12 +38,6 @@ body {
 
     --radius: 0.375rem; 
 
-    --chart-1: hsl(var(--primary));
-    --chart-2: hsl(var(--accent));
-    --chart-3: 43 70% 60%; 
-    --chart-4: 220 10% 60%; 
-    --chart-5: 220 10% 40%; 
-
     /* Sidebar - Dark Theme */
     --sidebar-background: 220 10% 6%; 
     --sidebar-foreground: hsl(var(--foreground));
@@ -60,19 +54,24 @@ body {
     --category-icon-godot-hsl: 150 60% 65%;
     --category-icon-general-hsl: 50 70% 70%; 
 
-    /* 종합 랭킹 1-3위 불투명 단색 테두리 - Dark Theme */
-    --gold-border-dark: hsl(43 80% 55%); 
-    --silver-border-dark: hsl(210 20% 75%); 
-    --bronze-border-dark: hsl(30 50% 55%); 
-
-    /* 엔진 카테고리 1-3위 불투명 단색 테두리 - Dark Theme */
-    --category-border-unity-dark: hsl(260 70% 60%);
-    --category-border-unreal-dark: hsl(200 70% 60%);
-    --category-border-godot-dark: hsl(150 70% 55%);
+    /* 랭킹 테두리 색상 - Dark Theme */
+    --gold-border-color: hsl(43 80% 55%); 
+    --silver-border-color: hsl(210 20% 75%); 
+    --bronze-border-color: hsl(30 50% 55%); 
+    --unity-border-color: hsl(260 50% 60%);
+    --unreal-border-color: hsl(200 55% 60%);
+    --godot-border-color: hsl(150 50% 55%);
     
+    /* 일반&유머 1-3위 무지개 테두리 색상 (불투명) - Dark Theme */
+    --general-rainbow-start-dark: hsl(var(--primary));
+    --general-rainbow-middle1-dark: hsl(180, 50%, 45%);
+    --general-rainbow-middle2-dark: hsl(var(--accent));
+    --general-rainbow-middle3-dark: hsl(30, 85%, 58%);
+    --general-rainbow-end-dark: hsl(var(--destructive));
+
     /* 일반&유머 4-10위 배경/테두리 - Dark Theme */
-    --general-mid-bg-dark: hsla(270, 50%, 20%, 0.45); /* 어두운 보라색 계열 반투명 */
-    --general-mid-border-dark: hsl(270, 50%, 35%); /* 어두운 보라색 계열 불투명 */
+    --general-mid-bg: hsla(270, 50%, 20%, 0.45); /* 어두운 보라색 계열 반투명 */
+    --general-mid-border: hsl(270, 50%, 35%); /* 어두운 보라색 계열 불투명 */
   }
 
   .dark { /* Light Theme (Gold Accent) */
@@ -119,19 +118,24 @@ body {
     --category-icon-godot-hsl: 150 50% 50%;
     --category-icon-general-hsl: 43 60% 60%; 
 
-    /* 종합 랭킹 1-3위 불투명 단색 테두리 - Light Theme */
-    --gold-border-light: hsl(43 74% 52%);  
-    --silver-border-light: hsl(210 15% 70%); 
-    --bronze-border-light: hsl(30 40% 60%); 
+    /* 랭킹 테두리 색상 - Light Theme */
+    --gold-border-color: hsl(43 74% 52%);  
+    --silver-border-color: hsl(210 15% 70%); 
+    --bronze-border-color: hsl(30 40% 60%); 
+    --unity-border-color: hsl(260 50% 50%);
+    --unreal-border-color: hsl(200 55% 50%);
+    --godot-border-color: hsl(150 50% 45%);
 
-    /* 엔진 카테고리 1-3위 불투명 단색 테두리 - Light Theme */
-    --category-border-unity-light: hsl(260 50% 50%);
-    --category-border-unreal-light: hsl(200 55% 50%);
-    --category-border-godot-light: hsl(150 50% 45%);
-    
+    /* 일반&유머 1-3위 무지개 테두리 색상 (불투명) - Light Theme */
+    --general-rainbow-start-light: hsl(var(--primary));
+    --general-rainbow-middle1-light: hsl(180, 50%, 50%);
+    --general-rainbow-middle2-light: hsl(var(--accent));
+    --general-rainbow-middle3-light: hsl(30, 85%, 63%);
+    --general-rainbow-end-light: hsl(var(--destructive));
+
     /* 일반&유머 4-10위 배경/테두리 - Light Theme */
-    --general-mid-bg-light: hsla(170, 60%, 85%, 0.5); /* 밝은 민트색 계열 반투명 */
-    --general-mid-border-light: hsl(170, 60%, 75%); /* 밝은 민트색 계열 불투명 */
+    --general-mid-bg: hsla(170, 60%, 85%, 0.5); /* 밝은 민트색 계열 반투명 */
+    --general-mid-border: hsl(170, 60%, 75%); /* 밝은 민트색 계열 불투명 */
   }
 }
 
@@ -187,115 +191,129 @@ body {
     @apply from-emerald-400 via-emerald-300 to-green-400;
   }
 
-  /* 불투명 무지개 그라데이션 (테두리 및 텍스트용) */
-  .gradient-rainbow-light {
-    background-image: linear-gradient(to right, hsl(var(--primary)), hsl(180, 50%, 50%), hsl(var(--accent)), hsl(30, 85%, 63%), hsl(var(--destructive)));
-  }
-  .gradient-rainbow-dark {
-    background-image: linear-gradient(to right, hsl(var(--primary)), hsl(180, 50%, 45%), hsl(var(--accent)), hsl(30, 85%, 58%), hsl(var(--destructive)));
-  }
-
+  /* 무지개 그라데이션 텍스트 (일반&유머용) */
   .text-gradient-general-rainbow { 
-    @apply font-medium text-transparent gradient-rainbow-light;
+    @apply font-medium text-transparent;
+    background: linear-gradient(to right, var(--general-rainbow-start-light), var(--general-rainbow-middle1-light), var(--general-rainbow-middle2-light), var(--general-rainbow-middle3-light), var(--general-rainbow-end-light));
     background-clip: text; -webkit-background-clip: text;
   }
   .dark .text-gradient-general-rainbow { 
-    @apply font-medium text-transparent gradient-rainbow-dark;
+    @apply font-medium text-transparent;
+    background: linear-gradient(to right, var(--general-rainbow-start-dark), var(--general-rainbow-middle1-dark), var(--general-rainbow-middle2-dark), var(--general-rainbow-middle3-dark), var(--general-rainbow-end-dark));
     background-clip: text; -webkit-background-clip: text;
   }
 
-  /* 닉네임 감싸는 배경 래퍼 - 공통 스타일 (가상요소 테두리용) */
-  .bg-wrapper-gradient-border-effect { /* Renamed for clarity for gradient borders */
+  /* 닉네임 감싸는 배경 래퍼 기본 스타일 */
+  .nickname-wrapper {
     @apply relative p-1.5 rounded-md shadow-sm overflow-hidden;
   }
-  .bg-wrapper-gradient-border-effect::before {
-    content: ""; @apply absolute inset-0 rounded-md -z-10;
-    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-    mask-composite: exclude;
-    pointer-events: none;
+
+  /* 종합 1-3위: 골드, 실버, 브론즈 */
+  .bg-wrapper-gold {
+    @apply nickname-wrapper bg-gradient-to-br from-yellow-500/30 via-amber-600/25 to-yellow-700/30;
+    border: 1.5px solid var(--gold-border-color);
   }
-  
-  /* 공통 래퍼 스타일 (단색 테두리용) */
-  .bg-wrapper-solid-border-effect {
-    @apply relative p-1.5 rounded-md shadow-sm overflow-hidden;
-  }
-  .bg-wrapper-solid-border-effect::before {
-    content: ""; @apply absolute inset-0 rounded-md -z-10;
-    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-    mask-composite: exclude;
-    pointer-events: none;
+  .dark .bg-wrapper-gold {
+    @apply bg-gradient-to-br from-yellow-400/25 via-amber-500/20 to-yellow-600/25;
   }
 
+  .bg-wrapper-silver {
+    @apply nickname-wrapper bg-gradient-to-br from-slate-500/30 via-slate-600/25 to-slate-700/30;
+    border: 1.5px solid var(--silver-border-color);
+  }
+  .dark .bg-wrapper-silver {
+    @apply bg-gradient-to-br from-slate-400/25 via-slate-500/20 to-slate-600/25;
+  }
 
-  /* 종합 1-3위: 골드, 실버, 브론즈 - 반투명 그라데이션 배경 + 1.5px 불투명 단색 테두리 */
-  .bg-wrapper-gold { @apply bg-wrapper-solid-border-effect bg-gradient-to-br from-yellow-500/35 via-amber-600/30 to-yellow-700/35; } 
-  .bg-wrapper-gold::before { background-color: var(--gold-border-light); padding: 1.5px; }
-  .dark .bg-wrapper-gold { @apply bg-gradient-to-br from-yellow-400/30 via-amber-500/25 to-yellow-600/30; } 
-  .dark .bg-wrapper-gold::before { background-color: var(--gold-border-dark); padding: 1.5px; }
+  .bg-wrapper-bronze {
+    @apply nickname-wrapper bg-gradient-to-br from-orange-600/30 via-yellow-700/25 to-orange-800/30;
+    border: 1.5px solid var(--bronze-border-color);
+  }
+  .dark .bg-wrapper-bronze {
+    @apply bg-gradient-to-br from-orange-500/25 via-yellow-600/20 to-orange-700/25;
+  }
 
-  .bg-wrapper-silver { @apply bg-wrapper-solid-border-effect bg-gradient-to-br from-slate-500/35 via-slate-600/30 to-slate-700/35; } 
-  .bg-wrapper-silver::before { background-color: var(--silver-border-light); padding: 1.5px; }
-  .dark .bg-wrapper-silver { @apply bg-gradient-to-br from-slate-400/30 via-slate-500/25 to-slate-600/30; } 
-  .dark .bg-wrapper-silver::before { background-color: var(--silver-border-dark); padding: 1.5px; }
+  /* 카테고리(Unity, Unreal, Godot) 1-3위 - 불투명 단색 테두리 (1.5px) */
+  .bg-wrapper-unity-top {
+    @apply nickname-wrapper bg-gradient-to-r from-purple-500/25 via-purple-400/20 to-indigo-500/25;
+    border: 1.5px solid var(--unity-border-color);
+  }
+  .dark .bg-wrapper-unity-top {
+    @apply bg-gradient-to-r from-purple-400/20 via-purple-300/15 to-indigo-400/20;
+  }
 
-  .bg-wrapper-bronze { @apply bg-wrapper-solid-border-effect bg-gradient-to-br from-orange-600/35 via-yellow-700/30 to-orange-800/35; } 
-  .bg-wrapper-bronze::before { background-color: var(--bronze-border-light); padding: 1.5px; }
-  .dark .bg-wrapper-bronze { @apply bg-gradient-to-br from-orange-500/30 via-yellow-600/25 to-orange-700/30; } 
-  .dark .bg-wrapper-bronze::before { background-color: var(--bronze-border-dark); padding: 1.5px; }
+  .bg-wrapper-unreal-top {
+    @apply nickname-wrapper bg-gradient-to-r from-sky-500/25 via-sky-400/20 to-blue-500/25;
+    border: 1.5px solid var(--unreal-border-color);
+  }
+  .dark .bg-wrapper-unreal-top {
+    @apply bg-gradient-to-r from-sky-400/20 via-sky-300/15 to-blue-400/20;
+  }
 
-  /* 카테고리(Unity, Unreal, Godot) 1-3위 - 반투명 그라데이션 배경 + 1.5px 불투명 단색 테두리 */
-  .bg-wrapper-unity-top { @apply bg-wrapper-solid-border-effect bg-gradient-to-r from-purple-500/30 via-purple-400/25 to-indigo-500/30; } 
-  .bg-wrapper-unity-top::before { background-color: var(--category-border-unity-light); padding: 1.5px; }
-  .dark .bg-wrapper-unity-top { @apply bg-gradient-to-r from-purple-400/30 via-purple-300/25 to-indigo-400/30;} 
-  .dark .bg-wrapper-unity-top::before { background-color: var(--category-border-unity-dark); padding: 1.5px; }
-
-  .bg-wrapper-unreal-top { @apply bg-wrapper-solid-border-effect bg-gradient-to-r from-sky-500/30 via-sky-400/25 to-blue-500/30; } 
-  .bg-wrapper-unreal-top::before { background-color: var(--category-border-unreal-light); padding: 1.5px; }
-  .dark .bg-wrapper-unreal-top { @apply bg-gradient-to-r from-sky-400/30 via-sky-300/25 to-blue-400/30;} 
-  .dark .bg-wrapper-unreal-top::before { background-color: var(--category-border-unreal-dark); padding: 1.5px; }
-
-  .bg-wrapper-godot-top { @apply bg-wrapper-solid-border-effect bg-gradient-to-r from-emerald-500/30 via-emerald-400/25 to-green-500/30; } 
-  .bg-wrapper-godot-top::before { background-color: var(--category-border-godot-light); padding: 1.5px; }
-  .dark .bg-wrapper-godot-top { @apply bg-gradient-to-r from-emerald-400/30 via-emerald-300/25 to-green-400/30; } 
-  .dark .bg-wrapper-godot-top::before { background-color: var(--category-border-godot-dark); padding: 1.5px; }
+  .bg-wrapper-godot-top {
+    @apply nickname-wrapper bg-gradient-to-r from-emerald-500/25 via-emerald-400/20 to-green-500/25;
+    border: 1.5px solid var(--godot-border-color);
+  }
+  .dark .bg-wrapper-godot-top {
+    @apply bg-gradient-to-r from-emerald-400/20 via-emerald-300/15 to-green-400/20;
+  }
   
-  /* 카테고리(Unity, Unreal, Godot) 4-10위 - 반투명 단색 배경 + 1px 불투명 단색 테두리 */
-  .bg-wrapper-unity { @apply p-1.5 rounded-md bg-purple-600/20 shadow-sm border border-purple-600/40; } 
-  .dark .bg-wrapper-unity { @apply bg-purple-500/20 border-purple-500/30; } 
-  .bg-wrapper-unreal { @apply p-1.5 rounded-md bg-sky-700/20 shadow-sm border border-sky-700/40; } 
-  .dark .bg-wrapper-unreal { @apply bg-sky-600/20 border-sky-600/30; } 
-  .bg-wrapper-godot { @apply p-1.5 rounded-md bg-emerald-600/20 shadow-sm border border-emerald-600/40; } 
-  .dark .bg-wrapper-godot { @apply bg-emerald-500/20 border-emerald-500/30; } 
+  /* 카테고리(Unity, Unreal, Godot) 4-10위 - 반투명 단색 배경, 1px 테두리 */
+  .bg-wrapper-unity { 
+    @apply nickname-wrapper bg-purple-600/20 border border-purple-600/40; 
+  } 
+  .dark .bg-wrapper-unity { 
+    @apply bg-purple-500/20 border-purple-500/30; 
+  } 
+  .bg-wrapper-unreal { 
+    @apply nickname-wrapper bg-sky-700/20 border border-sky-700/40; 
+  } 
+  .dark .bg-wrapper-unreal { 
+    @apply bg-sky-600/20 border-sky-600/30; 
+  } 
+  .bg-wrapper-godot { 
+    @apply nickname-wrapper bg-emerald-600/20 border border-emerald-600/40; 
+  } 
+  .dark .bg-wrapper-godot { 
+    @apply bg-emerald-500/20 border-emerald-500/30; 
+  } 
   
-  /* 일반&유머 1-3위 - 반투명 무지개 배경 + 1.5px 불투명 무지개 테두리 */
+  /* 일반&유머 1-3위 - 반투명 무지개 배경, 불투명 무지개 테두리 (1.5px) */
   .bg-wrapper-general-rainbow {
-    @apply bg-wrapper-gradient-border-effect;
-    background-image: linear-gradient(to right, hsla(var(--primary), 0.3), hsla(180, 50%, 50%, 0.3), hsla(var(--accent), 0.3), hsla(30, 85%, 63%, 0.3), hsla(var(--destructive), 0.3));
-  }
-  .bg-wrapper-general-rainbow::before {
-    @apply gradient-rainbow-light; /* 불투명 테두리 */
-    padding: 1.5px; 
+    @apply nickname-wrapper;
+    background: linear-gradient(to right, 
+      hsla(var(--primary), 0.3), 
+      hsla(180, 50%, 50%, 0.3), 
+      hsla(var(--accent), 0.3), 
+      hsla(30, 85%, 63%, 0.3), 
+      hsla(var(--destructive), 0.3)
+    );
+    border-width: 1.5px;
+    border-style: solid;
+    border-image-slice: 1;
+    border-image-source: linear-gradient(to right, 
+      var(--general-rainbow-start-light), 
+      var(--general-rainbow-middle1-light), 
+      var(--general-rainbow-middle2-light), 
+      var(--general-rainbow-middle3-light), 
+      var(--general-rainbow-end-light)
+    );
   }
   .dark .bg-wrapper-general-rainbow {
-    background-image: linear-gradient(to right, hsla(var(--primary), 0.3), hsla(180, 50%, 45%, 0.3), hsla(var(--accent), 0.3), hsla(30, 85%, 58%, 0.3), hsla(var(--destructive), 0.3));
-  }
-  .dark .bg-wrapper-general-rainbow::before {
-    @apply gradient-rainbow-dark; /* 불투명 테두리 */
+    border-image-source: linear-gradient(to right, 
+      var(--general-rainbow-start-dark), 
+      var(--general-rainbow-middle1-dark), 
+      var(--general-rainbow-middle2-dark), 
+      var(--general-rainbow-middle3-dark), 
+      var(--general-rainbow-end-dark)
+    );
   }
   
-  /* 일반&유머 4-10위 - 반투명 단색 배경 + 1px 불투명 단색 테두리 */
+  /* 일반&유머 4-10위 - 반투명 배경, 불투명 단색 테두리 (1px) */
   .bg-wrapper-general-mid {
-    @apply p-1.5 rounded-md shadow-sm border;
-    background-color: var(--general-mid-bg-light);
-    border-color: var(--general-mid-border-light);
-    border-width: 1px;
-  }
-  .dark .bg-wrapper-general-mid {
-    background-color: var(--general-mid-bg-dark);
-    border-color: var(--general-mid-border-dark);
-    border-width: 1px;
+    @apply nickname-wrapper;
+    background-color: var(--general-mid-bg);
+    border: 1px solid var(--general-mid-border);
   }
 
   /* 관리자 뱃지 및 텍스트 */
@@ -324,9 +342,4 @@ body {
 .icon-godot { color: hsl(var(--category-icon-godot-hsl)); }
 .icon-general { color: hsl(var(--category-icon-general-hsl)); }
 
-/* Ensure content padding for wrappers using ::before for border */
-.bg-wrapper-gold, .bg-wrapper-silver, .bg-wrapper-bronze,
-.bg-wrapper-unity-top, .bg-wrapper-unreal-top, .bg-wrapper-godot-top,
-.bg-wrapper-general-rainbow {
-  @apply p-1.5; /* Ensures content inside is padded away from the pseudo-border */
-}
+    

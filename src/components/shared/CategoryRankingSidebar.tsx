@@ -93,8 +93,13 @@ export default function CategoryRankingSidebar({ category }: CategoryRankingSide
           const rankInCate = rankerUser.categoryStats?.[category]?.rankInCate || 0;
           return (
             <div key={rankerUser.id} className={cn(
-              "flex items-center justify-between p-2.5 rounded-md shadow-sm",
-              rankerUser.id === currentUser?.id ? "bg-primary/10 border-primary/30" : "bg-card/50 border-border/70"
+              "flex items-center justify-between p-2.5 rounded-md shadow-sm", // Base styles
+              // Existing conditional class for current user
+ rankerUser.id === currentUser?.id ? "bg-primary/10 border-primary/30" : "bg-card/50 border-border/70",
+ rankInCate >= 1 && rankInCate <= 3 && category !== 'General' && `bg-wrapper-${category.toLowerCase()}-top`, // Ranking styles
+              rankInCate >= 4 && rankInCate <= 10 && category !== 'General' && `bg-wrapper-${category.toLowerCase()}`,
+              rankInCate >= 1 && rankInCate <= 3 && category === 'General' && 'bg-wrapper-general-rainbow',
+              rankInCate >= 4 && rankInCate <= 10 && category === 'General' && 'bg-wrapper-general-mid'
             )}>
               <div className="flex items-center gap-2.5">
                 <span className="font-bold text-md w-6 text-center shrink-0 text-muted-foreground">
