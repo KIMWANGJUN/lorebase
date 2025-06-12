@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -236,10 +237,12 @@ body {
   }
   
   .bg-wrapper-general-rainbow {
-    @apply p-1.5 rounded-md shadow-sm bg-muted/50 border border-border; 
+    /* Light mode: darker background */
+    @apply p-1.5 rounded-md shadow-sm bg-[hsl(var(--foreground)/0.05)] border-[hsl(var(--foreground)/0.1)];
   }
   .dark .bg-wrapper-general-rainbow {
-    @apply p-1.5 rounded-md shadow-sm bg-muted/30 border border-border;
+    /* Dark mode: lighter background */
+    @apply p-1.5 rounded-md shadow-sm bg-[hsl(var(--foreground)/0.05)] border-[hsl(var(--foreground)/0.1)];
   }
 
 
@@ -270,3 +273,4 @@ body {
 .icon-unreal { color: hsl(var(--category-icon-unreal-hsl)); }
 .icon-godot { color: hsl(var(--category-icon-godot-hsl)); }
 .icon-general { color: hsl(var(--category-icon-general-hsl)); }
+
