@@ -30,7 +30,7 @@ export default function UserAvatarDropdown({ user, isAdmin, onLogout }: UserAvat
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <button className="flex items-center gap-2 rounded-full focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 hover:bg-secondary hover:text-foreground transition-colors p-1">
+        <button className="flex items-center gap-2 rounded-full hover:bg-secondary hover:text-foreground transition-colors p-1">
           <Avatar className="h-9 w-9 border-2 border-accent/50">
             <AvatarImage src={user.avatar} alt={user.nickname} data-ai-hint="user avatar icon"/>
             <AvatarFallback className="bg-muted text-muted-foreground">{getInitials(user.nickname)}</AvatarFallback>
@@ -47,21 +47,21 @@ export default function UserAvatarDropdown({ user, isAdmin, onLogout }: UserAvat
         </DropdownMenuLabel>
         <DropdownMenuSeparator className="bg-border/50"/>
         <DropdownMenuItem asChild>
-          <Link href="/profile" className="flex items-center text-popover-foreground">
+          <Link href="/profile" className="flex items-center">
             <UserCircle className="mr-2 h-4 w-4" />
             내 프로필
           </Link>
         </DropdownMenuItem>
         {isAdmin && (
           <DropdownMenuItem asChild>
-            <Link href="/admin" className="flex items-center text-destructive/90 hover:text-destructive">
+            <Link href="/admin" className="flex items-center text-destructive/90 hover:text-destructive focus:text-destructive">
               <ShieldCheck className="mr-2 h-4 w-4" />
               관리자 페이지
             </Link>
           </DropdownMenuItem>
         )}
         <DropdownMenuSeparator className="bg-border/50"/>
-        <DropdownMenuItem onClick={onLogout} className="flex items-center cursor-pointer text-popover-foreground">
+        <DropdownMenuItem onClick={onLogout} className="flex items-center cursor-pointer">
           <LogOut className="mr-2 h-4 w-4" />
           로그아웃
         </DropdownMenuItem>
