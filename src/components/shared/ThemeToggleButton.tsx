@@ -31,7 +31,7 @@ export function ThemeToggleButton() {
       size="icon" 
       onClick={toggleTheme} 
       aria-label="Toggle theme"
-      className="w-9 h-9 transition-colors duration-200 border border-transparent hover:border-accent focus-visible:ring-ring focus-visible:ring-2 focus-visible:ring-offset-2"
+      className="w-9 h-9 transition-colors duration-200 border border-transparent hover:border-accent/50 focus-visible:ring-ring focus-visible:ring-2 focus-visible:ring-offset-2"
     >
       {/* Display Sun icon if current theme is dark, Moon icon if light */}
       {resolvedTheme === 'dark' ? (
