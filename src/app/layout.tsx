@@ -1,8 +1,9 @@
+
 import type { Metadata } from 'next';
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
 import { AuthProvider } from '@/contexts/AuthContext';
-import { ThemeProvider } from 'next-themes'; // Added
+import { ThemeProvider } from 'next-themes';
 
 export const metadata: Metadata = {
   title: '인디 게임 개발자 커뮤니티',
