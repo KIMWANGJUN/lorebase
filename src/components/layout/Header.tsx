@@ -20,7 +20,7 @@ export default function Header() {
   const { user, isAdmin, logout } = useAuth();
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border/50 bg-background/85 backdrop-blur supports-[backdrop-filter]:bg-background/60 shadow-md">
+    <header className="sticky top-0 z-50 w-full bg-background/85 backdrop-blur supports-[backdrop-filter]:bg-background/60 shadow-md">
       <div className="container mx-auto flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
         {/* Logo Group */}
         <div className="flex-shrink-0"> 
