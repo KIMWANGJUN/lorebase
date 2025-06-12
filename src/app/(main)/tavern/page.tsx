@@ -290,6 +290,8 @@ export default function TavernPage() {
   };
 
   const bannerImageUrl = "https://placehold.co/1920x600.png";
+  const currentSubTabs = mainCategory === 'General' ? generalSubTabs : engineSubTabs;
+
 
   return (
     <div className="container mx-auto py-8 px-4">
@@ -339,7 +341,7 @@ export default function TavernPage() {
           <SubTabsComponent
             activeSubTab={subCategory}
             setActiveSubTab={handleSubCategoryChange}
-            subTabs={currentSubTabSet}
+            subTabs={currentSubTabs}
             onSubTabChange={() => setCurrentPage(1)}
           />
 
@@ -385,3 +387,4 @@ export default function TavernPage() {
     </div>
   );
 }
+
