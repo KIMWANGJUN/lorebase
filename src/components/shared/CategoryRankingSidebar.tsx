@@ -8,7 +8,7 @@ import { mockUsers } from '@/lib/mockData';
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { ChevronLeft, ChevronRight, Box, AppWindow, PenTool, LayoutGrid, Trophy } from 'lucide-react';
+import { Box, AppWindow, PenTool, LayoutGrid, Trophy } from 'lucide-react';
 import NicknameDisplay from './NicknameDisplay'; // Make sure this path is correct
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext'; // Import useAuth
@@ -122,11 +122,11 @@ export default function CategoryRankingSidebar({ category }: CategoryRankingSide
             size="sm"
             onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
             disabled={currentPage === 1}
-            className="border-border text-muted-foreground hover:bg-muted/50 hover:border-accent"
+            className="border-border text-muted-foreground hover:bg-muted/50 hover:border-accent font-headline"
           >
-            <ChevronLeft className="h-4 w-4 mr-1" /> 이전
+            이전
           </Button>
-          <span className="text-sm text-muted-foreground">
+          <span className="text-sm text-muted-foreground font-headline">
             {currentPage} / {totalPages}
           </span>
           <Button
@@ -134,9 +134,9 @@ export default function CategoryRankingSidebar({ category }: CategoryRankingSide
             size="sm"
             onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
             disabled={currentPage === totalPages}
-            className="border-border text-muted-foreground hover:bg-muted/50 hover:border-accent"
+            className="border-border text-muted-foreground hover:bg-muted/50 hover:border-accent font-headline"
           >
-            다음 <ChevronRight className="h-4 w-4 ml-1" />
+            다음
           </Button>
         </CardFooter>
       )}
