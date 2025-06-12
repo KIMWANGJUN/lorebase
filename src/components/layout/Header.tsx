@@ -21,7 +21,7 @@ export default function Header() {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/50 bg-background/85 backdrop-blur supports-[backdrop-filter]:bg-background/60 shadow-md">
-      <div className="container flex h-16 items-center"> {/* Removed justify-between */}
+      <div className="container flex h-16 items-center justify-between"> {/* Added justify-between */}
         {/* Logo */}
         <div className="flex-shrink-0">
           <Link href="/" className="flex items-center gap-2 group">
@@ -30,24 +30,24 @@ export default function Header() {
           </Link>
         </div>
         
-        {/* Nav Items - Centered and takes available space */}
-        <nav className="hidden md:flex flex-grow items-center justify-center space-x-6 text-sm font-medium">
+        {/* Nav Items */}
+        <nav className="hidden md:flex items-center space-x-6 text-sm font-medium"> {/* Removed flex-grow and justify-center */}
           {navItems.map((item) => (
-            <Link key={item.label} href={item.href} className="flex items-center gap-1 text-muted-foreground transition-colors hover:text-accent font-body"> {/* Added font-body */}
+            <Link key={item.label} href={item.href} className="flex items-center gap-1 text-muted-foreground transition-colors hover:text-accent font-body">
               <item.icon className="h-4 w-4" />
               {item.label}
             </Link>
           ))}
           {isAdmin && (
-            <Link href="/admin" className="flex items-center gap-1 text-destructive/80 transition-colors hover:text-destructive font-body"> {/* Added font-body */}
+            <Link href="/admin" className="flex items-center gap-1 text-destructive/80 transition-colors hover:text-destructive font-body">
               <ShieldCheck className="h-4 w-4" />
               관리자
             </Link>
           )}
         </nav>
 
-        {/* Theme Toggle & User/Login - Pushed to the right */}
-        <div className="flex flex-shrink-0 items-center gap-2 ml-auto"> {/* Added ml-auto */}
+        {/* Theme Toggle & User/Login */}
+        <div className="flex flex-shrink-0 items-center gap-2"> {/* Removed ml-auto */}
           <ThemeToggleButton />
           {user ? (
             <UserAvatarDropdown user={user} isAdmin={isAdmin} onLogout={logout} />
