@@ -58,12 +58,16 @@ body {
     --category-icon-unity-hsl: 260 60% 70%;
     --category-icon-unreal-hsl: 200 60% 70%;
     --category-icon-godot-hsl: 150 60% 65%;
-    --category-icon-general-hsl: 50 70% 70%; /* Adjusted general to be slightly more distinct if needed */
+    --category-icon-general-hsl: 50 70% 70%; 
 
     /* 카테고리 테두리 단색 - Dark Theme */
     --category-border-unity-dark: hsl(260 70% 55%);
     --category-border-unreal-dark: hsl(200 70% 55%);
     --category-border-godot-dark: hsl(150 70% 50%);
+
+    /* 일반&유머 4-10위 랭커용 - Dark Theme */
+    --general-mid-bg-dark: hsla(240, 30%, 20%, 0.3); /* 어두운 남색 계열 반투명 배경 */
+    --general-mid-border-dark: hsl(240, 30%, 30%); /* 어두운 남색 계열 불투명 테두리 */
   }
 
   .dark { /* New Light Theme (Gold Accent) - maps to when 'light' theme is active in next-themes */
@@ -108,12 +112,16 @@ body {
     --category-icon-unity-hsl: 260 50% 55%; 
     --category-icon-unreal-hsl: 200 55% 55%;
     --category-icon-godot-hsl: 150 50% 50%;
-    --category-icon-general-hsl: 43 60% 60%; /* Adjusted general to goldish */
+    --category-icon-general-hsl: 43 60% 60%; 
 
     /* 카테고리 테두리 단색 - Light Theme */
     --category-border-unity-light: hsl(260 50% 45%);
     --category-border-unreal-light: hsl(200 55% 45%);
     --category-border-godot-light: hsl(150 50% 40%);
+    
+    /* 일반&유머 4-10위 랭커용 - Light Theme */
+    --general-mid-bg-light: hsla(50, 100%, 90%, 0.4); /* 밝은 노란색 계열 반투명 배경 */
+    --general-mid-border-light: hsl(50, 100%, 80%); /* 밝은 노란색 계열 불투명 테두리 */
   }
 }
 
@@ -168,30 +176,36 @@ body {
   .dark .text-gradient-godot {
     @apply from-emerald-400 via-emerald-300 to-green-400;
   }
-  .text-gradient-general-rainbow { 
-    @apply font-medium text-transparent;
+
+  .gradient-rainbow-light {
     background-image: linear-gradient(to right, hsl(var(--primary)), hsl(180 50% 50%), hsl(var(--accent)), hsl(30 85% 63%), hsl(var(--destructive)));
+  }
+  .gradient-rainbow-dark {
+    background-image: linear-gradient(to right, hsl(var(--primary)), hsl(180 50% 45%), hsl(var(--accent)), hsl(30 85% 58%), hsl(var(--destructive)));
+  }
+  .text-gradient-general-rainbow { 
+    @apply font-medium text-transparent gradient-rainbow-light;
     background-clip: text; -webkit-background-clip: text;
   }
   .dark .text-gradient-general-rainbow { 
-    @apply font-medium text-transparent;
-    background-image: linear-gradient(to right, hsl(var(--primary)), hsl(180 50% 45%), hsl(var(--accent)), hsl(30 85% 58%), hsl(var(--destructive)));
+    @apply font-medium text-transparent gradient-rainbow-dark;
     background-clip: text; -webkit-background-clip: text;
   }
 
   /* 닉네임 감싸는 배경 래퍼 - 공통 스타일 (그라데이션/단색 테두리용 가상요소 기반) */
   .bg-wrapper-gradient-border {
-    @apply relative p-1.5 rounded-md shadow-sm overflow-hidden;
+    @apply relative p-1.5 rounded-md shadow-sm overflow-hidden; /* overflow-hidden 추가 */
   }
   .bg-wrapper-gradient-border::before {
     content: ""; @apply absolute inset-0 rounded-md -z-10;
     /* padding (테두리 두께)는 개별 클래스에서 ::before에 지정 */
     -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
     mask-composite: exclude;
     pointer-events: none;
   }
 
-  /* 종합 1-3위: 골드, 실버, 브론즈 - 그라데이션 배경 + 1.5px 그라데이션 테두리 */
+  /* 종합 1-3위: 골드, 실버, 브론즈 - 반투명 그라데이션 배경 + 1.5px 불투명 그라데이션 테두리 */
   .bg-wrapper-gold { @apply bg-wrapper-gradient-border bg-gradient-to-br from-yellow-500/20 via-amber-600/15 to-yellow-700/20; }
   .bg-wrapper-gold::before { @apply bg-gradient-to-br from-yellow-500 via-amber-600 to-yellow-700; padding: 1.5px; }
   .dark .bg-wrapper-gold { @apply bg-gradient-to-br from-yellow-400/15 via-amber-500/10 to-yellow-600/15; }
@@ -207,20 +221,23 @@ body {
   .dark .bg-wrapper-bronze { @apply bg-gradient-to-br from-orange-500/15 via-yellow-600/10 to-orange-700/15; }
   .dark .bg-wrapper-bronze::before { @apply bg-gradient-to-br from-orange-500 via-yellow-600 to-orange-700; padding: 1.5px; }
 
-  /* 카테고리(Unity, Unreal, Godot) 1-3위 - 그라데이션 배경 + 1.5px 단색 테두리 */
+  /* 카테고리(Unity, Unreal, Godot) 1-3위 - 반투명 그라데이션 배경 + 1.5px 불투명 단색 테두리 */
   .bg-wrapper-unity-top { @apply bg-wrapper-gradient-border bg-gradient-to-r from-purple-500/15 via-purple-400/10 to-indigo-500/15; }
   .bg-wrapper-unity-top::before { background-color: var(--category-border-unity-light); padding: 1.5px; }
+  .dark .bg-wrapper-unity-top { @apply bg-gradient-to-r from-purple-400/15 via-purple-300/10 to-indigo-400/15;}
   .dark .bg-wrapper-unity-top::before { background-color: var(--category-border-unity-dark); padding: 1.5px; }
 
   .bg-wrapper-unreal-top { @apply bg-wrapper-gradient-border bg-gradient-to-r from-sky-500/15 via-sky-400/10 to-blue-500/15; }
   .bg-wrapper-unreal-top::before { background-color: var(--category-border-unreal-light); padding: 1.5px; }
+  .dark .bg-wrapper-unreal-top { @apply bg-gradient-to-r from-sky-400/15 via-sky-300/10 to-blue-400/15;}
   .dark .bg-wrapper-unreal-top::before { background-color: var(--category-border-unreal-dark); padding: 1.5px; }
 
   .bg-wrapper-godot-top { @apply bg-wrapper-gradient-border bg-gradient-to-r from-emerald-500/15 via-emerald-400/10 to-green-500/15; }
   .bg-wrapper-godot-top::before { background-color: var(--category-border-godot-light); padding: 1.5px; }
+  .dark .bg-wrapper-godot-top { @apply bg-gradient-to-r from-emerald-400/15 via-emerald-300/10 to-green-400/15; }
   .dark .bg-wrapper-godot-top::before { background-color: var(--category-border-godot-dark); padding: 1.5px; }
   
-  /* 카테고리(Unity, Unreal, Godot) 4-10위 - 반투명 단색 배경 + 1px 단색 테두리 */
+  /* 카테고리(Unity, Unreal, Godot) 4-10위 - 반투명 단색 배경 + 1px 불투명 단색 테두리 */
   .bg-wrapper-unity { @apply p-1.5 rounded-md bg-purple-600/10 shadow-sm border border-purple-600/30; }
   .dark .bg-wrapper-unity { @apply bg-purple-500/10 border-purple-500/20; }
   .bg-wrapper-unreal { @apply p-1.5 rounded-md bg-sky-700/10 shadow-sm border border-sky-700/30; }
@@ -228,29 +245,34 @@ body {
   .bg-wrapper-godot { @apply p-1.5 rounded-md bg-emerald-600/10 shadow-sm border border-emerald-600/30; }
   .dark .bg-wrapper-godot { @apply bg-emerald-500/10 border-emerald-500/20; }
   
-  /* 일반&유머 1-3위 - 반투명 무지개 배경 + 1.5px 무지개 테두리 */
+  /* 일반&유머 1-3위 - 반투명 무지개 배경 + 1.5px 불투명 무지개 테두리 */
   .bg-wrapper-general-rainbow {
-    @apply bg-wrapper-gradient-border overflow-hidden; /* overflow-hidden 추가됨 */
+    @apply bg-wrapper-gradient-border; 
     background-image: linear-gradient(to right, hsla(var(--primary), 0.15), hsla(180, 50%, 50%, 0.15), hsla(var(--accent), 0.15), hsla(30, 85%, 63%, 0.15), hsla(var(--destructive), 0.15));
   }
   .bg-wrapper-general-rainbow::before {
-    background-image: linear-gradient(to right, hsl(var(--primary)), hsl(180, 50%, 50%), hsl(var(--accent)), hsl(30, 85%, 63%), hsl(var(--destructive)));
-    padding: 1.5px; /* 테두리 두께 1.5px */
+    @apply gradient-rainbow-light; /* 불투명 무지개 그라데이션 테두리 */
+    padding: 1.5px; 
   }
   .dark .bg-wrapper-general-rainbow {
     background-image: linear-gradient(to right, hsla(var(--primary), 0.15), hsla(180, 50%, 45%, 0.15), hsla(var(--accent), 0.15), hsla(30, 85%, 58%, 0.15), hsla(var(--destructive), 0.15));
   }
   .dark .bg-wrapper-general-rainbow::before {
-    background-image: linear-gradient(to right, hsl(var(--primary)), hsl(180, 50%, 45%), hsl(var(--accent)), hsl(30, 85%, 58%), hsl(var(--destructive)));
-    padding: 1.5px; /* 테두리 두께 1.5px */
+    @apply gradient-rainbow-dark; /* 불투명 무지개 그라데이션 테두리 (다크모드용) */
+    padding: 1.5px; 
   }
   
-  /* 일반&유머 4-10위 - 반투명 단색 배경 + 1px 단색 테두리 */
+  /* 일반&유머 4-10위 - 반투명 단색 배경 + 1px 불투명 단색 테두리 */
   .bg-wrapper-general-mid {
-    @apply p-1.5 rounded-md shadow-sm border bg-slate-100/20 border-slate-300;
+    @apply p-1.5 rounded-md shadow-sm border;
+    background-color: var(--general-mid-bg-light);
+    border-color: var(--general-mid-border-light);
+    border-width: 1px;
   }
   .dark .bg-wrapper-general-mid {
-    @apply bg-slate-800/20 border-slate-600;
+    background-color: var(--general-mid-bg-dark);
+    border-color: var(--general-mid-border-dark);
+    border-width: 1px;
   }
 
   /* 관리자 뱃지 및 텍스트 */
@@ -278,4 +300,3 @@ body {
 .icon-unreal { color: hsl(var(--category-icon-unreal-hsl)); }
 .icon-godot { color: hsl(var(--category-icon-godot-hsl)); }
 .icon-general { color: hsl(var(--category-icon-general-hsl)); }
-
