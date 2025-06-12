@@ -22,7 +22,7 @@ export function ThemeToggleButton() {
       <Button
         variant="ghost"
         size="icon"
-        className="w-9 h-9 opacity-0 hover:opacity-100 hover:bg-muted/50 cursor-default"
+        className="w-9 h-9 opacity-0 hover:opacity-100 hover:bg-secondary hover:text-foreground cursor-default transition-colors duration-200"
         aria-hidden="true"
       />
     );
@@ -39,7 +39,7 @@ export function ThemeToggleButton() {
       size="icon"
       onClick={toggleTheme}
       aria-label="Toggle theme"
-      className="w-9 h-9 transition-colors duration-200 hover:bg-muted/50 focus-visible:ring-ring focus-visible:ring-2 focus-visible:ring-offset-2"
+      className="w-9 h-9 transition-colors duration-200 hover:bg-secondary hover:text-foreground focus-visible:ring-ring focus-visible:ring-2 focus-visible:ring-offset-2"
     >
       {/* Display Sun icon if current theme is dark, Moon icon if light */}
       {resolvedTheme === 'dark' ? (
