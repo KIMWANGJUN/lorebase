@@ -16,8 +16,15 @@ export function ThemeToggleButton() {
 
   // Avoid rendering button until mounted to prevent hydration mismatch
   if (!mounted) {
-    // Placeholder button: initially transparent, on hover becomes visible with accent background
-    return <Button variant="ghost" size="icon" className="w-9 h-9 opacity-0 hover:opacity-100 hover:bg-accent/10 cursor-default" aria-hidden="true" />;
+    // Placeholder button: initially transparent, on hover becomes visible with a light border
+    return (
+      <Button
+        variant="ghost"
+        size="icon"
+        className="w-9 h-9 opacity-0 hover:opacity-100 hover:bg-transparent hover:border-foreground/20 border border-transparent cursor-default"
+        aria-hidden="true"
+      />
+    );
   }
 
   const toggleTheme = () => {
@@ -26,12 +33,12 @@ export function ThemeToggleButton() {
   }
 
   return (
-    <Button 
-      variant="ghost" 
-      size="icon" 
-      onClick={toggleTheme} 
+    <Button
+      variant="ghost"
+      size="icon"
+      onClick={toggleTheme}
       aria-label="Toggle theme"
-      className="w-9 h-9 transition-colors duration-200 border border-transparent hover:border-foreground/20 focus-visible:ring-ring focus-visible:ring-2 focus-visible:ring-offset-2"
+      className="w-9 h-9 transition-colors duration-200 border border-transparent hover:bg-transparent hover:border-foreground/20 focus-visible:ring-ring focus-visible:ring-2 focus-visible:ring-offset-2"
     >
       {/* Display Sun icon if current theme is dark, Moon icon if light */}
       {resolvedTheme === 'dark' ? (
