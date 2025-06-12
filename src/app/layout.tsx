@@ -18,8 +18,8 @@ export default function RootLayout({
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        {/* Replaced Noto Sans KR with BM Jua (Jua from Google Fonts) */}
-        <link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet" />
+        {/* Jua (current body font) and Do Hyeon (new headline font) */}
+        <link href="https://fonts.googleapis.com/css2?family=Jua&family=Do+Hyeon&display=swap" rel="stylesheet" />
       </head>
       <body className="font-body antialiased">
           <AuthProvider>

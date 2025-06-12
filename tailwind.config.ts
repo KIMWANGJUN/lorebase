@@ -68,9 +68,8 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        // Changed from Noto Sans KR to Jua, keeping sans-serif as fallback
-        body: ['Jua', 'sans-serif'],
-        headline: ['Jua', 'sans-serif'], 
+        body: ['Jua', 'sans-serif'], // 현재 본문 폰트 (주아체)
+        headline: ['Do Hyeon', 'sans-serif'], // 제목용 폰트 (도현체)
         code: ['monospace'],
       },
       colors: {
