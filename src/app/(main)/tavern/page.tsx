@@ -77,7 +77,7 @@ const PostItem = ({ post, currentUser, router }: { post: Post, currentUser: User
         <CardFooter className="flex justify-start items-center text-xs text-muted-foreground px-3 py-1 mt-1">
           <div className="flex gap-2 items-center">
             <span className="flex items-center text-[10px]"><ThumbsUp className="h-2.5 w-2.5 mr-0.5" /> {post.upvotes}</span>
-            {isAdminPost && <span className="flex items-center text-[10px]"><ThumbsDown className="h-2.5 w-2.5 mr-0.5" /> {post.downvotes}</span>}
+            {isAdmin && <span className="flex items-center text-[10px]"><ThumbsDown className="h-2.5 w-2.5 mr-0.5" /> {post.downvotes}</span>}
             <span className="flex items-center text-[10px]"><MessageSquare className="h-2.5 w-2.5 mr-0.5" /> {post.commentCount}</span>
             <span className="flex items-center text-[10px]"><Eye className="h-2.5 w-2.5 mr-0.5" /> {post.views}</span>
           </div>
@@ -128,7 +128,7 @@ const SubTabsComponent: FC<SubTabsComponentProps> = ({ activeSubTab, setActiveSu
           <TabsTrigger
             key={tab.value}
             value={tab.value}
-            className="data-[state=active]:bg-secondary data-[state=active]:text-secondary-foreground flex-1 lg:flex-none text-sm" // CHZZK: ~14px for tab text
+            className="data-[state=active]:bg-secondary data-[state=active]:text-secondary-foreground flex-1 lg:flex-none text-sm font-headline" // CHZZK: ~14px for tab text
           >
             {tab.icon && <tab.icon className="mr-1.5 h-4 w-4" />}
             {tab.label}
@@ -250,7 +250,7 @@ export default function TavernPage() {
         <div className="absolute inset-0 bg-gradient-to-r from-accent/70 via-primary/50 to-background/70 rounded-xl z-0 opacity-80"></div>
         <div className="relative z-10">
             <h1 className="text-3xl md:text-5xl font-bold text-primary-foreground drop-shadow-lg font-headline">선술집 (커뮤니티)</h1> {/* CHZZK: 18-24px bold for main titles */}
-            <p className="text-base md:text-lg text-primary-foreground/90 mt-2 drop-shadow-sm">개발자들과 자유롭게 소통하고 정보를 공유하세요.</p> {/* CHZZK: ~16px for subtitles */}
+            <p className="text-base md:text-lg text-primary-foreground/90 mt-2 drop-shadow-sm font-body">개발자들과 자유롭게 소통하고 정보를 공유하세요.</p> {/* CHZZK: ~16px for subtitles */}
         </div>
       </section>
 
@@ -276,10 +276,10 @@ export default function TavernPage() {
 
       <Tabs value={mainCategory} onValueChange={(value) => handleMainCategoryChange(value as PostMainCategory)} className="mb-8">
         <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 bg-card border-border p-1.5 rounded-lg shadow-inner items-center">
-          <TabsTrigger value="Unity" className="rounded-md px-4 py-1.5 flex items-center justify-center gap-1.5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-sm"><Box className="h-4 w-4" />Unity</TabsTrigger> {/* CHZZK: ~14px for tab text */}
-          <TabsTrigger value="Unreal" className="rounded-md px-4 py-1.5 flex items-center justify-center gap-1.5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-sm"><AppWindow className="h-4 w-4" />Unreal</TabsTrigger>
-          <TabsTrigger value="Godot" className="rounded-md px-4 py-1.5 flex items-center justify-center gap-1.5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-sm"><PenTool className="h-4 w-4" />Godot</TabsTrigger>
-          <TabsTrigger value="General" className="rounded-md px-4 py-1.5 flex items-center justify-center gap-1.5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-sm"><LayoutGrid className="h-4 w-4" />일반 & 유머</TabsTrigger>
+          <TabsTrigger value="Unity" className="font-headline rounded-md px-4 py-1.5 flex items-center justify-center gap-1.5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-sm"><Box className="h-4 w-4" />Unity</TabsTrigger> {/* CHZZK: ~14px for tab text */}
+          <TabsTrigger value="Unreal" className="font-headline rounded-md px-4 py-1.5 flex items-center justify-center gap-1.5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-sm"><AppWindow className="h-4 w-4" />Unreal</TabsTrigger>
+          <TabsTrigger value="Godot" className="font-headline rounded-md px-4 py-1.5 flex items-center justify-center gap-1.5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-sm"><PenTool className="h-4 w-4" />Godot</TabsTrigger>
+          <TabsTrigger value="General" className="font-headline rounded-md px-4 py-1.5 flex items-center justify-center gap-1.5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-sm"><LayoutGrid className="h-4 w-4" />일반 & 유머</TabsTrigger>
         </TabsList>
       </Tabs>
 
@@ -326,4 +326,5 @@ export default function TavernPage() {
     </div>
   );
 }
+
 
