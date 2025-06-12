@@ -66,7 +66,7 @@ const PostItem = ({
       <Link href={`/tavern/${post.id}`} className="block hover:bg-card/5 transition-colors rounded-lg relative">
         <CardHeader className="pb-1 pt-2 px-3">
           <div className="flex justify-between items-start">
-            <CardTitle className={cn("text-base mb-0.5 flex items-center text-foreground font-headline font-bold", isNotice && "text-primary")}>
+            <CardTitle className={cn("text-base mb-0.5 flex items-center font-headline font-bold", isNotice ? "text-primary" : "text-foreground")}>
               {post.isPinned && <Pin className="h-4 w-4 mr-2 text-accent" />}
               {isNotice && <ScrollText className="h-4 w-4 mr-2 text-primary" />}
               {post.title}
@@ -280,7 +280,7 @@ export default function TavernPage() {
           variant={currentPage === i ? 'default' : 'outline'}
           size="sm"
           onClick={() => paginate(i)}
-          className={cn("h-8 w-8 p-0 font-headline", currentPage === i ? "bg-primary text-primary-foreground border-primary" : "text-muted-foreground border-border hover:bg-muted/50 hover:border-accent/50")}
+          className={cn("h-8 w-8 p-0 font-headline", currentPage === i ? "bg-primary text-primary-foreground border-primary" : "border-accent/50 text-accent hover:bg-accent/10 hover:text-accent/90")}
         >
           {i}
         </Button>
@@ -370,11 +370,11 @@ export default function TavernPage() {
           {totalPages > 0 && (
             <div className="mt-8 flex flex-col items-center gap-4">
                 <div className="flex items-center gap-1 sm:gap-2">
-                    <Button variant="outline" size="icon" onClick={() => paginate(1)} disabled={currentPage === 1} className="text-muted-foreground border-border hover:bg-muted/50 hover:border-accent/50 h-8 w-8 font-headline" aria-label="First page"><ChevronsLeft className="h-4 w-4"/></Button>
-                    <Button variant="outline" size="icon" onClick={() => paginate(currentPage - 1)} disabled={currentPage === 1} className="text-muted-foreground border-border hover:bg-muted/50 hover:border-accent/50 h-8 w-8 font-headline" aria-label="Previous page"><ChevronLeft className="h-4 w-4"/></Button>
+                    <Button variant="outline" size="icon" onClick={() => paginate(1)} disabled={currentPage === 1} className="border-accent/50 text-accent hover:bg-accent/10 hover:text-accent/90 h-8 w-8 font-headline" aria-label="First page"><ChevronsLeft className="h-4 w-4"/></Button>
+                    <Button variant="outline" size="icon" onClick={() => paginate(currentPage - 1)} disabled={currentPage === 1} className="border-accent/50 text-accent hover:bg-accent/10 hover:text-accent/90 h-8 w-8 font-headline" aria-label="Previous page"><ChevronLeft className="h-4 w-4"/></Button>
                     {renderPageNumbers()}
-                    <Button variant="outline" size="icon" onClick={() => paginate(currentPage + 1)} disabled={currentPage === totalPages} className="text-muted-foreground border-border hover:bg-muted/50 hover:border-accent/50 h-8 w-8 font-headline" aria-label="Next page"><ChevronRight className="h-4 w-4"/></Button>
-                    <Button variant="outline" size="icon" onClick={() => paginate(totalPages)} disabled={currentPage === totalPages} className="text-muted-foreground border-border hover:bg-muted/50 hover:border-accent/50 h-8 w-8 font-headline" aria-label="Last page"><ChevronsRight className="h-4 w-4"/></Button>
+                    <Button variant="outline" size="icon" onClick={() => paginate(currentPage + 1)} disabled={currentPage === totalPages} className="border-accent/50 text-accent hover:bg-accent/10 hover:text-accent/90 h-8 w-8 font-headline" aria-label="Next page"><ChevronRight className="h-4 w-4"/></Button>
+                    <Button variant="outline" size="icon" onClick={() => paginate(totalPages)} disabled={currentPage === totalPages} className="border-accent/50 text-accent hover:bg-accent/10 hover:text-accent/90 h-8 w-8 font-headline" aria-label="Last page"><ChevronsRight className="h-4 w-4"/></Button>
                 </div>
                 <p className="text-sm text-muted-foreground font-headline">총 {totalPages} 페이지 중 {currentPage} 페이지</p>
             </div>
@@ -387,6 +387,3 @@ export default function TavernPage() {
     </div>
   );
 }
-
-
-

@@ -74,7 +74,7 @@ export default function HomePage() {
           variant={currentPage === i ? 'default' : 'outline'}
           size="sm"
           onClick={() => paginate(i)}
-          className={cn("h-8 w-8 p-0", currentPage === i ? "bg-primary text-primary-foreground border-primary" : "text-muted-foreground border-border hover:bg-muted/50 hover:border-accent/50")}
+          className={cn("h-8 w-8 p-0 font-headline", currentPage === i ? "bg-primary text-primary-foreground border-primary" : "border-accent/50 text-accent hover:bg-accent/10 hover:text-accent/90")}
         >
           {i}
         </Button>
@@ -193,7 +193,7 @@ export default function HomePage() {
         <div className="lg:col-span-2">
           <div className="flex justify-between items-center mb-6">
             <h2 className="font-headline text-2xl lg:text-3xl font-bold text-primary">최신 인기 글</h2>
-            <Button variant="outline" asChild className="border-primary/50 text-primary hover:bg-primary/10 hover:text-primary text-sm">
+            <Button variant="outline" size="sm" asChild className="border-accent/50 text-accent hover:bg-accent/10 hover:text-accent/90 text-sm">
               <Link href="/tavern">모든 글 보기 <ArrowRight className="ml-2 h-4 w-4" /></Link>
             </Button>
           </div>
@@ -231,11 +231,11 @@ export default function HomePage() {
               {totalPages > 1 && (
                 <div className="mt-8 flex flex-col items-center gap-4">
                     <div className="flex items-center gap-1 sm:gap-2">
-                        <Button variant="outline" size="icon" onClick={() => paginate(1)} disabled={currentPage === 1} className="text-muted-foreground border-border hover:bg-muted/50 hover:border-accent/50 h-8 w-8" aria-label="First page"><ChevronsLeft className="h-4 w-4"/></Button>
-                        <Button variant="outline" size="icon" onClick={() => paginate(currentPage - 1)} disabled={currentPage === 1} className="text-muted-foreground border-border hover:bg-muted/50 hover:border-accent/50 h-8 w-8" aria-label="Previous page"><ChevronLeft className="h-4 w-4"/></Button>
+                        <Button variant="outline" size="icon" onClick={() => paginate(1)} disabled={currentPage === 1} className="border-accent/50 text-accent hover:bg-accent/10 hover:text-accent/90 h-8 w-8 font-headline" aria-label="First page"><ChevronsLeft className="h-4 w-4"/></Button>
+                        <Button variant="outline" size="icon" onClick={() => paginate(currentPage - 1)} disabled={currentPage === 1} className="border-accent/50 text-accent hover:bg-accent/10 hover:text-accent/90 h-8 w-8 font-headline" aria-label="Previous page"><ChevronLeft className="h-4 w-4"/></Button>
                         {renderPageNumbers()}
-                        <Button variant="outline" size="icon" onClick={() => paginate(currentPage + 1)} disabled={currentPage === totalPages} className="text-muted-foreground border-border hover:bg-muted/50 hover:border-accent/50 h-8 w-8" aria-label="Next page"><ChevronRight className="h-4 w-4"/></Button>
-                        <Button variant="outline" size="icon" onClick={() => paginate(totalPages)} disabled={currentPage === totalPages} className="text-muted-foreground border-border hover:bg-muted/50 hover:border-accent/50 h-8 w-8" aria-label="Last page"><ChevronsRight className="h-4 w-4"/></Button>
+                        <Button variant="outline" size="icon" onClick={() => paginate(currentPage + 1)} disabled={currentPage === totalPages} className="border-accent/50 text-accent hover:bg-accent/10 hover:text-accent/90 h-8 w-8 font-headline" aria-label="Next page"><ChevronRight className="h-4 w-4"/></Button>
+                        <Button variant="outline" size="icon" onClick={() => paginate(totalPages)} disabled={currentPage === totalPages} className="border-accent/50 text-accent hover:bg-accent/10 hover:text-accent/90 h-8 w-8 font-headline" aria-label="Last page"><ChevronsRight className="h-4 w-4"/></Button>
                     </div>
                     <p className="text-sm text-muted-foreground font-headline">총 {totalPages} 페이지 중 {currentPage} 페이지</p>
                 </div>
@@ -313,7 +313,7 @@ export default function HomePage() {
                     size="sm"
                     onClick={() => setCommunityRankingCurrentPage(prev => Math.max(1, prev - 1))}
                     disabled={communityRankingCurrentPage === 1}
-                    className="border-border text-muted-foreground hover:bg-muted/50 hover:border-accent"
+                    className="border-accent/50 text-accent hover:bg-accent/10 hover:text-accent/90"
                   >
                     <ChevronLeft className="h-4 w-4 mr-1" />
                     이전
@@ -326,7 +326,7 @@ export default function HomePage() {
                     size="sm"
                     onClick={() => setCommunityRankingCurrentPage(prev => Math.min(totalCommunityRankingPages, prev + 1))}
                     disabled={communityRankingCurrentPage === totalCommunityRankingPages || rankedUsersToDisplay.length <= COMMUNITY_RANKERS_PER_PAGE * communityRankingCurrentPage}
-                    className="border-border text-muted-foreground hover:bg-muted/50 hover:border-accent"
+                    className="border-accent/50 text-accent hover:bg-accent/10 hover:text-accent/90"
                   >
                     다음
                     <ChevronRight className="h-4 w-4 ml-1" />

@@ -431,7 +431,7 @@ export default function ProfilePage() {
                                               {provider === 'google' && <GoogleIconSvg />}
                                               {provider === 'naver' && <NaverIconSvg />}
                                               {provider === 'kakao' && <KakaoIconSvg />}
-                                              <span className={cn("text-sm font-medium text-foreground font-logo")}>
+                                              <span className={cn("text-sm font-medium font-logo")}>
                                                   {provider.charAt(0).toUpperCase() + provider.slice(1)}
                                               </span>
                                           </div>
@@ -443,7 +443,7 @@ export default function ProfilePage() {
                                                   <Button variant="link" size="sm" className="text-xs text-muted-foreground hover:text-destructive p-0 h-auto" onClick={() => handleSocialUnlink(provider)}>연동 해제</Button>
                                               </div>
                                           ) : (
-                                              <Button variant="outline" size="sm" onClick={() => handleSocialLink(provider)} className="border-accent text-accent hover:bg-accent/10">
+                                              <Button variant="outline" size="sm" onClick={() => handleSocialLink(provider)} className="border-accent/50 text-accent hover:bg-accent/10 hover:text-accent/90">
                                                   <Link2 className="h-4 w-4 mr-1" /> 연동하기
                                               </Button>
                                           )}
