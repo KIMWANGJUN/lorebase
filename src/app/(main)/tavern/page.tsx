@@ -329,10 +329,10 @@ export default function TavernPage() {
 
       <Tabs value={mainCategory} onValueChange={(value) => handleMainCategoryChange(value as PostMainCategory)} className="mb-8">
         <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 bg-card border-border p-1.5 rounded-lg shadow-inner items-center">
-          <TabsTrigger value="Unity" className="font-headline rounded-md px-4 py-1.5 flex items-center justify-center gap-1.5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-sm"><Box className="h-4 w-4" />Unity</TabsTrigger>
-          <TabsTrigger value="Unreal" className="font-headline rounded-md px-4 py-1.5 flex items-center justify-center gap-1.5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-sm"><AppWindow className="h-4 w-4" />Unreal</TabsTrigger>
-          <TabsTrigger value="Godot" className="font-headline rounded-md px-4 py-1.5 flex items-center justify-center gap-1.5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-sm"><PenTool className="h-4 w-4" />Godot</TabsTrigger>
-          <TabsTrigger value="General" className="font-headline rounded-md px-4 py-1.5 flex items-center justify-center gap-1.5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-sm"><LayoutGrid className="h-4 w-4" />일반 & 유머</TabsTrigger>
+          <TabsTrigger value="Unity" className="font-headline rounded-md px-2 py-1.5 flex items-center justify-center gap-1.5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-sm"><Box className="h-4 w-4" />Unity</TabsTrigger>
+          <TabsTrigger value="Unreal" className="font-headline rounded-md px-2 py-1.5 flex items-center justify-center gap-1.5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-sm"><AppWindow className="h-4 w-4" />Unreal</TabsTrigger>
+          <TabsTrigger value="Godot" className="font-headline rounded-md px-2 py-1.5 flex items-center justify-center gap-1.5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-sm"><PenTool className="h-4 w-4" />Godot</TabsTrigger>
+          <TabsTrigger value="General" className="font-headline rounded-md px-2 py-1.5 flex items-center justify-center gap-1.5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-sm"><LayoutGrid className="h-4 w-4" />일반 & 유머</TabsTrigger>
         </TabsList>
       </Tabs>
 
@@ -387,4 +387,5 @@ export default function TavernPage() {
     </div>
   );
 }
+
 
