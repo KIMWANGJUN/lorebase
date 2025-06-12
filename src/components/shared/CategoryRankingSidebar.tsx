@@ -15,7 +15,6 @@ import { useAuth } from '@/contexts/AuthContext'; // Import useAuth
 
 interface CategoryRankingSidebarProps {
   category: PostMainCategory;
-  // currentUser prop can be removed if we use useAuth hook
 }
 
 const POSTS_PER_PAGE = 10;
@@ -49,13 +48,13 @@ const getCategoryDisplayName = (category: PostMainCategory): string => {
 
 export default function CategoryRankingSidebar({ category }: CategoryRankingSidebarProps) {
   const [currentPage, setCurrentPage] = useState(1);
-  const { user: currentUser, isAdmin } = useAuth(); // Get currentUser and isAdmin from AuthContext
+  const { user: currentUser, isAdmin } = useAuth(); 
 
   const categoryRankers = useMemo(() => {
     return mockUsers
       .filter(u => u.username !== 'WANGJUNLAND' && u.categoryStats?.[category]?.rankInCate && u.categoryStats[category]!.rankInCate! > 0 && u.categoryStats[category]!.rankInCate! <= 20)
       .sort((a, b) => (a.categoryStats![category]!.rankInCate!) - (b.categoryStats![category]!.rankInCate!))
-      .slice(0, 20); // Ensure we only consider top 20 for pagination
+      .slice(0, 20); 
   }, [category]);
 
   const totalPages = Math.ceil(categoryRankers.length / POSTS_PER_PAGE);
@@ -92,11 +91,11 @@ export default function CategoryRankingSidebar({ category }: CategoryRankingSide
         {currentDisplayRankers.map((rankerUser) => {
           const rankInCate = rankerUser.categoryStats?.[category]?.rankInCate || 0;
           return (
-            <div 
-              key={rankerUser.id} 
+            <div
+              key={rankerUser.id}
               className={cn(
-                "flex items-center justify-between p-2.5 rounded-md shadow-sm border border-border/70", // Base styles for all items
-                rankerUser.id === currentUser?.id && "ring-2 ring-primary/50" // Highlight for current user
+                "flex items-center justify-between p-2.5 rounded-md shadow-sm", // Removed explicit border here
+                rankerUser.id === currentUser?.id && "ring-2 ring-primary/50" 
             )}>
               <div className="flex items-center gap-2.5">
                 <span className="font-bold text-md w-6 text-center shrink-0 text-muted-foreground">
@@ -145,4 +144,3 @@ export default function CategoryRankingSidebar({ category }: CategoryRankingSide
     </Card>
   );
 }
-
