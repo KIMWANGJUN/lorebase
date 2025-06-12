@@ -36,7 +36,7 @@ export default function Header() {
             <Link 
               key={item.label} 
               href={item.href} 
-              className="flex items-center gap-1 text-muted-foreground transition-colors hover:text-accent font-headline text-base hover:font-bold active:font-bold"
+              className="flex items-center gap-1 text-muted-foreground transition-colors hover:text-accent font-headline text-lg hover:font-bold active:font-bold"
             >
               <item.icon className="h-4 w-4" />
               {item.label}
@@ -45,7 +45,7 @@ export default function Header() {
           {isAdmin && (
             <Link 
               href="/admin" 
-              className="flex items-center gap-1 text-destructive/80 transition-colors hover:text-destructive font-headline text-base hover:font-bold active:font-bold"
+              className="flex items-center gap-1 text-destructive/80 transition-colors hover:text-destructive font-headline text-lg hover:font-bold active:font-bold"
             >
               <ShieldCheck className="h-4 w-4" />
               관리자
