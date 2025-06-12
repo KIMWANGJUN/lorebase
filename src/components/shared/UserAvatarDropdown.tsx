@@ -30,7 +30,7 @@ export default function UserAvatarDropdown({ user, isAdmin, onLogout }: UserAvat
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <button className="flex items-center gap-2 rounded-full focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 hover:opacity-90 transition-opacity">
+        <button className="flex items-center gap-2 rounded-full focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 hover:bg-muted/50 transition-colors p-1">
           <Avatar className="h-9 w-9 border-2 border-accent/50">
             <AvatarImage src={user.avatar} alt={user.nickname} data-ai-hint="user avatar icon"/>
             <AvatarFallback className="bg-muted text-muted-foreground">{getInitials(user.nickname)}</AvatarFallback>

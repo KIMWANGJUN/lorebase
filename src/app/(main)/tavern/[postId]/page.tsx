@@ -173,7 +173,7 @@ export default function PostDetailPage() {
       )}>
         <CardHeader>
           <div className="flex justify-between items-start">
-            <CardTitle className="text-2xl font-bold flex items-center text-foreground">
+            <CardTitle className="text-2xl font-bold flex items-center text-foreground font-headline">
               {post.isPinned && <Pin className="h-6 w-6 mr-2 text-primary" />}
               {isNotice && <MessageSquare className="h-6 w-6 mr-2 text-primary" />}
               {post.title}
