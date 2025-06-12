@@ -21,10 +21,10 @@ import { cn } from '@/lib/utils';
 import Image from 'next/image';
 import NicknameDisplay from '@/components/shared/NicknameDisplay';
 
-// Placeholder icons for social login (can be replaced with actual icons)
-const GoogleIcon = () => <svg className="h-4 w-4" viewBox="0 0 24 24"><path fill="currentColor" d="M21.35 11.1h-9.03v2.79h5.32c-.46 1.65-1.96 2.93-3.98 2.93-2.48 0-4.5-2.01-4.5-4.49s2.02-4.49 4.5-4.49c1.21 0 2.26.44 3.08 1.16l2.13-2.13C15.41 4.46 13.54 3.5 11.32 3.5 7.06 3.5 3.5 7.06 3.5 11.32s3.56 7.82 7.82 7.82c4.07 0 7.49-3.16 7.49-7.49 0-.61-.07-1.21-.19-1.75z"></path></svg>;
-const NaverIcon = () => <svg className="h-4 w-4" viewBox="0 0 24 24"><path fill="#03C75A" d="M16.273 12.845L12.54 7.155H7.045v9.69h5.768l3.733-5.69zM7.045 4.5h9.91v2.655h-4.23L8.502 11.73H7.045V4.5zm0 15h9.91V16.87h-4.23l-4.228-4.575H7.045v7.19z"></path></svg>;
-const KakaoIcon = () => <svg className="h-4 w-4" viewBox="0 0 24 24"><path fill="#FFEB00" d="M12 2C6.48 2 2 5.89 2 10.49c0 2.83 1.71 5.31 4.31 6.78-.19.98-.71 3.42-1.14 4.47-.09.24.06.5.3.59.08.03.16.04.24.04.16 0 .31-.06.43-.18 1.87-1.41 3.29-2.78 4.07-3.68C10.99 18.91 11.5 19 12 19c5.52 0 10-3.89 10-8.51S17.52 2 12 2z"></path></svg>;
+// LoginPage에서 가져온 SVG 아이콘 정의 - ProfilePage 컴포넌트 바깥에 위치
+const GoogleIconSvg = () => <svg className="h-5 w-5" viewBox="0 0 24 24"><path fill="currentColor" d="M21.35 11.1h-9.03v2.79h5.32c-.46 1.65-1.96 2.93-3.98 2.93-2.48 0-4.5-2.01-4.5-4.49s2.02-4.49 4.5-4.49c1.21 0 2.26.44 3.08 1.16l2.13-2.13C15.41 4.46 13.54 3.5 11.32 3.5 7.06 3.5 3.5 7.06 3.5 11.32s3.56 7.82 7.82 7.82c4.07 0 7.49-3.16 7.49-7.49 0-.61-.07-1.21-.19-1.75z"></path></svg>;
+const NaverIconSvg = () => <svg className="h-5 w-5" viewBox="0 0 24 24"><path fill="#03C75A" d="M16.273 12.845L12.54 7.155H7.045v9.69h5.768l3.733-5.69zM7.045 4.5h9.91v2.655h-4.23L8.502 11.73H7.045V4.5zm0 15h9.91V16.87h-4.23l-4.228-4.575H7.045v7.19z"></path></svg>;
+const KakaoIconSvg = () => <svg className="h-5 w-5" viewBox="0 0 24 24"><path fill="#FFEB00" d="M12 2C6.48 2 2 5.89 2 10.49c0 2.83 1.71 5.31 4.31 6.78-.19.98-.71 3.42-1.14 4.47-.09.24.06.5.3.59.08.03.16.04.24.04.16 0 .31-.06.43-.18 1.87-1.41 3.29-2.78 4.07-3.68C10.99 18.91 11.5 19 12 19c5.52 0 10-3.89 10-8.51S17.52 2 12 2z"></path></svg>;
 
 
 const getCategoryDisplayName = (category: PostMainCategory | 'Global'): string => {
@@ -416,28 +416,40 @@ export default function ProfilePage() {
                         <Card className="bg-card border-border">
                             <CardHeader><CardTitle className="text-foreground">소셜 계정 연동</CardTitle><CardDescription className="text-muted-foreground">다른 소셜 계정과 현재 계정을 연동하거나 해제합니다.</CardDescription></CardHeader>
                             <CardContent className="space-y-4">
-                                {(['google', 'naver', 'kakao'] as const).map((provider) => (
-                                    <div key={provider} className="flex items-center justify-between p-3 border border-border rounded-md bg-muted/30">
-                                        <div className="flex items-center gap-2">
-                                            {provider === 'google' && <GoogleIcon />}
-                                            {provider === 'naver' && <NaverIcon />}
-                                            {provider === 'kakao' && <KakaoIcon />}
-                                            <span className="text-sm font-medium text-foreground">
-                                                {provider.charAt(0).toUpperCase() + provider.slice(1)}
-                                            </span>
-                                        </div>
-                                        {user.socialProfiles && user.socialProfiles[provider] ? (
-                                            <div className="flex items-center gap-2">
-                                                <span className="text-sm text-green-400 flex items-center"><CheckSquare className="h-4 w-4 mr-1"/>연동됨</span>
-                                                <Button variant="link" size="sm" className="text-xs text-muted-foreground hover:text-destructive p-0 h-auto" onClick={() => handleSocialUnlink(provider)}>연동 해제</Button>
-                                            </div>
-                                        ) : (
-                                            <Button variant="outline" size="sm" onClick={() => handleSocialLink(provider)} className="border-accent text-accent hover:bg-accent/10">
-                                                <Link2 className="h-4 w-4 mr-1" /> 연동하기
-                                            </Button>
-                                        )}
-                                    </div>
-                                ))}
+                                {(['google', 'naver', 'kakao'] as const).map((provider) => {
+                                    const isLinked = user.socialProfiles && user.socialProfiles[provider];
+                                    let statusColorClass = '';
+                                    if (isLinked) {
+                                      if (provider === 'google') statusColorClass = 'text-foreground';
+                                      else if (provider === 'naver') statusColorClass = 'text-green-400';
+                                      else if (provider === 'kakao') statusColorClass = 'text-yellow-500 dark:text-yellow-400';
+                                    }
+
+                                    return (
+                                      <div key={provider} className="flex items-center justify-between p-3 border border-border rounded-md bg-muted/30">
+                                          <div className="flex items-center gap-2">
+                                              {provider === 'google' && <GoogleIconSvg />}
+                                              {provider === 'naver' && <NaverIconSvg />}
+                                              {provider === 'kakao' && <KakaoIconSvg />}
+                                              <span className={cn("text-sm font-medium text-foreground font-logo")}>
+                                                  {provider.charAt(0).toUpperCase() + provider.slice(1)}
+                                              </span>
+                                          </div>
+                                          {isLinked ? (
+                                              <div className="flex items-center gap-2">
+                                                  <span className={cn("text-sm flex items-center", statusColorClass)}>
+                                                    <CheckSquare className={cn("h-4 w-4 mr-1", statusColorClass)} />연동됨
+                                                  </span>
+                                                  <Button variant="link" size="sm" className="text-xs text-muted-foreground hover:text-destructive p-0 h-auto" onClick={() => handleSocialUnlink(provider)}>연동 해제</Button>
+                                              </div>
+                                          ) : (
+                                              <Button variant="outline" size="sm" onClick={() => handleSocialLink(provider)} className="border-accent text-accent hover:bg-accent/10">
+                                                  <Link2 className="h-4 w-4 mr-1" /> 연동하기
+                                              </Button>
+                                          )}
+                                      </div>
+                                    );
+                                })}
                             </CardContent>
                         </Card>
                     </TabsContent>
