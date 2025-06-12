@@ -7,7 +7,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ChevronLeft, ChevronRight, ListFilter, LayoutGrid, Box, AppWindow, PenTool, ThumbsUp, MessageSquare } from 'lucide-react';
+import { ListFilter, LayoutGrid, Box, AppWindow, PenTool, ThumbsUp, MessageSquare } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface MiniPostListProps {
@@ -67,7 +67,9 @@ export default function MiniPostList({ allPosts, currentPostId }: MiniPostListPr
               <TabsTrigger 
                 key={tab.value} 
                 value={tab.value} 
-                className="text-xs px-2 py-1.5 sm:px-3 sm:py-2 sm:text-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground flex-1 md:flex-none"
+                className={cn(
+                  "font-headline text-xs px-2 py-1.5 sm:px-3 sm:py-2 sm:text-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground flex-1 md:flex-none",
+                )}
               >
                 {tab.icon && <tab.icon className="h-3.5 w-3.5 mr-0 sm:mr-1.5 inline-block" />}
                 <span className={cn(tab.icon && "hidden sm:inline")}>{tab.label}</span>
@@ -122,17 +124,16 @@ export default function MiniPostList({ allPosts, currentPostId }: MiniPostListPr
       {totalPages > 1 && (
         <div className="mt-6 flex items-center justify-between">
           <Button variant="outline" size="sm" onClick={handlePrevPage} disabled={currentPage === 1} className="border-border text-muted-foreground hover:bg-muted/50 hover:border-accent">
-            <ChevronLeft className="mr-1 h-4 w-4" /> 이전
+            이전
           </Button>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-sm text-muted-foreground font-headline">
             페이지 {currentPage} / {totalPages}
           </p>
           <Button variant="outline" size="sm" onClick={handleNextPage} disabled={currentPage === totalPages} className="border-border text-muted-foreground hover:bg-muted/50 hover:border-accent">
-            다음 <ChevronRight className="ml-1 h-4 w-4" />
+            다음
           </Button>
         </div>
       )}
     </section>
   );
 }
-
