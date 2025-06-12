@@ -237,8 +237,8 @@ body {
   }
   
   .bg-wrapper-general-rainbow {
-    @apply p-1.5 rounded-md shadow-sm border border-transparent overflow-hidden;
-    /* Translucent Rainbow Background - Light Mode */
+    @apply relative p-1.5 rounded-md shadow-sm overflow-hidden; /* Tailwind classes for basic structure */
+    /* Translucent Rainbow Background for the main element - Light Mode */
     background-image: linear-gradient(to right,
       hsla(var(--primary), 0.15),
       hsla(180, 50%, 50%, 0.15),
@@ -246,35 +246,58 @@ body {
       hsla(30, 85%, 63%, 0.15),
       hsla(var(--destructive), 0.15)
     );
-    /* Rainbow Border - Light Mode */
-    border-image-source: linear-gradient(to right,
+  }
+  .bg-wrapper-general-rainbow::before {
+    content: "";
+    position: absolute;
+    inset: 0; /* Stretch to fill parent */
+    border-radius: inherit; /* Inherit parent's rounded-md */
+    padding: 1px; /* This creates the border thickness */
+    background: linear-gradient(to right, /* Solid Rainbow for the border - Light Mode */
       hsl(var(--primary)),
       hsl(180, 50%, 50%),
       hsl(var(--accent)),
       hsl(30, 85%, 63%),
       hsl(var(--destructive))
     );
-    border-image-slice: 1;
+    -webkit-mask:
+      linear-gradient(#fff 0 0) content-box, /* Cuts out the center (where content padding is) */
+      linear-gradient(#fff 0 0); /* Makes the whole area visible initially */
+    -webkit-mask-composite: xor; /* Leaves only the border part visible */
+            mask-composite: exclude; /* Standard property for the same effect */
+    pointer-events: none; /* So it doesn't interfere with clicks on the content */
   }
+
   .dark .bg-wrapper-general-rainbow {
-    @apply p-1.5 rounded-md shadow-sm border border-transparent overflow-hidden;
-    /* Translucent Rainbow Background - Dark Mode */
-    background-image: linear-gradient(to right,
+    @apply relative p-1.5 rounded-md shadow-sm overflow-hidden;
+    /* Translucent Rainbow Background for the main element - Dark Mode */
+    background-image: linear-gradient(to right, 
       hsla(var(--primary), 0.15), 
       hsla(180, 50%, 45%, 0.15),
-      hsla(var(--accent), 0.15),
+      hsla(var(--accent), 0.15), 
       hsla(30, 85%, 58%, 0.15),
       hsla(var(--destructive), 0.15)
     );
-    /* Rainbow Border - Dark Mode */
-    border-image-source: linear-gradient(to right,
+  }
+  .dark .bg-wrapper-general-rainbow::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(to right, /* Solid Rainbow for the border - Dark Mode */
       hsl(var(--primary)),
       hsl(180, 50%, 45%),
       hsl(var(--accent)),
       hsl(30, 85%, 58%),
       hsl(var(--destructive))
     );
-    border-image-slice: 1;
+    -webkit-mask:
+      linear-gradient(#fff 0 0) content-box,
+      linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+            mask-composite: exclude;
+    pointer-events: none;
   }
 
 
