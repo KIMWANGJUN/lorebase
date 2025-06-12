@@ -237,7 +237,7 @@ body {
   }
   
   .bg-wrapper-general-rainbow {
-    @apply p-1.5 rounded-md shadow-sm border-2 border-transparent; /* Base styles */
+    @apply p-1.5 rounded-md shadow-sm border border-transparent; /* Base styles, changed border-2 to border */
     /* Translucent Rainbow Background - Light Mode */
     background-image: linear-gradient(to right,
       hsla(var(--primary), 0.15),
@@ -257,10 +257,10 @@ body {
     border-image-slice: 1;
   }
   .dark .bg-wrapper-general-rainbow {
-    @apply p-1.5 rounded-md shadow-sm border-2 border-transparent; /* Base styles */
+    @apply p-1.5 rounded-md shadow-sm border border-transparent; /* Base styles, changed border-2 to border */
     /* Translucent Rainbow Background - Dark Mode */
     background-image: linear-gradient(to right,
-      hsla(var(--primary), 0.15), /* Using same 0.15 alpha for consistency, adjust if needed */
+      hsla(var(--primary), 0.15), 
       hsla(180, 50%, 45%, 0.15),
       hsla(var(--accent), 0.15),
       hsla(30, 85%, 58%, 0.15),
