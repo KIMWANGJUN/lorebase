@@ -16,9 +16,8 @@ export function ThemeToggleButton() {
 
   // Avoid rendering button until mounted to prevent hydration mismatch
   if (!mounted) {
-    // Return a placeholder or null to prevent SSR/CSR mismatch issues before hydration
-    // It's important for the placeholder to occupy the same space or for layout shifts to be acceptable
-    return <Button variant="ghost" size="icon" className="w-9 h-9 opacity-0 cursor-default" disabled aria-hidden="true" />;
+    // Placeholder button: initially transparent, on hover becomes visible with accent background
+    return <Button variant="ghost" size="icon" className="w-9 h-9 opacity-0 hover:opacity-100 hover:bg-accent/10 cursor-default" aria-hidden="true" />;
   }
 
   const toggleTheme = () => {
