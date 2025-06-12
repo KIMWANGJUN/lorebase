@@ -68,8 +68,8 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        body: ['Jua', 'sans-serif'], // 현재 본문 폰트 (주아체)
-        headline: ['Do Hyeon', 'sans-serif'], // 제목용 폰트 (도현체)
+        body: ['Jua', 'sans-serif'], // 본문 폰트: 주아체
+        headline: ['Do Hyeon', 'sans-serif'], // 제목 폰트: 도현체
         code: ['monospace'],
       },
       colors: {
