@@ -21,17 +21,17 @@ export default function Header() {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/50 bg-background/85 backdrop-blur supports-[backdrop-filter]:bg-background/60 shadow-md">
-      <div className="container flex h-16 items-center justify-between"> {/* Added justify-between */}
-        {/* Logo */}
-        <div className="flex-shrink-0">
+      <div className="container mx-auto flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
+        {/* Logo Group */}
+        <div className="flex-shrink-0"> 
           <Link href="/" className="flex items-center gap-2 group">
             <Wand2 className="h-7 w-7 text-primary group-hover:text-accent transition-colors duration-300" />
-            <h1 className="font-headline text-xl font-bold text-foreground group-hover:text-primary transition-colors duration-300">인디 커뮤니티</h1>
+            <h1 className="font-headline text-xl font-bold text-foreground group-hover:text-primary transition-colors duration-300 font-headline">인디 커뮤니티</h1>
           </Link>
         </div>
         
-        {/* Nav Items */}
-        <nav className="hidden md:flex items-center space-x-6 text-sm font-medium"> {/* Removed flex-grow and justify-center */}
+        {/* Nav Items Group */}
+        <nav className="hidden md:flex items-center space-x-6 text-sm font-medium font-body">
           {navItems.map((item) => (
             <Link key={item.label} href={item.href} className="flex items-center gap-1 text-muted-foreground transition-colors hover:text-accent font-body">
               <item.icon className="h-4 w-4" />
@@ -46,8 +46,8 @@ export default function Header() {
           )}
         </nav>
 
-        {/* Theme Toggle & User/Login */}
-        <div className="flex flex-shrink-0 items-center gap-2"> {/* Removed ml-auto */}
+        {/* User Actions Group */}
+        <div className="flex flex-shrink-0 items-center gap-2">
           <ThemeToggleButton />
           {user ? (
             <UserAvatarDropdown user={user} isAdmin={isAdmin} onLogout={logout} />
