@@ -30,7 +30,13 @@ export default function UserAvatarDropdown({ user, isAdmin, onLogout }: UserAvat
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <button className="flex items-center gap-2 rounded-full hover:bg-secondary hover:text-foreground transition-colors p-1">
+        <button
+          className={cn(
+            "flex items-center gap-2 rounded-full transition-colors p-1",
+            "hover:bg-secondary hover:text-foreground",
+            "focus:outline-none focus-visible:ring-0" // Ensure no outline on focus/focus-visible
+          )}
+        >
           <Avatar className="h-9 w-9 border-2 border-accent/50">
             <AvatarImage src={user.avatar} alt={user.nickname} data-ai-hint="user avatar icon"/>
             <AvatarFallback className="bg-muted text-muted-foreground">{getInitials(user.nickname)}</AvatarFallback>
@@ -54,7 +60,7 @@ export default function UserAvatarDropdown({ user, isAdmin, onLogout }: UserAvat
         </DropdownMenuItem>
         {isAdmin && (
           <DropdownMenuItem asChild>
-            <Link href="/admin" className="flex items-center text-destructive/90 hover:text-destructive focus:text-destructive">
+            <Link href="/admin" className="flex items-center text-destructive/90 focus:text-destructive">
               <ShieldCheck className="mr-2 h-4 w-4" />
               관리자 페이지
             </Link>
@@ -69,3 +75,4 @@ export default function UserAvatarDropdown({ user, isAdmin, onLogout }: UserAvat
     </DropdownMenu>
   );
 }
+
