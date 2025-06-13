@@ -103,7 +103,7 @@ const CommentEntry = ({ comment, currentUser, postMainCategory, onAddReply, onEd
                 rows={2}
               />
               <div className="flex gap-2">
-                <Button size="xs" onClick={handleEditSave} className="bg-accent text-accent-foreground hover:bg-accent/90"><Save className="h-3 w-3 mr-1"/> 저장</Button>
+                <Button size="xs" onClick={handleEditSave} className="bg-gradient-to-r from-primary to-accent text-primary-foreground hover:opacity-90 shadow-md"><Save className="h-3 w-3 mr-1"/> 저장</Button>
                 <Button size="xs" variant="outline" onClick={handleEditToggle} className="border-border text-muted-foreground hover:bg-muted/50"><XCircle className="h-3 w-3 mr-1"/> 취소</Button>
               </div>
             </div>
@@ -136,7 +136,11 @@ const CommentEntry = ({ comment, currentUser, postMainCategory, onAddReply, onEd
             className="min-h-[60px] text-sm bg-input border-input text-foreground"
             rows={2}
           />
-          <Button size="sm" onClick={handleReplySubmit} className="mt-2 bg-primary text-primary-foreground hover:bg-primary/90 text-xs">
+          <Button 
+            size="sm" 
+            onClick={handleReplySubmit} 
+            className="mt-2 bg-gradient-to-r from-primary to-accent text-primary-foreground hover:opacity-90 shadow-md text-xs"
+          >
             <Send className="h-3.5 w-3.5 mr-1.5" /> 답글 등록
           </Button>
         </div>
@@ -282,7 +286,11 @@ export default function CommentSection({ postId, initialComments, postMainCatego
                   rows={3}
                 />
                 <div className="flex justify-end mt-2">
-                  <Button onClick={handleTopLevelCommentSubmit} disabled={!newCommentContent.trim()} className="bg-primary text-primary-foreground hover:bg-primary/90 text-sm"> {/* CHZZK: Button text ~14px */}
+                  <Button 
+                    onClick={handleTopLevelCommentSubmit} 
+                    disabled={!newCommentContent.trim()} 
+                    className="bg-gradient-to-r from-primary to-accent text-primary-foreground hover:opacity-90 shadow-md text-sm" // CHZZK: Button text ~14px
+                  >
                     <Send className="h-4 w-4 mr-2" /> 댓글 등록
                   </Button>
                 </div>
