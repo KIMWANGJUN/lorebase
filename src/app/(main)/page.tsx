@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowRight, Code, Compass, Gift, MessageSquare, Users, Star, Wand2, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, ThumbsUp, Trophy, Box, AppWindow, PenTool, LayoutGrid, Crown, Gamepad2, User } from 'lucide-react';
+import { ArrowRight, Code, Compass, Gift, MessageSquare, Users, Star, Wand2, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, ThumbsUp, Trophy, Box, AppWindow, PenTool, LayoutGrid, Crown, Gamepad2, User, ChevronUp, ChevronDown } from 'lucide-react';
 import Image from 'next/image';
 import { mockUsers, mockPosts, mockTetrisRankings, tetrisTitles } from '@/lib/mockData';
 import { cn } from '@/lib/utils';
@@ -14,7 +14,6 @@ import { useAuth } from '@/contexts/AuthContext';
 import type { User as UserType, PostMainCategory, AchievedRankType } from '@/types';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import NicknameDisplay from '@/components/shared/NicknameDisplay';
-
 
 const POSTS_PER_PAGE = 10;
 const MAX_PAGES = 10;
@@ -38,12 +37,19 @@ const CategorySpecificIcon: React.FC<{ category: PostMainCategory, className?: s
   }
 };
 
-
 export default function HomePage() {
   const { user: currentUser, isAdmin } = useAuth();
   const [currentPage, setCurrentPage] = useState(1);
   const [activeRankingTab, setActiveRankingTab] = useState<PostMainCategory | 'Global'>('Global');
   const [communityRankingCurrentPage, setCommunityRankingCurrentPage] = useState(1);
+  
+  // 게임 섹션 토글 상태 (기본값: 닫힘)
+  const [isGameSectionOpen, setIsGameSectionOpen] = useState(false);
+
+  // 게임 섹션 토글 함수
+  const toggleGameSection = useCallback(() => {
+    setIsGameSectionOpen(prev => !prev);
+  }, []);
 
   const allSortedPosts = [...mockPosts].filter(p => p.authorId !== 'admin').sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
   const effectivePosts = allSortedPosts.slice(0, MAX_PAGES * POSTS_PER_PAGE);
@@ -100,12 +106,12 @@ export default function HomePage() {
   const rankedUsersToDisplay = useMemo(() => {
     const countToShow = activeRankingTab === 'Global' ? COMMUNITY_RANKERS_PER_PAGE : RANKERS_TO_SHOW;
     return getTopNUsers(mockUsers, activeRankingTab, countToShow);
-  }, [activeRankingTab, getTopNUsers, mockUsers, COMMUNITY_RANKERS_PER_PAGE, RANKERS_TO_SHOW]);
+  }, [activeRankingTab, getTopNUsers]);
   
   const totalCommunityRankingPages = useMemo(() => {
     if (activeRankingTab === 'Global') return 1; // Global tab shows only 10, no pagination
     return Math.ceil(rankedUsersToDisplay.length / COMMUNITY_RANKERS_PER_PAGE);
-  }, [activeRankingTab, rankedUsersToDisplay, COMMUNITY_RANKERS_PER_PAGE]);
+  }, [activeRankingTab, rankedUsersToDisplay]);
 
   const currentCommunityRankersToDisplay = useMemo(() => {
     if (activeRankingTab === 'Global') return rankedUsersToDisplay.slice(0, COMMUNITY_RANKERS_PER_PAGE);
@@ -113,7 +119,7 @@ export default function HomePage() {
     const startIndex = (communityRankingCurrentPage - 1) * COMMUNITY_RANKERS_PER_PAGE;
     const endIndex = startIndex + COMMUNITY_RANKERS_PER_PAGE;
     return rankedUsersToDisplay.slice(startIndex, endIndex);
-  }, [rankedUsersToDisplay, communityRankingCurrentPage, activeRankingTab, COMMUNITY_RANKERS_PER_PAGE]);
+  }, [rankedUsersToDisplay, communityRankingCurrentPage, activeRankingTab]);
 
   const handleRankingTabChange = (value: PostMainCategory | 'Global') => {
     setActiveRankingTab(value);
@@ -122,70 +128,98 @@ export default function HomePage() {
 
   return (
     <div className="container mx-auto py-8 px-4">
-      <section className="grid lg:grid-cols-3 gap-8 mb-16 mt-8">
-        <div className="lg:col-span-2">
-          <Card className="shadow-xl bg-card border-border h-full">
-            <CardHeader>
-              <CardTitle className="font-headline text-center text-xl lg:text-2xl font-bold text-primary flex items-center justify-center">
-                <Gamepad2 className="inline-block h-6 w-6 lg:h-7 lg:w-7 mr-2 text-accent" />
-                플레이 테트리스
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="flex flex-col items-center justify-center p-4">
-              <Image
-                src="https://placehold.co/600x400.png"
-                alt="Tetris Game Placeholder"
-                width={600}
-                height={400}
-                className="rounded-lg shadow-md border border-border"
-                data-ai-hint="tetris game screen"
-              />
-              <Button className="mt-6 bg-gradient-to-r from-primary to-accent text-primary-foreground hover:opacity-90 shadow-lg text-lg px-8 py-3">
-                <Gamepad2 className="mr-2 h-5 w-5" /> 게임 시작
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
-        <div className="lg:col-span-1">
-          <Card className="shadow-xl bg-card border-border h-full">
-            <CardHeader>
-              <CardTitle className="font-headline text-center text-lg lg:text-xl font-bold text-foreground flex items-center justify-center">
-                <Trophy className="inline-block h-5 w-5 lg:h-6 lg:w-6 mr-2 text-accent" />
-                테트리스 월간 랭킹
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-4">
-              <div className="space-y-3">
-                {mockTetrisRankings.slice(0, RANKERS_TO_SHOW).map((rankerData) => {
-                  const user = mockUsers.find(u => u.id === rankerData.userId);
-                  if (!user) return null;
+      {/* 게임 섹션 토글 버튼 */}
+      <div className="flex justify-center mb-6">
+        <Button 
+          onClick={toggleGameSection}
+          variant="outline"
+          size="lg"
+          className="border-accent/50 text-accent hover:bg-accent/10 hover:text-accent/90 font-headline transition-all duration-300"
+        >
+          <Gamepad2 className="mr-2 h-5 w-5" />
+          {isGameSectionOpen ? '게임 섹션 닫기' : '게임 섹션 열기'}
+          {isGameSectionOpen ? (
+            <ChevronUp className="ml-2 h-4 w-4" />
+          ) : (
+            <ChevronDown className="ml-2 h-4 w-4" />
+          )}
+        </Button>
+      </div>
 
-                  const rankNumberClasses = "font-bold w-5 text-center shrink-0 text-muted-foreground text-sm";
+      {/* 게임 섹션과 게임 월간 랭킹 섹션 (애니메이션과 함께 토글) */}
+      <section 
+        className={cn(
+          "game-section-container overflow-hidden transition-all duration-500 ease-in-out mb-16 mt-8",
+          isGameSectionOpen 
+            ? "max-h-[1000px] opacity-100" 
+            : "max-h-0 opacity-0"
+        )}
+      >
+        <div className="grid lg:grid-cols-3 gap-8">
+          <div className="lg:col-span-2">
+            <Card className="shadow-xl bg-card border-border h-full">
+              <CardHeader>
+                <CardTitle className="font-headline text-center text-xl lg:text-2xl font-bold text-primary flex items-center justify-center">
+                  <Gamepad2 className="inline-block h-6 w-6 lg:h-7 lg:w-7 mr-2 text-accent" />
+                  플레이 테트리스
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="flex flex-col items-center justify-center p-4">
+                <Image
+                  src="https://placehold.co/600x400.png"
+                  alt="Tetris Game Placeholder"
+                  width={600}
+                  height={400}
+                  className="rounded-lg shadow-md border border-border"
+                  data-ai-hint="tetris game screen"
+                />
+                <Button className="mt-6 bg-gradient-to-r from-primary to-accent text-primary-foreground hover:opacity-90 shadow-lg text-lg px-8 py-3">
+                  <Gamepad2 className="mr-2 h-5 w-5" /> 게임 시작
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+          <div className="lg:col-span-1">
+            <Card className="shadow-xl bg-card border-border h-full">
+              <CardHeader>
+                <CardTitle className="font-headline text-center text-lg lg:text-xl font-bold text-foreground flex items-center justify-center">
+                  <Trophy className="inline-block h-5 w-5 lg:h-6 lg:w-6 mr-2 text-accent" />
+                  테트리스 월간 랭킹
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-4">
+                <div className="space-y-3">
+                  {mockTetrisRankings.slice(0, RANKERS_TO_SHOW).map((rankerData) => {
+                    const user = mockUsers.find(u => u.id === rankerData.userId);
+                    if (!user) return null;
 
-                  return (
-                    <div key={rankerData.userId} className="flex items-center justify-between p-2.5 bg-card/50 border-border/70 rounded-md shadow-sm">
-                      <div className="flex items-center gap-2">
-                        <span className={rankNumberClasses}>{rankerData.rank}.</span>
-                        <Avatar className="h-8 w-8 border-2 border-accent/50 shrink-0">
-                            <AvatarImage src={user.avatar || `https://placehold.co/40x40.png?text=${rankerData.nickname.substring(0,1)}`} alt={rankerData.nickname} data-ai-hint="gamer avatar" />
-                            <AvatarFallback className="text-xs bg-muted text-muted-foreground">{rankerData.nickname.substring(0,1)}</AvatarFallback>
-                        </Avatar>
-                        <NicknameDisplay user={user} context="rankingList" />
+                    const rankNumberClasses = "font-bold w-5 text-center shrink-0 text-muted-foreground text-sm";
+
+                    return (
+                      <div key={rankerData.userId} className="flex items-center justify-between p-2.5 bg-card/50 border-border/70 rounded-md shadow-sm">
+                        <div className="flex items-center gap-2">
+                          <span className={rankNumberClasses}>{rankerData.rank}.</span>
+                          <Avatar className="h-8 w-8 border-2 border-accent/50 shrink-0">
+                              <AvatarImage src={user.avatar || `https://placehold.co/40x40.png?text=${rankerData.nickname.substring(0,1)}`} alt={rankerData.nickname} data-ai-hint="gamer avatar" />
+                              <AvatarFallback className="text-xs bg-muted text-muted-foreground">{rankerData.nickname.substring(0,1)}</AvatarFallback>
+                          </Avatar>
+                          <NicknameDisplay user={user} context="rankingList" />
+                        </div>
+                        {isAdmin && (
+                          <span className="text-xs font-semibold text-accent shrink-0">{rankerData.score.toLocaleString()} 점</span>
+                        )}
                       </div>
-                      {isAdmin && (
-                        <span className="text-xs font-semibold text-accent shrink-0">{rankerData.score.toLocaleString()} 점</span>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            </CardContent>
-             <CardFooter className="justify-center pt-2">
-              <Button variant="outline" size="sm" className="border-accent/50 text-accent hover:bg-accent/10 hover:text-accent/90">
-                전체 테트리스 순위 보기
-              </Button>
-            </CardFooter>
-          </Card>
+                    );
+                  })}
+                </div>
+              </CardContent>
+               <CardFooter className="justify-center pt-2">
+                <Button variant="outline" size="sm" className="border-accent/50 text-accent hover:bg-accent/10 hover:text-accent/90">
+                  전체 테트리스 순위 보기
+                </Button>
+              </CardFooter>
+            </Card>
+          </div>
         </div>
       </section>
 
