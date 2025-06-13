@@ -2,15 +2,14 @@
 // src/components/layout/Header.tsx
 "use client";
 import Link from 'next/link';
-import { Gamepad2, Home, Users, Store, UserCircle, LogIn, LogOut, ShieldCheck, Settings, Wand2 } from 'lucide-react';
+import { Gamepad2, Users, Store, LogIn, ShieldCheck, Wand2 } from 'lucide-react'; // Removed Home icon
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import UserAvatarDropdown from '@/components/shared/UserAvatarDropdown';
 import { ThemeToggleButton } from '@/components/shared/ThemeToggleButton';
-import { cn } from '@/lib/utils';
 
 const navItems = [
-  { href: '/', label: '홈', icon: Home },
+  // { href: '/', label: '홈', icon: Home }, // Removed Home button
   { href: '/game-workshop', label: '게임 공방', icon: Store },
   { href: '/tavern', label: '선술집', icon: Users },
   { href: '/free-assets', label: '무료 에셋', icon: Gamepad2 },
@@ -71,4 +70,3 @@ export default function Header() {
     </header>
   );
 }
-
