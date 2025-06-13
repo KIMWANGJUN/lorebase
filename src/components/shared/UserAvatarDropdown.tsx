@@ -12,7 +12,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { LogOut, UserCircle, Settings, ShieldCheck } from 'lucide-react';
+import { LogOut, UserCircle, Settings, ShieldCheck, ShieldAlert } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import NicknameDisplay from './NicknameDisplay'; // Import NicknameDisplay
 
@@ -34,7 +34,7 @@ export default function UserAvatarDropdown({ user, isAdmin, onLogout }: UserAvat
           className={cn(
             "flex items-center gap-2 rounded-full transition-colors p-1",
             "hover:bg-secondary hover:text-foreground",
-            "focus:outline-none focus-visible:ring-0" // Ensure no outline on focus/focus-visible
+            "focus:outline-none focus-visible:ring-0" 
           )}
         >
           <Avatar className="h-9 w-9 border-2 border-accent/50">
@@ -66,6 +66,12 @@ export default function UserAvatarDropdown({ user, isAdmin, onLogout }: UserAvat
             </Link>
           </DropdownMenuItem>
         )}
+        <DropdownMenuItem asChild>
+          <Link href="/profile#inquiries" className="flex items-center">
+            <ShieldAlert className="mr-2 h-4 w-4" />
+            문의하기
+          </Link>
+        </DropdownMenuItem>
         <DropdownMenuSeparator className="bg-border/50"/>
         <DropdownMenuItem onClick={onLogout} className="flex items-center cursor-pointer">
           <LogOut className="mr-2 h-4 w-4" />
