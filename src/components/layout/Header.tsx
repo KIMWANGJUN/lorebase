@@ -59,7 +59,7 @@ export default function Header() {
           {user ? (
             <UserAvatarDropdown user={user} isAdmin={isAdmin} onLogout={logout} />
           ) : (
-            <Button asChild variant="ghost" className="text-muted-foreground hover:text-accent">
+            <Button asChild variant="ghost" className="text-muted-foreground hover:bg-secondary hover:text-foreground">
               <Link href="/login">
                 <LogIn className="mr-2 h-4 w-4" />
                 로그인

@@ -1,4 +1,3 @@
-
 // src/app/(main)/profile/page.tsx
 "use client";
 import React, { useState, useEffect, useMemo } from 'react';
@@ -25,7 +24,6 @@ import NicknameDisplay from '@/components/shared/NicknameDisplay';
 const GoogleIconSvg = () => <svg className="h-5 w-5" viewBox="0 0 24 24"><path fill="currentColor" d="M21.35 11.1h-9.03v2.79h5.32c-.46 1.65-1.96 2.93-3.98 2.93-2.48 0-4.5-2.01-4.5-4.49s2.02-4.49 4.5-4.49c1.21 0 2.26.44 3.08 1.16l2.13-2.13C15.41 4.46 13.54 3.5 11.32 3.5 7.06 3.5 3.5 7.06 3.5 11.32s3.56 7.82 7.82 7.82c4.07 0 7.49-3.16 7.49-7.49 0-.61-.07-1.21-.19-1.75z"></path></svg>;
 const NaverIconSvg = () => <svg className="h-5 w-5" viewBox="0 0 24 24"><path fill="#03C75A" d="M16.273 12.845L12.54 7.155H7.045v9.69h5.768l3.733-5.69zM7.045 4.5h9.91v2.655h-4.23L8.502 11.73H7.045V4.5zm0 15h9.91V16.87h-4.23l-4.228-4.575H7.045v7.19z"></path></svg>;
 const KakaoIconSvg = () => <svg className="h-5 w-5" viewBox="0 0 24 24"><path fill="#FFEB00" d="M12 2C6.48 2 2 5.89 2 10.49c0 2.83 1.71 5.31 4.31 6.78-.19.98-.71 3.42-1.14 4.47-.09.24.06.5.3.59.08.03.16.04.24.04.16 0 .31-.06.43-.18 1.87-1.41 3.29-2.78 4.07-3.68C10.99 18.91 11.5 19 12 19c5.52 0 10-3.89 10-8.51S17.52 2 12 2z"></path></svg>;
-
 
 const getCategoryDisplayName = (category: PostMainCategory | 'Global'): string => {
   switch (category) {
@@ -283,7 +281,6 @@ export default function ProfilePage() {
     { value: "inquiries", label: "문의함", icon: ShieldAlert },
   ];
 
-
   return (
     <div className="container mx-auto py-10 px-4">
        <section
@@ -344,9 +341,9 @@ export default function ProfilePage() {
                                     <div className="flex items-center gap-2">
                                         <Input id="nickname" value={nickname} onChange={(e) => setNickname(e.target.value)} disabled={!isEditingNickname} className="bg-input border-border text-foreground focus:ring-accent" />
                                         {isEditingNickname ? (
-                                            <Button onClick={handleNicknameSave} size="sm" className="bg-accent text-accent-foreground hover:bg-accent/90"><CheckCircle className="h-4 w-4 mr-1"/> 저장</Button>
+                                            <Button onClick={handleNicknameSave} size="sm" className="bg-accent text-accent-foreground hover:bg-accent-hover hover:text-accent-foreground"><CheckCircle className="h-4 w-4 mr-1"/> 저장</Button>
                                         ) : (
-                                            <Button onClick={() => setIsEditingNickname(true)} variant="outline" size="sm" disabled={!isAdmin && !nicknameChangeAllowed} className="border-border text-muted-foreground hover:bg-muted/50 hover:border-accent"><Edit3 className="h-4 w-4 mr-1"/> 변경</Button>
+                                            <Button onClick={() => setIsEditingNickname(true)} variant="outline" size="sm" disabled={!isAdmin && !nicknameChangeAllowed} className="border-border text-muted-foreground hover:bg-muted/50 hover:border-accent hover:text-accent transition-colors"><Edit3 className="h-4 w-4 mr-1"/> 변경</Button>
                                         )}
                                     </div>
                                     {!isAdmin && !nicknameChangeAllowed && nextChangeDate && (
@@ -364,15 +361,15 @@ export default function ProfilePage() {
                                 <div>
                                     <Label htmlFor="profileEmail" className="text-muted-foreground">이메일</Label>
                                     <div className="flex items-center gap-2">
-                                      <Input id="profileEmail" type="email" value={currentEmail} onChange={(e) => setCurrentEmail(e.target.value)} className="bg-input border-border text-foreground focus:ring-accent" placeholder="이메일을 등록해주세요."/>
-                                      <Button onClick={handleEmailSave} variant="outline" size="sm" className="border-border text-muted-foreground hover:bg-muted/50 hover:border-accent"><CheckCircle className="h-4 w-4 mr-1"/> 등록/수정</Button>
+                                      <Input id="profileEmail" type="email" value={currentEmail} onChange={(e) => setCurrentEmail(e.target.value)} className="bg-input border-border text-foreground focus:ring-accent" placeholder="이메일을 등록해주세요." disabled={!!user.email}/>
+                                      <Button onClick={handleEmailSave} variant="outline" size="sm" className="border-border text-muted-foreground hover:bg-muted/50 hover:border-accent hover:text-accent transition-colors"><CheckCircle className="h-4 w-4 mr-1"/> 등록/수정</Button>
                                     </div>
                                 </div>
                             </CardContent>
                         </Card>
                     </TabsContent>
 
-                     <TabsContent value="displayRank">
+                    <TabsContent value="displayRank">
                         <Card className="bg-card border-border">
                           <CardHeader>
                             <CardTitle className="text-foreground">대표 표시 설정</CardTitle>

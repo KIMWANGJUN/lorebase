@@ -1,4 +1,3 @@
-
 // src/components/shared/NicknameDisplay.tsx
 "use client";
 import type { User, PostMainCategory, TitleIdentifier, NicknameEffectIdentifier, LogoIdentifier } from '@/types';
@@ -41,7 +40,6 @@ const getCategoryDisplayName = (category: PostMainCategory): string => {
   }
 };
 
-
 export default function NicknameDisplay({ user, context, activeCategory, postMainCategoryForAuthor }: NicknameDisplayProps) {
   const displayInfo = useMemo(() => {
     const baseNicknameClass = "text-sm font-medium"; 
@@ -57,8 +55,13 @@ export default function NicknameDisplay({ user, context, activeCategory, postMai
 
     if (user.username === 'WANGJUNLAND') {
       return {
-        titleText: null, titleClasses: "", nicknameClasses: cn(baseNicknameClass, "admin-text", "font-bold"), 
-        wrapperClasses: "admin-badge", showLogoCategory: null, nickname: user.nickname, isAdmin: true,
+        titleText: null, 
+        titleClasses: "", 
+        nicknameClasses: cn(baseNicknameClass, "admin-text", "font-bold"), 
+        wrapperClasses: "admin-badge", 
+        showLogoCategory: null, 
+        nickname: user.nickname, 
+        isAdmin: true,
       };
     }
     
@@ -175,7 +178,7 @@ export default function NicknameDisplay({ user, context, activeCategory, postMai
             const catRank = catStat.rankInCate || 0;
 
             if (catRank > 0 && catRank <= 20) {
-                showLogoCategory = categoryToConsiderForStyle; 
+                showLogoCategory = categoryToConsiderForStyle;
 
                 if (catRank <= 3) { 
                     titleText = `${getCategoryDisplayName(categoryToConsiderForStyle)} ${catRank}위`;
@@ -216,19 +219,33 @@ export default function NicknameDisplay({ user, context, activeCategory, postMai
 
   const finalWrapperClasses = cn(
     "inline-flex flex-col items-center leading-tight",
-    displayInfo.wrapperClasses 
+    displayInfo.wrapperClasses,
+    // 헤더에서 블러 제거
+    context === 'header' && "header-text-clear"
   );
 
   const finalNicknameContainerClasses = cn(
     "flex items-center", 
-    displayInfo.showLogoCategory ? "gap-1" : ""
+    displayInfo.showLogoCategory ? "gap-1" : "",
+    // 헤더에서 블러 제거
+    context === 'header' && "header-text-clear"
   );
 
   if (displayInfo.isAdmin) {
     return (
-      <span className={cn(displayInfo.wrapperClasses, "inline-flex items-center gap-1")}>
-        <ShieldCheck className="h-4 w-4 text-primary" />
-        <span className={displayInfo.nicknameClasses}>{displayInfo.nickname}</span>
+      <span className={cn(
+        displayInfo.wrapperClasses, 
+        "inline-flex items-center gap-1",
+        context === 'header' && "header-text-clear"
+      )}>
+        <ShieldCheck className={cn(
+          "h-4 w-4 text-primary",
+          context === 'header' && "header-text-clear"
+        )} />
+        <span className={cn(
+          displayInfo.nicknameClasses,
+          context === 'header' && "header-text-clear"
+        )}>{displayInfo.nickname}</span>
       </span>
     );
   }
@@ -236,19 +253,30 @@ export default function NicknameDisplay({ user, context, activeCategory, postMai
   return (
     <div className={finalWrapperClasses}>
       {displayInfo.titleText && (
-        <span className={cn("title-on-nickname-wrapper")}> 
-            <span className={cn(displayInfo.titleClasses)}>
+        <span className={cn(
+          "title-on-nickname-wrapper",
+          context === 'header' && "header-text-clear"
+        )}> 
+            <span className={cn(
+              displayInfo.titleClasses,
+              context === 'header' && "header-text-clear"
+            )}>
                 {displayInfo.titleText}
             </span>
         </span>
       )}
       <div className={finalNicknameContainerClasses}> 
-        {displayInfo.showLogoCategory && <CategoryIcon category={displayInfo.showLogoCategory} className="h-3.5 w-3.5" />}
-        <span className={cn(displayInfo.nicknameClasses)}> 
+        {displayInfo.showLogoCategory && <CategoryIcon category={displayInfo.showLogoCategory} className={cn(
+          "h-3.5 w-3.5",
+          context === 'header' && "header-text-clear"
+        )} />}
+        <span className={cn(
+          displayInfo.nicknameClasses,
+          context === 'header' && "header-text-clear"
+        )}> 
           {displayInfo.nickname}
         </span>
       </div>
     </div>
   );
 }
-    
