@@ -123,13 +123,13 @@ export default function MiniPostList({ allPosts, currentPostId }: MiniPostListPr
 
       {totalPages > 1 && (
         <div className="mt-6 flex items-center justify-between">
-          <Button variant="outline" size="sm" onClick={handlePrevPage} disabled={currentPage === 1} className="border-border text-muted-foreground hover:bg-muted/50 hover:border-accent">
+          <Button variant="outline" size="sm" onClick={handlePrevPage} disabled={currentPage === 1} className="border-border text-muted-foreground hover:bg-muted/50 hover:border-accent hover:text-accent">
             이전
           </Button>
           <p className="text-sm text-muted-foreground font-headline">
             페이지 {currentPage} / {totalPages}
           </p>
-          <Button variant="outline" size="sm" onClick={handleNextPage} disabled={currentPage === totalPages} className="border-border text-muted-foreground hover:bg-muted/50 hover:border-accent">
+          <Button variant="outline" size="sm" onClick={handleNextPage} disabled={currentPage === totalPages} className="border-border text-muted-foreground hover:bg-muted/50 hover:border-accent hover:text-accent">
             다음
           </Button>
         </div>
@@ -137,3 +137,4 @@ export default function MiniPostList({ allPosts, currentPostId }: MiniPostListPr
     </section>
   );
 }
+
