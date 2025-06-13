@@ -94,7 +94,7 @@ export default function CategoryRankingSidebar({ category }: CategoryRankingSide
             <div
               key={rankerUser.id}
               className={cn(
-                "flex items-center justify-between p-2.5 rounded-md shadow-sm", // Removed explicit border here
+                "flex items-center justify-between p-2.5 rounded-md shadow-sm", 
                 rankerUser.id === currentUser?.id && "ring-2 ring-primary/50" 
             )}>
               <div className="flex items-center gap-2.5">
@@ -123,7 +123,7 @@ export default function CategoryRankingSidebar({ category }: CategoryRankingSide
             size="sm"
             onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
             disabled={currentPage === 1}
-            className="border-border text-muted-foreground hover:bg-muted/50 hover:border-accent font-headline"
+            className="border-border text-muted-foreground hover:bg-muted/50 hover:border-accent hover:text-accent font-headline"
           >
             이전
           </Button>
@@ -135,7 +135,7 @@ export default function CategoryRankingSidebar({ category }: CategoryRankingSide
             size="sm"
             onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
             disabled={currentPage === totalPages}
-            className="border-border text-muted-foreground hover:bg-muted/50 hover:border-accent font-headline"
+            className="border-border text-muted-foreground hover:bg-muted/50 hover:border-accent hover:text-accent font-headline"
           >
             다음
           </Button>
