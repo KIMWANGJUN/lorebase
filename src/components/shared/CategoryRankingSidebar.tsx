@@ -144,3 +144,4 @@ export default function CategoryRankingSidebar({ category }: CategoryRankingSide
     </Card>
   );
 }
+
