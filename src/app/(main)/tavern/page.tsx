@@ -63,10 +63,10 @@ const PostItem = ({
         isNotice && "bg-primary/10 border-primary/50"
       )}
     >
-      <Link href={`/tavern/${post.id}`} className="block hover:bg-card/5 transition-colors rounded-lg relative">
+      <Link href={`/tavern/${post.id}`} className="block hover:bg-card/5 transition-colors rounded-lg relative group">
         <CardHeader className="pb-1 pt-2 px-3">
           <div className="flex justify-between items-start">
-            <CardTitle className={cn("text-base mb-0.5 flex items-center font-headline font-bold", isNotice ? "text-primary" : "text-foreground")}>
+            <CardTitle className={cn("text-base mb-0.5 flex items-center font-headline font-bold", isNotice ? "text-primary" : "text-foreground group-hover:text-primary transition-colors")}>
               {post.isPinned && <Pin className="h-4 w-4 mr-2 text-accent" />}
               {isNotice && <ScrollText className="h-4 w-4 mr-2 text-primary" />}
               {post.title}

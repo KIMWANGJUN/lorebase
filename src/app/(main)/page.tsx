@@ -205,7 +205,7 @@ export default function HomePage() {
                     <Card className="shadow-md hover:shadow-lg transition-shadow duration-300 bg-card border-border group-hover:border-primary/50 cursor-pointer">
                       <CardHeader className="py-3 px-4">
                        <div className="flex justify-between items-center">
-                          <CardTitle className="text-base lg:text-lg font-semibold text-foreground group-hover:text-primary transition-colors line-clamp-1">
+                          <CardTitle className="text-base lg:text-lg font-headline font-bold text-foreground group-hover:text-primary transition-colors line-clamp-1">
                             {post.title}
                              {post.isEdited && <span className="ml-2 text-xs font-normal text-muted-foreground">(수정됨)</span>}
                           </CardTitle>
