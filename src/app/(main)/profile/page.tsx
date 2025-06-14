@@ -803,17 +803,15 @@ export default function ProfilePage() {
                                     </TabsTrigger>
                                   </TabsList>
                                   
-                                  {/* 프로필 이미지 탭 - 안전한 ProfileImageUpload 사용 */}
+                                  {/* 프로필 이미지 탭 - 수정된 ProfileImageUpload 사용 */}
                                   <TabsContent value="profile_image_tab">
                                     <div className="space-y-4">
                                       <h3 className="font-semibold text-foreground">프로필 이미지</h3>
-                                      {user && (
-                                        <ProfileImageUpload 
-                                          user={user} 
-                                          onImageUpdate={handleImageUpdate}
-                                          disabled={!updateUser}
-                                        />
-                                      )}
+                                      <ProfileImageUpload 
+                                        user={user} 
+                                        onImageUpdate={handleImageUpdate}
+                                        disabled={!updateUser}
+                                      />
                                     </div>
                                   </TabsContent>
                                   

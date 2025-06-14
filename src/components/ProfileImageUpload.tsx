@@ -1,5 +1,4 @@
-// src/components/ProfileImageUpload.jsx
-
+"use client";
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { Upload, Camera, Trash2, Loader, AlertCircle, CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -9,19 +8,48 @@ import { uploadProfileImage, deleteProfileImage } from '@/lib/profileImageUpload
 import { cn } from '@/lib/utils';
 
 /**
- * 프로필 이미지 업로드 컴포넌트
- * @param {object} props - 컴포넌트 props
- * @param {object} props.user - 현재 사용자 객체
- * @param {function} props.onImageUpdate - 이미지 업데이트 성공 시 콜백
- * @param {boolean} props.disabled - 컴포넌트 비활성화 여부
+ * 프로필 이미지 업로드 컴포넌트 Props 타입 정의
  */
-const ProfileImageUpload = ({ user, onImageUpdate, disabled = false }) => {
+interface ProfileImageUploadProps {
+  user: {
+    uid?: string;
+    id?: string;
+    displayName?: string;
+    email?: string;
+    photoURL?: string;
+    avatar?: string;
+    nickname?: string;
+  } | null;
+  onImageUpdate?: (newImageUrl: string | null) => void;
+  disabled?: boolean;
+}
+
+/**
+ * 프로필 이미지 업로드 컴포넌트 (Firebase Auth 통합)
+ */
+const ProfileImageUpload: React.FC<ProfileImageUploadProps> = ({ 
+  user, 
+  onImageUpdate, 
+  disabled = false 
+}) => {
+  // 업로드 상태 관리
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
-  const [previewImage, setPreviewImage] = useState(null);
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [dragOver, setDragOver] = useState(false);
-  const fileInputRef = useRef(null);
+  const [error, setError] = useState('');
+  
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
+
+  // user props가 변경될 때 에러 상태 초기화
+  useEffect(() => {
+    if (!user) {
+      setError('로그인이 필요합니다.');
+    } else {
+      setError('');
+    }
+  }, [user]);
 
   // 컴포넌트 언마운트 시 미리보기 URL 정리
   useEffect(() => {
@@ -44,17 +72,18 @@ const ProfileImageUpload = ({ user, onImageUpdate, disabled = false }) => {
 
   /**
    * 파일 선택 처리
-   * @param {Event} event - 파일 input change 이벤트
    */
-  const handleFileSelect = async (event) => {
-    const file = event.target.files[0];
-    await processFile(file);
+  const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      await processFile(file);
+    }
   };
 
   /**
    * 드래그 앤 드롭 처리
    */
-  const handleDrop = async (event) => {
+  const handleDrop = async (event: React.DragEvent<HTMLDivElement>) => {
     event.preventDefault();
     setDragOver(false);
     
@@ -64,31 +93,50 @@ const ProfileImageUpload = ({ user, onImageUpdate, disabled = false }) => {
     }
   };
 
-  const handleDragOver = (event) => {
+  const handleDragOver = (event: React.DragEvent<HTMLDivElement>) => {
     event.preventDefault();
     setDragOver(true);
   };
 
-  const handleDragLeave = (event) => {
+  const handleDragLeave = (event: React.DragEvent<HTMLDivElement>) => {
     event.preventDefault();
     setDragOver(false);
   };
 
   /**
    * 파일 처리 공통 로직
-   * @param {File} file - 처리할 파일
    */
-  const processFile = async (file) => {
-    if (!file || !user || disabled) return;
+  const processFile = async (file: File) => {
+    if (!file || !user || disabled) {
+      if (!user) {
+        setError('로그인이 필요합니다.');
+      }
+      return;
+    }
 
     // 이전 미리보기 정리
     clearPreview();
+    setError('');
 
     // 기본 검증
     if (!file.type.startsWith('image/')) {
+      const errorMsg = "이미지 파일만 업로드 가능합니다.";
+      setError(errorMsg);
       toast({
         title: "오류",
-        description: "이미지 파일만 업로드 가능합니다.",
+        description: errorMsg,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // 파일 크기 검증 (1MB)
+    if (file.size > 1024 * 1024) {
+      const errorMsg = "파일 크기는 1MB 이하여야 합니다.";
+      setError(errorMsg);
+      toast({
+        title: "오류",
+        description: errorMsg,
         variant: "destructive",
       });
       return;
@@ -103,12 +151,19 @@ const ProfileImageUpload = ({ user, onImageUpdate, disabled = false }) => {
 
     try {
       // 진행률 콜백 함수
-      const onProgress = (progress) => {
+      const onProgress = (progress: number) => {
         setUploadProgress(progress);
+        console.log(`업로드 진행률: ${progress}%`);
       };
 
+      // 사용자 ID 확인 (uid 또는 id 사용)
+      const userId = user.uid || user.id;
+      if (!userId) {
+        throw new Error('사용자 ID를 찾을 수 없습니다.');
+      }
+
       // 이미지 업로드
-      const downloadURL = await uploadProfileImage(file, user.id, onProgress);
+      const downloadURL = await uploadProfileImage(file, userId, onProgress);
 
       // 성공 알림
       toast({
@@ -116,6 +171,8 @@ const ProfileImageUpload = ({ user, onImageUpdate, disabled = false }) => {
         description: "프로필 이미지가 업데이트되었습니다.",
         action: <CheckCircle className="h-4 w-4" />,
       });
+
+      console.log('업로드 성공:', downloadURL);
 
       // 부모 컴포넌트에 업데이트 알림
       if (onImageUpdate) {
@@ -129,9 +186,12 @@ const ProfileImageUpload = ({ user, onImageUpdate, disabled = false }) => {
 
     } catch (error) {
       console.error('업로드 오류:', error);
+      const errorMsg = error instanceof Error ? error.message : '이미지 업로드에 실패했습니다.';
+      setError(errorMsg);
+      
       toast({
         title: "오류",
-        description: error.message,
+        description: errorMsg,
         variant: "destructive",
         action: <AlertCircle className="h-4 w-4" />,
       });
@@ -153,12 +213,19 @@ const ProfileImageUpload = ({ user, onImageUpdate, disabled = false }) => {
    * 프로필 이미지 삭제 처리
    */
   const handleDeleteImage = async () => {
-    if (!user || !user.avatar || disabled) return;
+    const userImage = user?.photoURL || user?.avatar;
+    if (!user || !userImage || disabled) return;
 
     setIsUploading(true);
+    setError('');
 
     try {
-      await deleteProfileImage(user.id);
+      const userId = user.uid || user.id;
+      if (!userId) {
+        throw new Error('사용자 ID를 찾을 수 없습니다.');
+      }
+
+      await deleteProfileImage(userId);
 
       toast({
         title: "성공",
@@ -173,9 +240,12 @@ const ProfileImageUpload = ({ user, onImageUpdate, disabled = false }) => {
 
     } catch (error) {
       console.error('삭제 오류:', error);
+      const errorMsg = error instanceof Error ? error.message : '이미지 삭제에 실패했습니다.';
+      setError(errorMsg);
+      
       toast({
         title: "오류",
-        description: error.message,
+        description: errorMsg,
         variant: "destructive",
         action: <AlertCircle className="h-4 w-4" />,
       });
@@ -188,23 +258,67 @@ const ProfileImageUpload = ({ user, onImageUpdate, disabled = false }) => {
    * 파일 선택 버튼 클릭
    */
   const handleUploadClick = () => {
-    if (fileInputRef.current && !disabled && !isUploading) {
+    if (fileInputRef.current && !disabled && !isUploading && user) {
       fileInputRef.current.click();
     }
   };
 
+  // 로그인되지 않은 상태
+  if (!user) {
+    return (
+      <div className="flex flex-col items-center space-y-4">
+        <div className="w-32 h-32 rounded-full bg-muted flex items-center justify-center">
+          <AlertCircle className="w-8 h-8 text-muted-foreground" />
+        </div>
+        <p className="text-sm text-destructive">로그인이 필요합니다.</p>
+        <Button variant="outline" disabled>
+          <Camera className="w-4 h-4 mr-2" />
+          이미지 업로드
+        </Button>
+      </div>
+    );
+  }
+
   // 표시할 이미지 URL (미리보기 > 사용자 아바타 > 기본값)
-  const displayImageUrl = previewImage || user?.avatar || null;
+  const displayImageUrl = previewImage || user?.photoURL || user?.avatar || null;
+
+  // 사용자 표시 이름 가져오기
+  const getUserDisplayName = () => {
+    return user?.displayName || user?.nickname || '사용자';
+  };
+
+  // 사용자 이니셜 가져오기
+  const getUserInitials = () => {
+    const displayName = getUserDisplayName();
+    if (displayName === '사용자') {
+      return user?.email?.substring(0, 2).toUpperCase() || 'U';
+    }
+    return displayName.substring(0, 2).toUpperCase();
+  };
+
+  // 현재 이미지 존재 여부 확인
+  const hasCurrentImage = !!(user?.photoURL || user?.avatar);
 
   return (
     <div className="space-y-4">
+      {/* 에러 메시지 표시 */}
+      {error && (
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+          <div className="flex items-center">
+            <AlertCircle className="w-4 h-4 mr-2" />
+            {error}
+          </div>
+        </div>
+      )}
+
       {/* 프로필 이미지 표시 영역 */}
       <div className="flex flex-col items-center space-y-4">
         <div 
           className={cn(
             "relative cursor-pointer transition-all duration-200",
             dragOver && "scale-105",
-            disabled && "cursor-not-allowed opacity-50"
+            disabled && "cursor-not-allowed opacity-50",
+            !user && "cursor-not-allowed opacity-50"
           )}
           onDrop={handleDrop}
           onDragOver={handleDragOver}
@@ -214,15 +328,15 @@ const ProfileImageUpload = ({ user, onImageUpdate, disabled = false }) => {
           <Avatar className={cn(
             "w-32 h-32 border-4 shadow-lg transition-all duration-200",
             dragOver ? "border-primary border-dashed" : "border-border",
-            !disabled && "hover:shadow-xl hover:scale-105"
+            !disabled && user && "hover:shadow-xl hover:scale-105"
           )}>
             <AvatarImage
-              src={displayImageUrl}
-              alt={`${user?.nickname || '사용자'}의 프로필`}
+              src={displayImageUrl || undefined}
+              alt={`${getUserDisplayName()}의 프로필`}
               className="object-cover"
             />
             <AvatarFallback className="text-2xl bg-muted text-muted-foreground">
-              {user?.nickname?.substring(0, 2).toUpperCase() || '사용자'}
+              {getUserInitials()}
             </AvatarFallback>
           </Avatar>
 
@@ -237,7 +351,7 @@ const ProfileImageUpload = ({ user, onImageUpdate, disabled = false }) => {
           )}
 
           {/* 드래그 오버 오버레이 */}
-          {dragOver && !isUploading && (
+          {dragOver && !isUploading && user && (
             <div className="absolute inset-0 bg-primary/20 rounded-full flex items-center justify-center">
               <Upload className="w-8 h-8 text-primary" />
             </div>
@@ -260,7 +374,7 @@ const ProfileImageUpload = ({ user, onImageUpdate, disabled = false }) => {
         )}
 
         {/* 드래그 앤 드롭 안내 */}
-        {!isUploading && !disabled && (
+        {!isUploading && !disabled && user && (
           <p className="text-xs text-muted-foreground text-center">
             클릭하거나 이미지를 드래그해서 업로드하세요
           </p>
@@ -271,19 +385,19 @@ const ProfileImageUpload = ({ user, onImageUpdate, disabled = false }) => {
       <div className="flex flex-col sm:flex-row gap-2 justify-center">
         <Button
           onClick={handleUploadClick}
-          disabled={isUploading || disabled}
+          disabled={isUploading || disabled || !user}
           variant="outline"
           size="sm"
           className="border-border text-muted-foreground hover:bg-muted/50 hover:border-accent hover:text-accent transition-colors disabled:opacity-50"
         >
           <Camera className="w-4 h-4 mr-2" />
-          {user?.avatar ? '이미지 변경' : '이미지 업로드'}
+          {hasCurrentImage ? '이미지 변경' : '이미지 업로드'}
         </Button>
-
-        {user?.avatar && (
+        
+        {hasCurrentImage && (
           <Button
             onClick={handleDeleteImage}
-            disabled={isUploading || disabled}
+            disabled={isUploading || disabled || !user}
             variant="outline"
             size="sm"
             className="border-border text-muted-foreground hover:bg-muted/50 hover:border-destructive hover:text-destructive transition-colors disabled:opacity-50"
@@ -301,7 +415,7 @@ const ProfileImageUpload = ({ user, onImageUpdate, disabled = false }) => {
         accept="image/jpeg,image/png,image/webp"
         onChange={handleFileSelect}
         className="hidden"
-        disabled={isUploading || disabled}
+        disabled={isUploading || disabled || !user}
       />
 
       {/* 안내 텍스트 */}
@@ -312,6 +426,11 @@ const ProfileImageUpload = ({ user, onImageUpdate, disabled = false }) => {
         {disabled && (
           <p className="text-xs text-destructive mt-1">
             현재 이미지 업로드가 비활성화되어 있습니다
+          </p>
+        )}
+        {!user && (
+          <p className="text-xs text-destructive mt-1">
+            프로필 이미지 업로드를 위해 로그인해주세요
           </p>
         )}
       </div>

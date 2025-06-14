@@ -1,9 +1,7 @@
-// src/lib/firebase.js
-
 import { initializeApp } from 'firebase/app';
-import { getAuth, connectAuthEmulator } from 'firebase/auth';
-import { getFirestore, connectFirestoreEmulator } from 'firebase/firestore';
-import { getStorage, connectStorageEmulator } from 'firebase/storage';
+import { getAuth } from 'firebase/auth';
+import { getFirestore } from 'firebase/firestore';
+import { getStorage } from 'firebase/storage';
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -14,34 +12,28 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID
 };
 
-// Firebase 초기화
-const app = initializeApp(firebaseConfig);
+// Firebase 앱 초기화
+let app;
+try {
+  app = initializeApp(firebaseConfig);
+  console.log('Firebase 초기화 성공');
+} catch (error) {
+  console.error('Firebase 초기화 오류:', error);
+  throw new Error('Firebase 연결에 실패했습니다.');
+}
 
 // Firebase 서비스 초기화
 export const auth = getAuth(app);
 export const db = getFirestore(app);
 export const storage = getStorage(app);
 
-// 개발 환경에서 에뮬레이터 연결 (선택사항)
-if (process.env.NODE_ENV === 'development' && typeof window !== 'undefined') {
-  const useEmulator = process.env.NEXT_PUBLIC_USE_FIREBASE_EMULATOR === 'true';
-  
-  if (useEmulator) {
-    // Auth 에뮬레이터
-    if (!auth._delegate._config.emulator) {
-      connectAuthEmulator(auth, 'http://localhost:9099', { disableWarnings: true });
-    }
-    
-    // Firestore 에뮬레이터
-    if (!db._delegate._databaseId.host.includes('localhost')) {
-      connectFirestoreEmulator(db, 'localhost', 8080);
-    }
-    
-    // Storage 에뮬레이터
-    if (!storage._delegate._host.includes('localhost')) {
-      connectStorageEmulator(storage, 'localhost', 9199);
-    }
-  }
+// 환경변수 확인
+if (typeof window !== 'undefined') {
+  console.log('Firebase Config:', {
+    projectId: firebaseConfig.projectId,
+    authDomain: firebaseConfig.authDomain,
+    storageBucket: firebaseConfig.storageBucket
+  });
 }
 
 export default app;
