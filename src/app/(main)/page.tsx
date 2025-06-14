@@ -9,17 +9,17 @@ import { ArrowRight, Code, Compass, Gift, MessageSquare, Users, Star, Wand2, Che
 import Image from 'next/image';
 import { mockUsers, mockPosts, mockTetrisRankings, tetrisTitles } from '@/lib/mockData';
 import { cn } from '@/lib/utils';
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import type { User as UserType, PostMainCategory, AchievedRankType } from '@/types';
+import type { User as UserType, PostMainCategory, AchievedRankType, Post } from '@/types';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import NicknameDisplay from '@/components/shared/NicknameDisplay';
-import FormattedDateDisplay from '@/components/shared/FormattedDateDisplay'; // Added import
+import FormattedDateDisplay from '@/components/shared/FormattedDateDisplay';
 
 const POSTS_PER_PAGE = 10;
-const MAX_PAGES = 10;
-const RANKERS_TO_SHOW = 20; // Max community rankers to consider for pagination
-const COMMUNITY_RANKERS_PER_PAGE = 10; // Rankers per page for community list
+const MAX_PAGES = 10; // Max pages to consider for initial data slice (to avoid processing too much)
+const RANKERS_TO_SHOW = 20; 
+const COMMUNITY_RANKERS_PER_PAGE = 10;
 
 const CategorySpecificIcon: React.FC<{ category: PostMainCategory, className?: string }> = ({ category, className }) => {
   const defaultClassName = "h-3.5 w-3.5 shrink-0";
@@ -43,24 +43,35 @@ export default function HomePage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [activeRankingTab, setActiveRankingTab] = useState<PostMainCategory | 'Global'>('Global');
   const [communityRankingCurrentPage, setCommunityRankingCurrentPage] = useState(1);
-  
-  // 게임 섹션 토글 상태 (기본값: 닫힘)
   const [isGameSectionOpen, setIsGameSectionOpen] = useState(false);
 
-  // 게임 섹션 토글 함수
+  const [postsForDisplay, setPostsForDisplay] = useState<Post[]>([]);
+  const [totalPagesForPosts, setTotalPagesForPosts] = useState(0);
+  const [isLoadingPosts, setIsLoadingPosts] = useState(true);
+
   const toggleGameSection = useCallback(() => {
     setIsGameSectionOpen(prev => !prev);
   }, []);
 
-  const allSortedPosts = [...mockPosts].filter(p => p.authorId !== 'admin').sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-  const effectivePosts = allSortedPosts.slice(0, MAX_PAGES * POSTS_PER_PAGE);
-  const totalPages = Math.ceil(effectivePosts.length / POSTS_PER_PAGE);
-  const indexOfLastPost = currentPage * POSTS_PER_PAGE;
-  const indexOfFirstPost = indexOfLastPost - POSTS_PER_PAGE;
-  const currentPostsToDisplay = effectivePosts.slice(indexOfFirstPost, indexOfLastPost);
+  useEffect(() => {
+    // This effect runs on the client after hydration
+    const allSortedPosts = [...mockPosts]
+      .filter(p => p.authorId !== 'admin')
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    
+    const effectivePosts = allSortedPosts.slice(0, MAX_PAGES * POSTS_PER_PAGE);
+    
+    setTotalPagesForPosts(Math.ceil(effectivePosts.length / POSTS_PER_PAGE));
+    
+    const indexOfLastPost = currentPage * POSTS_PER_PAGE;
+    const indexOfFirstPost = indexOfLastPost - POSTS_PER_PAGE;
+    setPostsForDisplay(effectivePosts.slice(indexOfFirstPost, indexOfLastPost));
+    
+    setIsLoadingPosts(false);
+  }, [currentPage]); // Re-run when currentPage changes
 
   const paginate = (pageNumber: number) => {
-    if (pageNumber > 0 && pageNumber <= totalPages) {
+    if (pageNumber > 0 && pageNumber <= totalPagesForPosts) {
       setCurrentPage(pageNumber);
     }
   };
@@ -69,11 +80,11 @@ export default function HomePage() {
     const pageNumbers = [];
     const maxPagesToShow = 5;
     let startPage = Math.max(1, currentPage - Math.floor(maxPagesToShow / 2));
-    let endPage = Math.min(totalPages, startPage + maxPagesToShow - 1);
+    let endPage = Math.min(totalPagesForPosts, startPage + maxPagesToShow - 1);
     if (endPage - startPage + 1 < maxPagesToShow) {
         startPage = Math.max(1, endPage - maxPagesToShow + 1);
     }
-    if (totalPages === 0) return null;
+    if (totalPagesForPosts === 0) return null;
     for (let i = startPage; i <= endPage; i++) {
       pageNumbers.push(
         <Button
@@ -92,7 +103,6 @@ export default function HomePage() {
 
   const getTopNUsers = useCallback((users: UserType[], category: PostMainCategory | 'Global', count: number): UserType[] => {
     const usersToRank = users.filter(u => u.username !== 'WANGJUNLAND');
-
     let sortedUsers;
     if (category === 'Global') {
       sortedUsers = [...usersToRank].filter(u => u.rank > 0).sort((a, b) => a.rank - b.rank);
@@ -110,13 +120,12 @@ export default function HomePage() {
   }, [activeRankingTab, getTopNUsers]);
   
   const totalCommunityRankingPages = useMemo(() => {
-    if (activeRankingTab === 'Global') return 1; // Global tab shows only 10, no pagination
+    if (activeRankingTab === 'Global') return 1; 
     return Math.ceil(rankedUsersToDisplay.length / COMMUNITY_RANKERS_PER_PAGE);
   }, [activeRankingTab, rankedUsersToDisplay]);
 
   const currentCommunityRankersToDisplay = useMemo(() => {
     if (activeRankingTab === 'Global') return rankedUsersToDisplay.slice(0, COMMUNITY_RANKERS_PER_PAGE);
-    
     const startIndex = (communityRankingCurrentPage - 1) * COMMUNITY_RANKERS_PER_PAGE;
     const endIndex = startIndex + COMMUNITY_RANKERS_PER_PAGE;
     return rankedUsersToDisplay.slice(startIndex, endIndex);
@@ -129,7 +138,6 @@ export default function HomePage() {
 
   return (
     <div className="container mx-auto py-8 px-4">
-      {/* 게임 섹션 토글 버튼 */}
       <div className="flex justify-center mb-6">
         <Button 
           onClick={toggleGameSection}
@@ -147,7 +155,6 @@ export default function HomePage() {
         </Button>
       </div>
 
-      {/* 게임 섹션과 게임 월간 랭킹 섹션 (애니메이션과 함께 토글) */}
       <section 
         className={cn(
           "game-section-container overflow-hidden transition-all duration-500 ease-in-out mb-16 mt-8",
@@ -193,9 +200,7 @@ export default function HomePage() {
                   {mockTetrisRankings.slice(0, RANKERS_TO_SHOW).map((rankerData) => {
                     const user = mockUsers.find(u => u.id === rankerData.userId);
                     if (!user) return null;
-
                     const rankNumberClasses = "font-bold w-5 text-center shrink-0 text-muted-foreground text-sm";
-
                     return (
                       <div key={rankerData.userId} className="flex items-center justify-between p-2.5 bg-card/50 border-border/70 rounded-md shadow-sm">
                         <div className="flex items-center gap-2">
@@ -232,10 +237,15 @@ export default function HomePage() {
               <Link href="/tavern">모든 글 보기 <ArrowRight className="ml-2 h-4 w-4" /></Link>
             </Button>
           </div>
-          {currentPostsToDisplay.length > 0 ? (
+          {isLoadingPosts ? (
+            <div className="text-center py-12">
+              <Compass className="mx-auto h-16 w-16 text-muted-foreground mb-4 animate-pulse" />
+              <p className="text-xl text-muted-foreground">게시글을 불러오는 중...</p>
+            </div>
+          ) : postsForDisplay.length > 0 ? (
             <>
               <div className="space-y-4">
-                {currentPostsToDisplay.map((post) => (
+                {postsForDisplay.map((post) => (
                   <Link href={`/tavern/${post.id}`} key={post.id} className="block no-underline hover:no-underline group">
                     <Card className="shadow-md hover:shadow-lg transition-shadow duration-300 bg-card border-border group-hover:border-primary/50 cursor-pointer">
                       <CardHeader className="py-3 px-4">
@@ -263,16 +273,16 @@ export default function HomePage() {
                   </Link>
                 ))}
               </div>
-              {totalPages > 1 && (
+              {totalPagesForPosts > 1 && (
                 <div className="mt-8 flex flex-col items-center gap-4">
                     <div className="flex items-center gap-1 sm:gap-2">
                         <Button variant="outline" size="icon" onClick={() => paginate(1)} disabled={currentPage === 1} className="border-accent/50 text-accent hover:bg-accent/10 hover:text-accent/90 h-8 w-8 font-headline" aria-label="First page"><ChevronsLeft className="h-4 w-4"/></Button>
                         <Button variant="outline" size="icon" onClick={() => paginate(currentPage - 1)} disabled={currentPage === 1} className="border-accent/50 text-accent hover:bg-accent/10 hover:text-accent/90 h-8 w-8 font-headline" aria-label="Previous page"><ChevronLeft className="h-4 w-4"/></Button>
                         {renderPageNumbers()}
-                        <Button variant="outline" size="icon" onClick={() => paginate(currentPage + 1)} disabled={currentPage === totalPages} className="border-accent/50 text-accent hover:bg-accent/10 hover:text-accent/90 h-8 w-8 font-headline" aria-label="Next page"><ChevronRight className="h-4 w-4"/></Button>
-                        <Button variant="outline" size="icon" onClick={() => paginate(totalPages)} disabled={currentPage === totalPages} className="border-accent/50 text-accent hover:bg-accent/10 hover:text-accent/90 h-8 w-8 font-headline" aria-label="Last page"><ChevronsRight className="h-4 w-4"/></Button>
+                        <Button variant="outline" size="icon" onClick={() => paginate(currentPage + 1)} disabled={currentPage === totalPagesForPosts} className="border-accent/50 text-accent hover:bg-accent/10 hover:text-accent/90 h-8 w-8 font-headline" aria-label="Next page"><ChevronRight className="h-4 w-4"/></Button>
+                        <Button variant="outline" size="icon" onClick={() => paginate(totalPagesForPosts)} disabled={currentPage === totalPagesForPosts} className="border-accent/50 text-accent hover:bg-accent/10 hover:text-accent/90 h-8 w-8 font-headline" aria-label="Last page"><ChevronsRight className="h-4 w-4"/></Button>
                     </div>
-                    <p className="text-sm text-muted-foreground font-headline">총 {totalPages} 페이지 중 {currentPage} 페이지</p>
+                    <p className="text-sm text-muted-foreground font-headline">총 {totalPagesForPosts} 페이지 중 {currentPage} 페이지</p>
                 </div>
               )}
             </>
@@ -308,12 +318,9 @@ export default function HomePage() {
                       <div className="space-y-3">
                         {currentCommunityRankersToDisplay.map((user) => {
                           if (user.username === 'WANGJUNLAND' && tabValue !== 'Global') return null;
-
                           const rankNumberTextClasses = "font-bold text-sm w-5 text-center shrink-0 text-muted-foreground";
                           const itemContainerClasses = "flex items-center justify-between p-2.5 bg-card/50 border-border/70 rounded-md shadow-sm";
-
                           const displayRankNumberToShow = tabValue === 'Global' ? user.rank : user.categoryStats?.[tabValue as PostMainCategory]?.rankInCate || 0;
-
                           return (
                             <div key={user.id} className={itemContainerClasses}>
                                <div className="flex items-center gap-2.5">
