@@ -11,24 +11,24 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from "@/hooks/use-toast";
 import { UserPlus, Mail, KeyRound, AtSign, CheckCircle, XCircle } from 'lucide-react';
-import type { NewUserDto as SignupUserDto } from '@/lib/mockData';
-import { validateEmail, validatePassword, validateNickname } from '@/lib/validationRules'; // Import validateEmail
+import type { NewUserDto as SignupUserDto } from '@/types'; // Correctly aliasing NewUserDto
+import { validateEmail, validatePassword, validateNickname } from '@/lib/validationRules';
 import { mockUsers } from '@/lib/mockData';
 
 export default function SignupPage() {
-  const [email, setEmail] = useState(''); // Changed from username to email
+  const [email, setEmail] = useState('');
   const [nickname, setNickname] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   
-  const [emailError, setEmailError] = useState<string | null>(null); // Changed from usernameError
+  const [emailError, setEmailError] = useState<string | null>(null);
   const [nicknameError, setNicknameError] = useState<string | null>(null);
   const [passwordError, setPasswordError] = useState<string | null>(null);
   const [confirmPasswordError, setConfirmPasswordError] = useState<string | null>(null);
 
-  const [isEmailChecked, setIsEmailChecked] = useState(false); // Changed from isUsernameChecked
-  const [isEmailAvailable, setIsEmailAvailable] = useState(false); // Changed from isUsernameAvailable
+  const [isEmailChecked, setIsEmailChecked] = useState(false);
+  const [isEmailAvailable, setIsEmailAvailable] = useState(false);
   const [isNicknameChecked, setIsNicknameChecked] = useState(false);
   const [isNicknameAvailable, setIsNicknameAvailable] = useState(false);
 
@@ -70,7 +70,7 @@ export default function SignupPage() {
     }
   }, [password, confirmPassword]);
   
-  const handleCheckEmail = () => { // Renamed from handleCheckUsername
+  const handleCheckEmail = () => {
     const validationError = validateEmail(email);
     if (validationError) {
       setEmailError(validationError);
@@ -142,9 +142,10 @@ export default function SignupPage() {
     setIsLoading(true);
     
     const signupData: SignupUserDto = {
-      username: email.trim(), // Pass email as username for AuthContext
+      username: email.trim(), // This will be used as the email for Firebase Auth
       nickname: nickname.trim(),
       password: password,
+      email: email.trim(), // Ensure all fields of SignupUserDto are provided
     };
 
     const result = await signup(signupData);
@@ -264,3 +265,4 @@ export default function SignupPage() {
     </div>
   );
 }
+
