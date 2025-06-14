@@ -1,3 +1,4 @@
+
 import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
@@ -29,11 +30,15 @@ export const storage = getStorage(app);
 
 // 환경변수 확인
 if (typeof window !== 'undefined') {
-  console.log('Firebase Config:', {
+  console.log('Firebase Config Being Used:', {
+    apiKey: firebaseConfig.apiKey, // Added apiKey here for debugging
     projectId: firebaseConfig.projectId,
     authDomain: firebaseConfig.authDomain,
     storageBucket: firebaseConfig.storageBucket
   });
+  if (!firebaseConfig.apiKey) {
+    console.error("Firebase API Key is MISSING or UNDEFINED. Please check your .env.local file and ensure NEXT_PUBLIC_FIREBASE_API_KEY is set correctly.");
+  }
 }
 
 export default app;
