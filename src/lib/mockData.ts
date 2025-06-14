@@ -259,7 +259,7 @@ const assignCategoryRanks = (users: User[]): void => {
   });
 };
 
-const assignCalculatedScoresAndRanks = (
+export const assignCalculatedScoresAndRanks = (
     usersInput: Omit<User, 'rank' | 'tetrisRank' | 'categoryStats' | 'score' | 'postScore' | 'selectedTitleIdentifier' | 'selectedNicknameEffectIdentifier' | 'selectedLogoIdentifier'>[]
   ): User[] => {
 

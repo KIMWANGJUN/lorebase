@@ -11,24 +11,27 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from "@/hooks/use-toast";
 import { UserPlus, Mail, KeyRound, AtSign, CheckCircle, XCircle } from 'lucide-react';
-import type { NewUserDto } from '@/lib/mockData';
+import type { NewUserDto } from '@/lib/mockData'; // This DTO might need adjustment if email is primary ID
 import { validateUsername, validatePassword, validateNickname } from '@/lib/validationRules';
-import { mockUsers } from '@/lib/mockData'; // For client-side duplication check
+import { mockUsers } from '@/lib/mockData'; // For client-side duplication check before calling Firebase
 
 export default function SignupPage() {
-  const [username, setUsername] = useState('');
+  const [username, setUsername] = useState(''); // This will be used as email for Firebase
   const [nickname, setNickname] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   
+  // Assuming username from form is used as email for Firebase
+  // The validation should reflect email rules if "username" is the email.
+  // For now, existing validation is kept, but AuthContext's signup will use 'username' as 'email'.
   const [usernameError, setUsernameError] = useState<string | null>(null);
   const [nicknameError, setNicknameError] = useState<string | null>(null);
   const [passwordError, setPasswordError] = useState<string | null>(null);
   const [confirmPasswordError, setConfirmPasswordError] = useState<string | null>(null);
 
   const [isUsernameChecked, setIsUsernameChecked] = useState(false);
-  const [isUsernameAvailable, setIsUsernameAvailable] = useState(false);
+  const [isUsernameAvailable, setIsUsernameAvailable] = useState(false); // Represents if email is available
   const [isNicknameChecked, setIsNicknameChecked] = useState(false);
   const [isNicknameAvailable, setIsNicknameAvailable] = useState(false);
 
@@ -38,8 +41,13 @@ export default function SignupPage() {
 
   useEffect(() => {
     if (username) {
-      setUsernameError(validateUsername(username));
-      setIsUsernameChecked(false); // Reset check status on change
+      // If 'username' is to be treated as an email for Firebase,
+      // this validation might need to check email format instead of typical username rules.
+      // For simplicity, keeping existing username validation for now.
+      // Error message might be confusing if user enters an email that fails username rules.
+      const validationError = validateUsername(username); // Or a new validateEmailLikeUsername
+      setUsernameError(validationError);
+      setIsUsernameChecked(false);
       setIsUsernameAvailable(false);
     } else {
       setUsernameError(null);
@@ -49,7 +57,7 @@ export default function SignupPage() {
   useEffect(() => {
     if (nickname) {
       setNicknameError(validateNickname(nickname));
-      setIsNicknameChecked(false); // Reset check status on change
+      setIsNicknameChecked(false);
       setIsNicknameAvailable(false);
     } else {
       setNicknameError(null);
@@ -69,22 +77,23 @@ export default function SignupPage() {
     }
   }, [password, confirmPassword]);
   
-  const handleCheckUsername = () => {
-    const validationError = validateUsername(username);
+  const handleCheckUsername = () => { // This now effectively checks if the "email" (entered in username field) is taken
+    const validationError = validateUsername(username); // Or validateEmail if label changes
     if (validationError) {
       setUsernameError(validationError);
-      toast({ title: "아이디 오류", description: validationError, variant: "destructive" });
+      toast({ title: "아이디(이메일) 오류", description: validationError, variant: "destructive" });
       setIsUsernameChecked(true);
       setIsUsernameAvailable(false);
       return;
     }
     setUsernameError(null);
-    const isTaken = mockUsers.some(u => u.username.toLowerCase() === username.toLowerCase());
+    // Check against mockUsers' email field, as 'username' is used as email for Firebase
+    const isTaken = mockUsers.some(u => u.email?.toLowerCase() === username.toLowerCase() || u.username.toLowerCase() === username.toLowerCase());
     if (isTaken) {
-      toast({ title: "아이디 중복", description: "이미 사용 중인 아이디입니다.", variant: "destructive" });
+      toast({ title: "아이디(이메일) 중복", description: "이미 사용 중인 아이디(이메일)입니다.", variant: "destructive" });
       setIsUsernameAvailable(false);
     } else {
-      toast({ title: "아이디 사용 가능", description: "사용 가능한 아이디입니다." });
+      toast({ title: "아이디(이메일) 사용 가능", description: "사용 가능한 아이디(이메일)입니다." });
       setIsUsernameAvailable(true);
     }
     setIsUsernameChecked(true);
@@ -114,8 +123,7 @@ export default function SignupPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Final validation check before submission
-    const currentUsernameError = validateUsername(username);
+    const currentUsernameError = validateUsername(username); // Or validateEmail
     const currentNicknameError = validateNickname(nickname);
     const currentPasswordError = validatePassword(password);
     const currentConfirmPasswordError = (password !== confirmPassword) ? "비밀번호가 일치하지 않습니다." : null;
@@ -131,7 +139,7 @@ export default function SignupPage() {
     }
 
     if (!isUsernameChecked || !isUsernameAvailable) {
-      toast({ title: "아이디 확인 필요", description: "아이디 중복 확인을 해주세요.", variant: "destructive" });
+      toast({ title: "아이디(이메일) 확인 필요", description: "아이디(이메일) 중복 확인을 해주세요.", variant: "destructive" });
       return;
     }
     if (!isNicknameChecked || !isNicknameAvailable) {
@@ -141,21 +149,22 @@ export default function SignupPage() {
 
     setIsLoading(true);
     
-    const signupData: NewUserDto = {
-      username: username.trim(),
+    // NewUserDto expects username (which we're using as email), nickname, password
+    const signupData: SignupUserDto = {
+      username: username.trim(), // This will be treated as email by AuthContext.signup
       nickname: nickname.trim(),
       password: password,
     };
 
-    const result = await signup(signupData);
+    const result = await signup(signupData); // AuthContext.signup handles Firebase
     setIsLoading(false);
 
     if (result.success) {
-      toast({ title: "회원가입 성공!", description: "로그인 페이지로 이동합니다. 가입하신 정보로 로그인해주세요." });
-      router.push('/login');
+      toast({ title: "회원가입 성공!", description: result.message || "로그인 페이지로 이동합니다." });
+      router.push('/login'); // Or router.push('/') if auto-login
     } else {
       toast({ title: "회원가입 실패", description: result.message || "알 수 없는 오류가 발생했습니다.", variant: "destructive" });
-      if (result.message?.includes("아이디")) {
+      if (result.message?.includes("아이디") || result.message?.includes("이메일")) {
         setIsUsernameAvailable(false);
         setIsUsernameChecked(true);
       }
@@ -182,23 +191,24 @@ export default function SignupPage() {
             <UserPlus className="h-8 w-8" />
           </div>
           <CardTitle className="text-3xl font-headline">회원가입</CardTitle>
-          <CardDescription>새로운 계정을 만드세요. 규칙을 확인해주세요.</CardDescription>
+          <CardDescription>새로운 계정을 만드세요. 아이디는 이메일 형식으로 사용됩니다.</CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4"> {/* Adjusted spacing */}
+          <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <Label htmlFor="username">아이디 <span className="text-destructive">*</span></Label>
+              <Label htmlFor="username">아이디 (이메일 형식) <span className="text-destructive">*</span></Label>
               <div className="flex items-center gap-2">
                 <div className="relative flex-grow">
                   <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                  <Input id="username" type="text" placeholder="5~20자 영문 소문자로 시작, 영문 소문자, 숫자, _, -" value={username} onChange={(e) => setUsername(e.target.value)} required className="pl-10 pr-8"/>
+                  <Input id="username" type="text" placeholder="이메일 주소를 아이디로 사용" value={username} onChange={(e) => setUsername(e.target.value)} required className="pl-10 pr-8"/>
                   <div className="absolute right-2 top-1/2 -translate-y-1/2">
                     {getFeedbackIcon(isUsernameChecked, isUsernameAvailable, usernameError)}
                   </div>
                 </div>
-                <Button type="button" variant="outline" size="sm" onClick={handleCheckUsername} disabled={!!validateUsername(username) || usernameError === "아이디를 입력해주세요."} className="shrink-0">중복 확인</Button>
+                <Button type="button" variant="outline" size="sm" onClick={handleCheckUsername} disabled={!!validateUsername(username) || username.length === 0} className="shrink-0">중복 확인</Button>
               </div>
               {usernameError && <p className="mt-1 text-xs text-destructive">{usernameError}</p>}
+               {!usernameError && isUsernameChecked && !isUsernameAvailable && <p className="mt-1 text-xs text-destructive">이미 사용 중인 아이디(이메일)입니다.</p>}
             </div>
 
             <div>
@@ -206,14 +216,15 @@ export default function SignupPage() {
                <div className="flex items-center gap-2">
                 <div className="relative flex-grow">
                   <AtSign className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                  <Input id="nickname" type="text" placeholder="2~14자 한글, 영문, 숫자 (공백/특수문자 불가)" value={nickname} onChange={(e) => setNickname(e.target.value)} required className="pl-10 pr-8"/>
+                  <Input id="nickname" type="text" placeholder="2~14자 한글, 영문, 숫자" value={nickname} onChange={(e) => setNickname(e.target.value)} required className="pl-10 pr-8"/>
                   <div className="absolute right-2 top-1/2 -translate-y-1/2">
                      {getFeedbackIcon(isNicknameChecked, isNicknameAvailable, nicknameError)}
                   </div>
                 </div>
-                <Button type="button" variant="outline" size="sm" onClick={handleCheckNickname} disabled={!!validateNickname(nickname) || nicknameError === "닉네임을 입력해주세요."} className="shrink-0">중복 확인</Button>
+                <Button type="button" variant="outline" size="sm" onClick={handleCheckNickname} disabled={!!validateNickname(nickname) || nickname.length === 0} className="shrink-0">중복 확인</Button>
               </div>
               {nicknameError && <p className="mt-1 text-xs text-destructive">{nicknameError}</p>}
+              {!nicknameError && isNicknameChecked && !isNicknameAvailable && <p className="mt-1 text-xs text-destructive">이미 사용 중인 닉네임입니다.</p>}
             </div>
 
             <div>
@@ -236,7 +247,7 @@ export default function SignupPage() {
 
             <Button 
               type="submit" 
-              className="w-full bg-gradient-to-r from-primary to-accent text-primary-foreground mt-6"  // Added mt-6 for spacing
+              className="w-full bg-gradient-to-r from-primary to-accent text-primary-foreground mt-6"
               disabled={
                 isLoading || 
                 !!usernameError || 
@@ -263,3 +274,5 @@ export default function SignupPage() {
     </div>
   );
 }
+
+    

@@ -1,13 +1,13 @@
 
 "use client";
-import { useState } from 'react';
+// import { useState } from 'react'; // No longer needed for LoginModal state
 import Link from 'next/link';
 import { Gamepad2, Users, Store, ShieldCheck, Wand2, LogIn } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import UserAvatarDropdown from '@/components/shared/UserAvatarDropdown';
 import { ThemeToggleButton } from '@/components/shared/ThemeToggleButton';
-import LoginModal from '@/components/Auth/LoginModal';
+// import LoginModal from '@/components/Auth/LoginModal'; // LoginModal removed, using /login page
 
 const navItems = [
   { href: '/game-workshop', label: '게임 공방', icon: Store },
@@ -17,7 +17,7 @@ const navItems = [
 
 export default function Header() {
   const { user, isAdmin, logout } = useAuth();
-  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+  // const [isLoginModalOpen, setIsLoginModalOpen] = useState(false); // State for modal removed
 
   return (
     <>
@@ -60,19 +60,19 @@ export default function Header() {
             {user ? (
               <UserAvatarDropdown user={user} isAdmin={isAdmin} onLogout={logout} />
             ) : (
-              <Button
-                variant="ghost"
-                className="text-muted-foreground hover:bg-secondary hover:text-foreground"
-                onClick={() => setIsLoginModalOpen(true)}
-              >
-                <LogIn className="mr-2 h-4 w-4" />
-                로그인
+              <Button asChild variant="ghost" className="text-muted-foreground hover:bg-secondary hover:text-foreground">
+                <Link href="/login">
+                  <LogIn className="mr-2 h-4 w-4" />
+                  로그인
+                </Link>
               </Button>
             )}
           </div>
         </div>
       </header>
-      <LoginModal isOpen={isLoginModalOpen} onClose={() => setIsLoginModalOpen(false)} /> {/* LoginModal is a sibling to header, within the fragment */}
+      {/* <LoginModal isOpen={isLoginModalOpen} onClose={() => setIsLoginModalOpen(false)} /> Removed */}
     </>
   );
 }
+
+    

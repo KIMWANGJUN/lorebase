@@ -8,9 +8,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from "@/hooks/use-toast";
-import { LogIn, Mail, KeyRound, UserPlus } from 'lucide-react';
+import { LogIn, Mail, KeyRound } from 'lucide-react';
+import { auth } from '@/lib/firebase'; // Firebase auth instance
+import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, OAuthProvider } from 'firebase/auth';
+import { useAuth } from '@/contexts/AuthContext'; // To potentially trigger context updates or check state
 
 // Placeholder icons for social login
 const GoogleIcon = () => <svg className="h-5 w-5" viewBox="0 0 24 24"><path fill="currentColor" d="M21.35 11.1h-9.03v2.79h5.32c-.46 1.65-1.96 2.93-3.98 2.93-2.48 0-4.5-2.01-4.5-4.49s2.02-4.49 4.5-4.49c1.21 0 2.26.44 3.08 1.16l2.13-2.13C15.41 4.46 13.54 3.5 11.32 3.5 7.06 3.5 3.5 7.06 3.5 11.32s3.56 7.82 7.82 7.82c4.07 0 7.49-3.16 7.49-7.49 0-.61-.07-1.21-.19-1.75z"></path></svg>;
@@ -19,51 +21,57 @@ const KakaoIcon = () => <svg className="h-5 w-5" viewBox="0 0 24 24"><path fill=
 
 
 export default function LoginPage() {
-  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState(''); // Changed username to email for Firebase
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
-  const { login } = useAuth(); // Removed socialLogin for now to simplify, will use login
   const { toast } = useToast();
+  // useAuth can be used to check if user is already logged in, or for other context-related actions if needed
+  // const { user: contextUser } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    const success = await login(username, password); // Standard login
-    setIsLoading(false);
-    if (success) {
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
       toast({ title: "로그인 성공", description: "커뮤니티에 오신 것을 환영합니다!" });
-      router.push('/');
-    } else {
-      toast({ title: "로그인 실패", description: "아이디 또는 비밀번호를 확인해주세요.", variant: "destructive" });
+      router.push('/'); // AuthContext's onAuthStateChanged will handle setting user state
+    } catch (error: any) {
+      console.error("Firebase email login error:", error);
+      let errorMessage = "아이디 또는 비밀번호를 확인해주세요.";
+      if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
+        errorMessage = "아이디 또는 비밀번호가 올바르지 않습니다.";
+      } else if (error.code === 'auth/invalid-email') {
+        errorMessage = "유효하지 않은 이메일 형식입니다.";
+      }
+      toast({ title: "로그인 실패", description: errorMessage, variant: "destructive" });
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const handleSocialLogin = async (provider: 'google' | 'naver' | 'kakao') => {
+  const handleSocialLogin = async (providerName: 'google' | 'naver' | 'kakao') => {
     setIsLoading(true);
-    // In a real app, this would trigger OAuth flow.
-    // For mock, we'll use predefined usernames that AuthContext.login can recognize
-    // and that have pre-filled socialProfiles in mockData.
-    let mockSocialUsername = '';
-    switch (provider) {
-      case 'google': mockSocialUsername = 'googleuser'; break;
-      case 'naver': mockSocialUsername = 'naveruser'; break;
-      case 'kakao': mockSocialUsername = 'kakaouser'; break;
-      default:
-        toast({ title: "오류", description: "알 수 없는 소셜 로그인 제공자입니다.", variant: "destructive"});
-        setIsLoading(false);
-        return;
-    }
-
-    // Using the existing login function, assuming mockData has these users
-    // with a placeholder password and their socialProfiles field populated.
-    const success = await login(mockSocialUsername, 'socialPasswordPlaceholder');
-    setIsLoading(false);
-    if (success) {
-      toast({ title: `${provider.charAt(0).toUpperCase() + provider.slice(1)} 로그인 성공`, description: "커뮤니티에 오신 것을 환영합니다!"});
-      router.push('/');
-    } else {
-      toast({ title: "소셜 로그인 실패", description: `목업 ${provider} 계정 로그인에 실패했습니다. (mockData 확인 필요)`, variant: "destructive" });
+    try {
+      let provider;
+      if (providerName === 'google') {
+        provider = new GoogleAuthProvider();
+        await signInWithPopup(auth, provider);
+        toast({ title: "Google 로그인 성공", description: "커뮤니티에 오신 것을 환영합니다!" });
+        router.push('/'); // AuthContext's onAuthStateChanged will handle user state
+      } else if (providerName === 'naver') {
+        // Naver login with Firebase often requires custom token handling or federated identity.
+        // For this prototype, we'll show a "not implemented" message.
+        toast({ title: "준비 중", description: "네이버 로그인은 현재 준비 중입니다.", variant: "default" });
+      } else if (providerName === 'kakao') {
+        // Kakao login also typically requires custom setup.
+        toast({ title: "준비 중", description: "카카오 로그인은 현재 준비 중입니다.", variant: "default" });
+      }
+    } catch (error: any) {
+      console.error(`Firebase ${providerName} login error:`, error);
+      toast({ title: `${providerName} 로그인 실패`, description: error.message || "소셜 로그인 중 오류가 발생했습니다.", variant: "destructive" });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -81,15 +89,15 @@ export default function LoginPage() {
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-2">
-              <Label htmlFor="username">아이디</Label>
+              <Label htmlFor="email">이메일 (아이디)</Label> 
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                 <Input 
-                  id="username" 
-                  type="text" 
-                  placeholder="아이디를 입력하세요" 
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
+                  id="email" 
+                  type="email" // Changed to email
+                  placeholder="이메일 주소를 입력하세요" 
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   required 
                   className="pl-10"
                 />
@@ -150,3 +158,5 @@ export default function LoginPage() {
     </div>
   );
 }
+
+    
