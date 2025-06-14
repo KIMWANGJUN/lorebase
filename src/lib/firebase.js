@@ -31,7 +31,7 @@ export const storage = getStorage(app);
 // 환경변수 확인
 if (typeof window !== 'undefined') {
   console.log('Firebase Config Being Used:', {
-    apiKey: firebaseConfig.apiKey, // Added apiKey here for debugging
+    apiKey: firebaseConfig.apiKey, // This line helps debug the API key
     projectId: firebaseConfig.projectId,
     authDomain: firebaseConfig.authDomain,
     storageBucket: firebaseConfig.storageBucket
