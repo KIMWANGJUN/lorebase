@@ -14,6 +14,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import type { User as UserType, PostMainCategory, AchievedRankType } from '@/types';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import NicknameDisplay from '@/components/shared/NicknameDisplay';
+import FormattedDateDisplay from '@/components/shared/FormattedDateDisplay'; // Added import
 
 const POSTS_PER_PAGE = 10;
 const MAX_PAGES = 10;
@@ -253,7 +254,7 @@ export default function HomePage() {
                           </div>
                         </div>
                         <div className="text-xs text-muted-foreground mt-1">
-                           <span>{new Date(post.createdAt).toLocaleDateString()}</span>
+                           <FormattedDateDisplay dateString={post.createdAt} />
                            <span className="mx-1">·</span>
                            <span className="capitalize">{post.mainCategory} / {post.type}</span>
                         </div>
