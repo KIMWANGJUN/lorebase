@@ -136,7 +136,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         socialProfiles: {},
         twoFactorEnabled: false,
       };
-      
+
       const existingInitial = initialMockUsersData.find(u => u.id === newMockUser.id || u.email === newMockUser.email);
       if (!existingInitial) {
           initialMockUsersData.push(newMockUser);
@@ -157,6 +157,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         message = "유효하지 않은 이메일 (아이디) 형식입니다.";
       } else if (error.code === 'auth/weak-password') {
         message = "비밀번호는 6자 이상이어야 합니다.";
+      } else if (error.code === 'auth/api-key-not-valid') {
+        message = "Firebase API 키가 유효하지 않습니다. 설정을 확인해주세요.";
       }
       setLoading(false);
       return { success: false, message };
@@ -180,7 +182,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         selectedLogoIdentifier: finalUpdatedFields.selectedLogoIdentifier || prevUser.selectedLogoIdentifier || 'none',
         socialProfiles: finalUpdatedFields.socialProfiles || prevUser.socialProfiles || {},
       };
-      
+
       if (typeof updatedUserObject.nicknameLastChanged === 'string') {
         updatedUserObject.nicknameLastChanged = new Date(updatedUserObject.nicknameLastChanged);
       }
@@ -201,7 +203,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
            ...updatedUserObject, // Spreading full object might be safer here for consistency
         };
       }
-      
+
       // If current Firebase user and nickname/avatar changed, update Firebase profile
       if (auth.currentUser && auth.currentUser.uid === updatedUserObject.id) {
         const profileUpdates: { displayName?: string; photoURL?: string } = {};
@@ -215,13 +217,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           updateProfile(auth.currentUser, profileUpdates).catch(err => console.error("Error updating Firebase profile:", err));
         }
       }
-      
+
       return updatedUserObject;
     });
   };
-
-  // The old mock login is removed. Authentication calls are made directly in components.
-  // onAuthStateChanged handles the user state.
 
   return (
     <AuthContext.Provider value={{ user, isAdmin, logout, signup, updateUser, loading }}>
@@ -237,5 +236,3 @@ export const useAuth = () => {
   }
   return context;
 };
-
-    
