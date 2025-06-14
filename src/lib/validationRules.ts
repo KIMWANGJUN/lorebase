@@ -35,6 +35,19 @@ export const validateUsername = (username: string): string | null => {
   return null;
 };
 
+export const validateEmail = (email: string): string | null => {
+  if (!email) return "이메일을 입력해주세요.";
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) {
+    return "유효한 이메일 형식이 아닙니다.";
+  }
+  if (email.length > 254) { // RFC 5321 limit
+    return "이메일 주소가 너무 깁니다."
+  }
+  // Add more specific domain checks if needed, but regex is generally sufficient for format
+  return null;
+};
+
 export const validatePassword = (password: string): string | null => {
   if (!password) return "비밀번호를 입력해주세요.";
   if (password.length < 8 || password.length > 16) {
@@ -69,4 +82,3 @@ export const validateNickname = (nickname: string): string | null => {
   // 여기서는 기본적인 문자 규칙만 검사합니다.
   return null;
 };
-

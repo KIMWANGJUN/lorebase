@@ -69,13 +69,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           const existingInitial = initialMockUsersData.find(u => u.id === newAppUser.id || u.email === newAppUser.email);
           if (!existingInitial) {
             initialMockUsersData.push({
-                id: newAppUser.id,
-                username: newAppUser.username,
-                nickname: newAppUser.nickname,
-                email: newAppUser.email,
-                avatar: newAppUser.avatar,
-                // No password for social logins initially in mockData
-                socialProfiles: newAppUser.socialProfiles,
+              id: newAppUser.id,
+              username: newAppUser.username,
+              nickname: newAppUser.nickname,
+              email: newAppUser.email,
+              avatar: newAppUser.avatar,
+              // No password for social logins initially in mockData
+              socialProfiles: newAppUser.socialProfiles,
+              twoFactorEnabled: undefined
             });
           }
           // Recalculate all ranks and scores with the new user, then find the new user from the updated list
@@ -116,13 +117,42 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const signup = async (userData: SignupUserDto): Promise<{ success: boolean, message?: string, user?: User }> => {
     setLoading(true);
     try {
-      // Use userData.username as email for Firebase Auth
-      const userCredential = await createUserWithEmailAndPassword(auth, userData.username, userData.password || '');
+      // Firebase 설정 사전 확인
+      if (!auth.app.options.apiKey) {
+        throw new Error('Firebase API 키가 설정되지 않았습니다.');
+      }
+  
+      if (!auth.app.options.projectId) {
+        throw new Error('Firebase 프로젝트 ID가 설정되지 않았습니다.');
+      }
+  
+      console.log('🔥 회원가입 시도:', { 
+        email: userData.username, 
+        firebaseProject: auth.app.options.projectId,
+        apiKeyExists: !!auth.app.options.apiKey,
+        timestamp: new Date().toISOString()
+      });
+  
+      // 이메일 형식 검증
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(userData.username)) {
+        throw new Error('유효한 이메일 형식을 입력해주세요.');
+      }
+  
+      // 비밀번호 검증
+      if (!userData.password || userData.password.length < 6) {
+        throw new Error('비밀번호는 6자리 이상이어야 합니다.');
+      }
+  
+      // Firebase 회원가입 시도
+      const userCredential = await createUserWithEmailAndPassword(auth, userData.username, userData.password);
       const firebaseUser = userCredential.user;
-
+  
+      console.log('✅ Firebase 회원가입 성공:', firebaseUser.uid);
+  
       // Update Firebase profile display name
       await updateProfile(firebaseUser, { displayName: userData.nickname });
-
+  
       // Add user to our mock data system
       const newMockUser: Omit<User, 'rank' | 'tetrisRank' | 'categoryStats' | 'score' | 'postScore' | 'selectedTitleIdentifier' | 'selectedNicknameEffectIdentifier' | 'selectedLogoIdentifier'> = {
         id: firebaseUser.uid,
@@ -136,34 +166,47 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         socialProfiles: {},
         twoFactorEnabled: false,
       };
-
+  
       const existingInitial = initialMockUsersData.find(u => u.id === newMockUser.id || u.email === newMockUser.email);
       if (!existingInitial) {
           initialMockUsersData.push(newMockUser);
       }
       const updatedMockUsersWithNewUser = assignCalculatedScoresAndRanks(initialMockUsersData);
       const finalNewUserFromMocks = updatedMockUsersWithNewUser.find(u => u.id === firebaseUser.uid);
-
+  
       // onAuthStateChanged should pick this new user up, but we can return success here
       setLoading(false);
       return { success: true, message: "회원가입 성공! 자동으로 로그인됩니다.", user: finalNewUserFromMocks };
-
+  
     } catch (error: any) {
-      console.error("Firebase signup error: ", error);
+      console.error("🚨 Firebase 회원가입 오류:", error);
       let message = "회원가입 중 오류가 발생했습니다.";
-      if (error.code === 'auth/email-already-in-use') {
+      
+      // 상세한 에러 처리
+      if (error.code === 'auth/api-key-not-valid') {
+        message = "Firebase API 키가 유효하지 않습니다. 관리자에게 문의하세요.";
+        console.error("🔑 API 키 오류 - 확인 사항:");
+        console.error("1. .env.local 파일이 프로젝트 루트에 있는지 확인");
+        console.error("2. API 키에 따옴표가 없는지 확인");
+        console.error("3. 개발 서버를 재시작했는지 확인");
+      } else if (error.code === 'auth/email-already-in-use') {
         message = "이미 사용 중인 이메일 (아이디)입니다.";
       } else if (error.code === 'auth/invalid-email') {
         message = "유효하지 않은 이메일 (아이디) 형식입니다.";
       } else if (error.code === 'auth/weak-password') {
         message = "비밀번호는 6자 이상이어야 합니다.";
-      } else if (error.code === 'auth/api-key-not-valid') {
-        message = "Firebase API 키가 유효하지 않습니다. 설정을 확인해주세요.";
+      } else if (error.code === 'auth/network-request-failed') {
+        message = "네트워크 연결을 확인해주세요.";
+      } else if (error.message.includes('API 키') || error.message.includes('프로젝트 ID')) {
+        message = error.message;
+      } else {
+        message = error.message || "회원가입에 실패했습니다.";
       }
+      
       setLoading(false);
       return { success: false, message };
     }
-  };
+  };  
 
   const updateUser = (updatedUserPartial: Partial<User>) => {
     setUser(prevUser => {

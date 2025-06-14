@@ -1,4 +1,11 @@
 
+export interface NewUserDto {
+  username: string;
+  password: string;
+  nickname: string;
+  email: string;
+}
+
 export type PostMainCategory = 'Unity' | 'Unreal' | 'Godot' | 'General';
 
 export interface UserCategoryStat {
