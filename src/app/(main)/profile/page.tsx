@@ -12,15 +12,16 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Edit3, Mail, MessageSquare, ShieldAlert, UserCog, ShieldCheck, Crown, Users, Gamepad2, Clock, CheckCircle, Wand2, Palette, VenetianMask, Star, Box, AppWindow, PenTool, LayoutGrid, Link2, CheckSquare, Square } from 'lucide-react';
+import { Edit3, Mail, MessageSquare, ShieldAlert, UserCog, ShieldCheck, Crown, Users, Gamepad2, Clock, CheckCircle, Wand2, Palette, VenetianMask, Star, Box, AppWindow, PenTool, LayoutGrid, Link2, CheckSquare, Square, Key, Shield, Send, Timer, Lock, Unlock, Camera } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import type { User, PostMainCategory, AchievedRankType, TitleIdentifier, NicknameEffectIdentifier, LogoIdentifier } from '@/types';
 import { mockPosts, mockInquiries, mockUsers, tetrisTitles } from '@/lib/mockData';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
 import NicknameDisplay from '@/components/shared/NicknameDisplay';
+import ProfileImageUpload from '@/components/ProfileImageUpload';
 
-// LoginPage에서 가져온 SVG 아이콘 정의 - ProfilePage 컴포넌트 바깥에 위치
+// LoginPage에서 가져온 SVG 아이콘 정의
 const GoogleIconSvg = () => <svg className="h-5 w-5" viewBox="0 0 24 24"><path fill="currentColor" d="M21.35 11.1h-9.03v2.79h5.32c-.46 1.65-1.96 2.93-3.98 2.93-2.48 0-4.5-2.01-4.5-4.49s2.02-4.49 4.5-4.49c1.21 0 2.26.44 3.08 1.16l2.13-2.13C15.41 4.46 13.54 3.5 11.32 3.5 7.06 3.5 3.5 7.06 3.5 11.32s3.56 7.82 7.82 7.82c4.07 0 7.49-3.16 7.49-7.49 0-.61-.07-1.21-.19-1.75z"></path></svg>;
 const NaverIconSvg = () => <svg className="h-5 w-5" viewBox="0 0 24 24"><path fill="#03C75A" d="M16.273 12.845L12.54 7.155H7.045v9.69h5.768l3.733-5.69zM7.045 4.5h9.91v2.655h-4.23L8.502 11.73H7.045V4.5zm0 15h9.91V16.87h-4.23l-4.228-4.575H7.045v7.19z"></path></svg>;
 const KakaoIconSvg = () => <svg className="h-5 w-5" viewBox="0 0 24 24"><path fill="#FFEB00" d="M12 2C6.48 2 2 5.89 2 10.49c0 2.83 1.71 5.31 4.31 6.78-.19.98-.71 3.42-1.14 4.47-.09.24.06.5.3.59.08.03.16.04.24.04.16 0 .31-.06.43-.18 1.87-1.41 3.29-2.78 4.07-3.68C10.99 18.91 11.5 19 12 19c5.52 0 10-3.89 10-8.51S17.52 2 12 2z"></path></svg>;
@@ -63,6 +64,7 @@ interface SelectOption {
 }
 
 const PROFILE_RANKERS_TO_SHOW = 50;
+const MAX_PASSWORD_CHANGES_PER_DAY = 3;
 
 const titleOptionsForTest: SelectOption[] = [
   { value: 'none', label: '칭호 없음' },
@@ -106,8 +108,23 @@ export default function ProfilePage() {
   const { toast } = useToast();
 
   const [nickname, setNickname] = useState('');
-  const [currentEmail, setCurrentEmail] = useState(''); // Renamed from email to avoid conflict
+  const [currentEmail, setCurrentEmail] = useState('');
   const [isEditingNickname, setIsEditingNickname] = useState(false);
+
+  // 비밀번호 변경 관련 state
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [passwordChangesToday, setPasswordChangesToday] = useState(0);
+  const [lastPasswordChangeDate, setLastPasswordChangeDate] = useState<string | null>(null);
+
+  // 2차 인증 관련 state
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [emailVerificationCode, setEmailVerificationCode] = useState('');
+  const [sentVerificationCode, setSentVerificationCode] = useState('');
+  const [isVerificationSent, setIsVerificationSent] = useState(false);
+  const [verificationTimer, setVerificationTimer] = useState(0);
+  const [isTwoFactorEnabled, setIsTwoFactorEnabled] = useState(false);
+  const [isSettingTwoFactor, setIsSettingTwoFactor] = useState(false);
 
   const [currentTitle, setCurrentTitle] = useState<TitleIdentifier>('none');
   const [currentNicknameEffect, setCurrentNicknameEffect] = useState<NicknameEffectIdentifier>('none');
@@ -129,6 +146,35 @@ export default function ProfilePage() {
     return new Date(new Date(user.nicknameLastChanged).getTime() + (30 * 24 * 60 * 60 * 1000));
   }, [user, isAdmin]);
 
+  // 비밀번호 validation
+  const validatePassword = (password: string): boolean => {
+    const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d@$!%*#?&]{6,12}$/;
+    return passwordRegex.test(password);
+  };
+
+  const canChangePasswordToday = useMemo(() => {
+    const today = new Date().toDateString();
+    if (lastPasswordChangeDate !== today) {
+      return true;
+    }
+    return passwordChangesToday < MAX_PASSWORD_CHANGES_PER_DAY;
+  }, [passwordChangesToday, lastPasswordChangeDate]);
+
+  // 인증 타이머 효과
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (verificationTimer > 0) {
+      interval = setInterval(() => {
+        setVerificationTimer(prev => prev - 1);
+      }, 1000);
+    } else if (verificationTimer === 0 && isVerificationSent) {
+      setIsVerificationSent(false);
+      setSentVerificationCode('');
+    }
+    return () => clearInterval(interval);
+  }, [verificationTimer, isVerificationSent]);
+
+  // user 상태 초기화 및 안전 검사 추가
   useEffect(() => {
     if (!authLoading && !user) {
       router.push('/login');
@@ -139,8 +185,30 @@ export default function ProfilePage() {
       setCurrentNicknameEffect(user.selectedNicknameEffectIdentifier || 'none');
       setCurrentLogo(user.selectedLogoIdentifier || 'none');
       setNicknameChangeAllowed(calculateCanChangeNickname());
+      
+      // Mock data for password changes
+      const today = new Date().toDateString();
+      setLastPasswordChangeDate(today);
+      setPasswordChangesToday(0);
+      
+      // 안전한 2차 인증 상태 설정 (null 체크 추가)
+      setIsTwoFactorEnabled(user.twoFactorEnabled ? !!user.twoFactorEnabled : false);
     }
   }, [user, authLoading, router]);
+
+  // updateUser 함수 안전성 검사
+  const safeUpdateUser = (updates: Partial<User>) => {
+    if (updateUser && typeof updateUser === 'function') {
+      updateUser(updates);
+    } else {
+      console.error('updateUser function is not available');
+      toast({
+        title: "오류",
+        description: "사용자 정보 업데이트 기능을 사용할 수 없습니다.",
+        variant: "destructive"
+      });
+    }
+  };
 
   const handleNicknameSave = () => {
     if (!user) return;
@@ -162,7 +230,7 @@ export default function ProfilePage() {
         toast({ title: "오류", description: "이미 사용 중인 닉네임입니다.", variant: "destructive"});
         return;
     }
-    updateUser({ nickname: trimmedNickname });
+    safeUpdateUser({ nickname: trimmedNickname });
     setIsEditingNickname(false);
     setNicknameChangeAllowed(calculateCanChangeNickname());
     toast({ title: "성공", description: "닉네임이 변경되었습니다." });
@@ -182,8 +250,124 @@ export default function ProfilePage() {
             return;
         }
     }
-    updateUser({ email: trimmedEmail || undefined });
+    safeUpdateUser({ email: trimmedEmail || undefined });
     toast({ title: "성공", description: "이메일이 등록/수정되었습니다." });
+  };
+
+  const handlePasswordChange = () => {
+    if (!user) return;
+    
+    if (!canChangePasswordToday) {
+      toast({ 
+        title: "오류", 
+        description: "비밀번호는 하루에 3번까지만 변경할 수 있습니다.", 
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (!validatePassword(newPassword)) {
+      toast({ 
+        title: "오류", 
+        description: "비밀번호는 영문자, 숫자를 포함하여 6-12자로 입력해주세요.", 
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      toast({ 
+        title: "오류", 
+        description: "비밀번호가 일치하지 않습니다.", 
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Mock password change
+    const today = new Date().toDateString();
+    if (lastPasswordChangeDate === today) {
+      setPasswordChangesToday(prev => prev + 1);
+    } else {
+      setPasswordChangesToday(1);
+      setLastPasswordChangeDate(today);
+    }
+
+    setNewPassword('');
+    setConfirmPassword('');
+    toast({ title: "성공", description: "비밀번호가 변경되었습니다." });
+  };
+
+  const handleStartTwoFactorSetup = () => {
+    if (!user?.email) {
+      toast({ 
+        title: "오류", 
+        description: "이메일이 등록되어 있지 않습니다. 먼저 이메일을 등록해주세요.", 
+        variant: "destructive"
+      });
+      return;
+    }
+    setIsSettingTwoFactor(true);
+  };
+
+  const handleSendVerificationCode = () => {
+    if (!user?.email) {
+      toast({ 
+        title: "오류", 
+        description: "이메일이 등록되어 있지 않습니다.", 
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (!currentPassword) {
+      toast({ 
+        title: "오류", 
+        description: "현재 비밀번호를 입력해주세요.", 
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Mock verification code generation
+    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    setSentVerificationCode(code);
+    setIsVerificationSent(true);
+    setVerificationTimer(300); // 5분
+
+    toast({ 
+      title: "인증코드 전송", 
+      description: `인증코드가 ${user.email}로 전송되었습니다. (Mock: ${code})`, 
+    });
+  };
+
+  const handleEnableTwoFactor = () => {
+    if (emailVerificationCode !== sentVerificationCode) {
+      toast({ 
+        title: "오류", 
+        description: "인증코드가 일치하지 않습니다.", 
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // 안전한 updateUser 호출
+    safeUpdateUser({ twoFactorEnabled: true });
+    setIsTwoFactorEnabled(true);
+    setIsSettingTwoFactor(false);
+    setCurrentPassword('');
+    setEmailVerificationCode('');
+    setIsVerificationSent(false);
+    setSentVerificationCode('');
+    setVerificationTimer(0);
+
+    toast({ title: "성공", description: "2차 인증이 활성화되었습니다." });
+  };
+
+  const handleDisableTwoFactor = () => {
+    safeUpdateUser({ twoFactorEnabled: false });
+    setIsTwoFactorEnabled(false);
+    toast({ title: "성공", description: "2차 인증이 비활성화되었습니다." });
   };
 
   const handlePreferenceChange = (type: 'title' | 'nicknameEffect' | 'logo', value: string) => {
@@ -199,8 +383,36 @@ export default function ProfilePage() {
       setCurrentLogo(value as LogoIdentifier);
       updatePayload.selectedLogoIdentifier = value as LogoIdentifier;
     }
-    updateUser(updatePayload);
+    safeUpdateUser(updatePayload);
     toast({ title: "성공", description: "대표 표시 설정이 변경되었습니다. 다른 페이지에서 반영됩니다." });
+  };
+
+  // 프로필 이미지 업데이트 핸들러 추가
+  const handleImageUpdate = (newImageUrl: string | null) => {
+    if (!user) {
+      toast({
+        title: "오류",
+        description: "사용자 정보를 찾을 수 없습니다.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // newImageUrl이 null일 경우 undefined를 전달하여 삭제 의도 전달
+ safeUpdateUser({ avatar: newImageUrl === null ? undefined : newImageUrl });
+
+    
+    if (newImageUrl) {
+      toast({
+        title: "성공",
+        description: "프로필 이미지가 업데이트되었습니다.",
+      });
+    } else {
+      toast({
+        title: "성공", 
+        description: "프로필 이미지가 삭제되었습니다.",
+      });
+    }
   };
 
   const getRegularUserOptions = (type: 'title' | 'nicknameEffect' | 'logo'): SelectOption[] => {
@@ -252,7 +464,7 @@ export default function ProfilePage() {
     if (!user) return;
     const currentSocialProfiles = user.socialProfiles || {};
     const updatedSocialProfiles = { ...currentSocialProfiles, [provider]: `dummy_${provider}_id_${user.id}` };
-    updateUser({ socialProfiles: updatedSocialProfiles });
+    safeUpdateUser({ socialProfiles: updatedSocialProfiles });
     toast({ title: "연동 성공", description: `${provider.charAt(0).toUpperCase() + provider.slice(1)} 계정이 연동되었습니다.` });
   };
 
@@ -260,7 +472,7 @@ export default function ProfilePage() {
     if(!user) return;
     const currentSocialProfiles = user.socialProfiles || {};
     const { [provider]: _, ...remainingProfiles } = currentSocialProfiles; // eslint-disable-line @typescript-eslint/no-unused-vars
-    updateUser({ socialProfiles: remainingProfiles });
+    safeUpdateUser({ socialProfiles: remainingProfiles });
     toast({ title: "연동 해제", description: `${provider.charAt(0).toUpperCase() + provider.slice(1)} 계정 연동이 해제되었습니다.`});
   }
 
@@ -336,6 +548,19 @@ export default function ProfilePage() {
                         <Card className="bg-card border-border">
                             <CardHeader><CardTitle className="text-foreground">계정 정보 수정</CardTitle></CardHeader>
                             <CardContent className="space-y-6">
+                                {/* 현재 ID (변경 불가, 회색 처리) */}
+                                <div>
+                                    <Label htmlFor="userId" className="text-muted-foreground">현재 ID</Label>
+                                    <Input 
+                                        id="userId" 
+                                        value={user.username} 
+                                        readOnly 
+                                        className="bg-muted/30 border-muted text-muted-foreground cursor-default focus:ring-0 focus:ring-offset-0 focus:border-muted pointer-events-none select-none" 
+                                    />
+                                    <p className="text-xs text-muted-foreground mt-1">ID는 변경할 수 없습니다.</p>
+                                </div>
+
+                                {/* 닉네임 변경 */}
                                 <div>
                                     <Label htmlFor="nickname" className="text-muted-foreground">닉네임</Label>
                                     <div className="flex items-center gap-2">
@@ -358,12 +583,192 @@ export default function ProfilePage() {
                                         </p>
                                     )}
                                 </div>
+
+                                {/* 이메일 등록/수정 */}
                                 <div>
                                     <Label htmlFor="profileEmail" className="text-muted-foreground">이메일</Label>
                                     <div className="flex items-center gap-2">
                                       <Input id="profileEmail" type="email" value={currentEmail} onChange={(e) => setCurrentEmail(e.target.value)} className="bg-input border-border text-foreground focus:ring-accent" placeholder="이메일을 등록해주세요." disabled={!!user.email}/>
                                       <Button onClick={handleEmailSave} variant="outline" size="sm" className="border-border text-muted-foreground hover:bg-muted/50 hover:border-accent hover:text-accent transition-colors"><CheckCircle className="h-4 w-4 mr-1"/> 등록/수정</Button>
                                     </div>
+                                </div>
+
+                                {/* 비밀번호 변경 */}
+                                <div className="border-t border-border pt-6">
+                                    <div className="flex items-center gap-2 mb-4">
+                                        <Key className="h-5 w-5 text-primary" />
+                                        <Label className="text-foreground font-semibold">비밀번호 변경</Label>
+                                    </div>
+                                    <div className="space-y-4">
+                                        <div>
+                                            <Label htmlFor="newPassword" className="text-muted-foreground">새 비밀번호</Label>
+                                            <Input 
+                                                id="newPassword" 
+                                                type="password" 
+                                                value={newPassword} 
+                                                onChange={(e) => setNewPassword(e.target.value)} 
+                                                className="bg-input border-border text-foreground focus:ring-accent" 
+                                                placeholder="영문자, 숫자 포함 6-12자"
+                                            />
+                                        </div>
+                                        <div>
+                                            <Label htmlFor="confirmPassword" className="text-muted-foreground">비밀번호 확인</Label>
+                                            <Input 
+                                                id="confirmPassword" 
+                                                type="password" 
+                                                value={confirmPassword} 
+                                                onChange={(e) => setConfirmPassword(e.target.value)} 
+                                                className="bg-input border-border text-foreground focus:ring-accent" 
+                                                placeholder="비밀번호를 다시 입력해주세요"
+                                            />
+                                        </div>
+                                        <div className="flex items-center justify-between">
+                                            <Button 
+                                                onClick={handlePasswordChange} 
+                                                variant="outline" 
+                                                size="sm" 
+                                                disabled={!canChangePasswordToday || !newPassword || !confirmPassword}
+                                                className="border-border text-muted-foreground hover:bg-muted/50 hover:border-accent hover:text-accent transition-colors"
+                                            >
+                                                <Key className="h-4 w-4 mr-1"/> 비밀번호 변경
+                                            </Button>
+                                            <p className="text-xs text-muted-foreground">
+                                                오늘 {passwordChangesToday}/{MAX_PASSWORD_CHANGES_PER_DAY}회 변경
+                                            </p>
+                                        </div>
+                                        {newPassword && !validatePassword(newPassword) && (
+                                            <p className="text-xs text-destructive">비밀번호는 영문자, 숫자를 포함하여 6-12자로 입력해주세요.</p>
+                                        )}
+                                        {newPassword && confirmPassword && newPassword !== confirmPassword && (
+                                            <p className="text-xs text-destructive">비밀번호가 일치하지 않습니다.</p>
+                                        )}
+                                    </div>
+                                </div>
+
+                                {/* 2차 인증 설정 */}
+                                <div className="border-t border-border pt-6">
+                                    <div className="flex items-center gap-2 mb-4">
+                                        <Shield className="h-5 w-5 text-primary" />
+                                        <Label className="text-foreground font-semibold">
+                                            2차 인증 (이메일 OTP)
+                                        </Label>
+                                        {isTwoFactorEnabled ? (
+                                            <div className="flex items-center gap-2 ml-auto">
+                                                <div className="flex items-center gap-1 text-green-500">
+                                                    <Lock className="h-4 w-4" />
+                                                    <span className="text-xs font-medium">활성화됨</span>
+                                                </div>
+                                                <Button 
+                                                    onClick={handleDisableTwoFactor} 
+                                                    variant="outline" 
+                                                    size="sm"
+                                                    className="border-border text-muted-foreground hover:bg-muted/50 hover:border-destructive hover:text-destructive transition-colors"
+                                                >
+                                                    <Unlock className="h-4 w-4 mr-1"/> 비활성화
+                                                </Button>
+                                            </div>
+                                        ) : (
+                                            <div className="flex items-center gap-1 ml-auto text-muted-foreground">
+                                                <Unlock className="h-4 w-4" />
+                                                <span className="text-xs">비활성화됨</span>
+                                            </div>
+                                        )}
+                                    </div>
+                                    
+                                    {!isTwoFactorEnabled && !isSettingTwoFactor && (
+                                        <div className="space-y-4">
+                                            <p className="text-sm text-muted-foreground">
+                                                로그인 시 이메일로 전송되는 인증코드를 통해 추가 보안을 제공합니다.
+                                            </p>
+                                            <Button 
+                                                onClick={handleStartTwoFactorSetup} 
+                                                variant="outline" 
+                                                size="sm"
+                                                className="border-border text-muted-foreground hover:bg-muted/50 hover:border-accent hover:text-accent transition-colors"
+                                            >
+                                                <Shield className="h-4 w-4 mr-1"/> 2차 인증 설정하기
+                                            </Button>
+                                        </div>
+                                    )}
+
+                                    {!isTwoFactorEnabled && isSettingTwoFactor && (
+                                        <div className="space-y-4">
+                                            <div>
+                                                <Label htmlFor="currentPasswordForTwoFactor" className="text-muted-foreground">현재 비밀번호 확인</Label>
+                                                <Input 
+                                                    id="currentPasswordForTwoFactor" 
+                                                    type="password" 
+                                                    value={currentPassword} 
+                                                    onChange={(e) => setCurrentPassword(e.target.value)} 
+                                                    className="bg-input border-border text-foreground focus:ring-accent" 
+                                                    placeholder="현재 계정 비밀번호를 입력해주세요"
+                                                />
+                                            </div>
+                                            <div>
+                                                <Label className="text-muted-foreground">이메일 인증</Label>
+                                                <div className="flex items-center gap-2 mt-2">
+                                                    <Input 
+                                                        type="text" 
+                                                        value={emailVerificationCode} 
+                                                        onChange={(e) => setEmailVerificationCode(e.target.value)} 
+                                                        className="bg-input border-border text-foreground focus:ring-accent" 
+                                                        placeholder="인증코드 입력"
+                                                        disabled={!isVerificationSent}
+                                                    />
+                                                    <Button 
+                                                        onClick={handleSendVerificationCode} 
+                                                        variant="outline" 
+                                                        size="sm"
+                                                        disabled={!user.email || !currentPassword || (isVerificationSent && verificationTimer > 0)}
+                                                        className="border-border text-muted-foreground hover:bg-muted/50 hover:border-accent hover:text-accent transition-colors"
+                                                    >
+                                                        <Send className="h-4 w-4 mr-1"/> 
+                                                        {isVerificationSent && verificationTimer > 0 ? 
+                                                            `${Math.floor(verificationTimer / 60)}:${(verificationTimer % 60).toString().padStart(2, '0')}` : 
+                                                            '인증코드 전송'
+                                                        }
+                                                    </Button>
+                                                </div>
+                                                {!user.email && (
+                                                    <p className="text-xs text-muted-foreground mt-1">이메일을 먼저 등록해주세요.</p>
+                                                )}
+                                                {isVerificationSent && (
+                                                    <p className="text-xs text-muted-foreground mt-1">
+                                                        <Timer className="inline-block h-3 w-3 mr-1"/>
+                                                        인증코드가 이메일로 전송되었습니다. ({Math.floor(verificationTimer / 60)}분 {verificationTimer % 60}초 남음)
+                                                    </p>
+                                                )}
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                <Button 
+                                                    onClick={handleEnableTwoFactor} 
+                                                    variant="outline" 
+                                                    size="sm" 
+                                                    disabled={!currentPassword || !emailVerificationCode}
+                                                    className="border-border text-muted-foreground hover:bg-muted/50 hover:border-accent hover:text-accent transition-colors"
+                                                >
+                                                    <Lock className="h-4 w-4 mr-1"/> 2차 인증 활성화
+                                                </Button>
+                                                <Button 
+                                                    onClick={() => setIsSettingTwoFactor(false)} 
+                                                    variant="outline" 
+                                                    size="sm"
+                                                    className="border-border text-muted-foreground hover:bg-muted/50 hover:border-destructive hover:text-destructive transition-colors"
+                                                >
+                                                    취소
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {isTwoFactorEnabled && (
+                                        <div className="text-sm text-muted-foreground">
+                                            <p className="flex items-center gap-2">
+                                                <CheckCircle className="h-4 w-4 text-green-500" />
+                                                2차 인증이 활성화되어 있습니다. 로그인 시 이메일로 인증코드가 전송됩니다.
+                                            </p>
+                                        </div>
+                                    )}
                                 </div>
                             </CardContent>
                         </Card>
@@ -374,7 +779,7 @@ export default function ProfilePage() {
                           <CardHeader>
                             <CardTitle className="text-foreground">대표 표시 설정</CardTitle>
                             <CardDescription className="text-muted-foreground">
-                              커뮤니티에 표시될 칭호, 닉네임 스타일, 로고를 선택하세요.
+                              커뮤니티에 표시될 프로필 이미지, 칭호, 닉네임 스타일, 로고를 선택하세요.
                               {isAdmin && user.username !== 'testwang1' && <span className="text-destructive font-semibold"> (관리자는 이 설정이 적용되지 않습니다.)</span>}
                             </CardDescription>
                           </CardHeader>
@@ -382,25 +787,67 @@ export default function ProfilePage() {
                             {isAdmin && user.username !== 'testwang1' ? (
                                 <p className="text-sm text-muted-foreground">관리자 계정은 대표 표시 설정을 사용하지 않습니다.</p>
                             ) : (
-                                <Tabs defaultValue="title_tab" className="w-full">
-                                  <TabsList className="grid w-full grid-cols-3 mb-4 bg-muted/50 border-border p-1 rounded-lg">
-                                    <TabsTrigger value="title_tab" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-xs"><VenetianMask className="inline-block h-4 w-4 mr-1"/>칭호</TabsTrigger>
-                                    <TabsTrigger value="nickname_effect_tab" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-xs"><Palette className="inline-block h-4 w-4 mr-1"/>닉네임 스타일</TabsTrigger>
-                                    <TabsTrigger value="logo_tab" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-xs"><Star className="inline-block h-4 w-4 mr-1"/>로고</TabsTrigger>
+                                <Tabs defaultValue="profile_image_tab" className="w-full">
+                                  <TabsList className="grid w-full grid-cols-4 mb-4 bg-muted/50 border-border p-1 rounded-lg">
+                                    <TabsTrigger value="profile_image_tab" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-xs">
+                                      <Camera className="inline-block h-4 w-4 mr-1"/>프로필
+                                    </TabsTrigger>
+                                    <TabsTrigger value="title_tab" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-xs">
+                                      <VenetianMask className="inline-block h-4 w-4 mr-1"/>칭호
+                                    </TabsTrigger>
+                                    <TabsTrigger value="nickname_effect_tab" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-xs">
+                                      <Palette className="inline-block h-4 w-4 mr-1"/>닉네임
+                                    </TabsTrigger>
+                                    <TabsTrigger value="logo_tab" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-xs">
+                                      <Star className="inline-block h-4 w-4 mr-1"/>로고
+                                    </TabsTrigger>
                                   </TabsList>
+                                  
+                                  {/* 프로필 이미지 탭 - 안전한 ProfileImageUpload 사용 */}
+                                  <TabsContent value="profile_image_tab">
+                                    <div className="space-y-4">
+                                      <h3 className="font-semibold text-foreground">프로필 이미지</h3>
+                                      {user && (
+                                        <ProfileImageUpload 
+                                          user={user} 
+                                          onImageUpdate={handleImageUpdate}
+                                          disabled={!updateUser}
+                                        />
+                                      )}
+                                    </div>
+                                  </TabsContent>
+                                  
+                                  {/* 기존 탭들 */}
                                   <TabsContent value="title_tab">
                                     <RadioGroup value={currentTitle} onValueChange={(v) => handlePreferenceChange('title', v)}>
-                                      {currentTitleOptions.map(opt => ( <div key={opt.value} className="flex items-center space-x-2 py-1.5"> <RadioGroupItem value={opt.value} id={`title_${opt.value}`} /> <Label htmlFor={`title_${opt.value}`} className="font-normal text-foreground text-sm">{opt.label}</Label> </div> ))}
+                                      {currentTitleOptions.map(opt => (
+                                        <div key={opt.value} className="flex items-center space-x-2 py-1.5">
+                                          <RadioGroupItem value={opt.value} id={`title_${opt.value}`} />
+                                          <Label htmlFor={`title_${opt.value}`} className="font-normal text-foreground text-sm">{opt.label}</Label>
+                                        </div>
+                                      ))}
                                     </RadioGroup>
                                   </TabsContent>
+                                  
                                   <TabsContent value="nickname_effect_tab">
                                      <RadioGroup value={currentNicknameEffect} onValueChange={(v) => handlePreferenceChange('nicknameEffect', v)}>
-                                      {currentNicknameEffectOptions.map(opt => ( <div key={opt.value} className="flex items-center space-x-2 py-1.5"> <RadioGroupItem value={opt.value} id={`effect_${opt.value}`} /> <Label htmlFor={`effect_${opt.value}`} className="font-normal text-foreground text-sm">{opt.label}</Label> </div> ))}
+                                      {currentNicknameEffectOptions.map(opt => (
+                                        <div key={opt.value} className="flex items-center space-x-2 py-1.5">
+                                          <RadioGroupItem value={opt.value} id={`effect_${opt.value}`} />
+                                          <Label htmlFor={`effect_${opt.value}`} className="font-normal text-foreground text-sm">{opt.label}</Label>
+                                        </div>
+                                      ))}
                                     </RadioGroup>
                                   </TabsContent>
+                                  
                                   <TabsContent value="logo_tab">
                                      <RadioGroup value={currentLogo} onValueChange={(v) => handlePreferenceChange('logo', v)}>
-                                      {currentLogoOptions.map(opt => ( <div key={opt.value} className="flex items-center space-x-2 py-1.5"> <RadioGroupItem value={opt.value} id={`logo_${opt.value}`} /> <Label htmlFor={`logo_${opt.value}`} className="font-normal text-foreground text-sm">{opt.label}</Label> </div>))}
+                                      {currentLogoOptions.map(opt => (
+                                        <div key={opt.value} className="flex items-center space-x-2 py-1.5">
+                                          <RadioGroupItem value={opt.value} id={`logo_${opt.value}`} />
+                                          <Label htmlFor={`logo_${opt.value}`} className="font-normal text-foreground text-sm">{opt.label}</Label>
+                                        </div>
+                                      ))}
                                     </RadioGroup>
                                   </TabsContent>
                                 </Tabs>

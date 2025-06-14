@@ -40,6 +40,7 @@ export type AchievedRankType =
 
 
 export interface User {
+  twoFactorEnabled: any;
   id: string;
   username: string; 
   password?: string; 
