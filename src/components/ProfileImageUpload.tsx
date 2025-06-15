@@ -1,4 +1,4 @@
-
+// src/components/ProfileImageUpload.tsx
 "use client";
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { Upload, Camera, Trash2, Loader, AlertCircle, CheckCircle } from 'lucide-react';
@@ -7,22 +7,21 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useToast } from '@/hooks/use-toast';
 import { uploadProfileImage, deleteProfileImage } from '@/lib/profileImageUpload';
 import { cn } from '@/lib/utils';
-import { auth } from '@/lib/firebase'; // Import Firebase auth
-import type { User as FirebaseUser } from 'firebase/auth'; // Import Firebase User type
+import { auth } from '@/lib/firebase';
+import type { User as FirebaseUser } from 'firebase/auth';
 import { onAuthStateChanged } from 'firebase/auth';
-
 
 /**
  * 프로필 이미지 업로드 컴포넌트 Props 타입 정의
  */
 interface ProfileImageUploadProps {
   user: {
-    uid?: string; // Firebase UID, if available directly on AuthContext user
-    id?: string;  // App's internal ID
+    uid?: string;
+    id?: string;
     displayName?: string;
     email?: string;
-    photoURL?: string; // Typically Firebase's photoURL
-    avatar?: string;   // Could be app's own avatar URL or Firebase's
+    photoURL?: string;
+    avatar?: string;
     nickname?: string;
   } | null;
   onImageUpdate?: (newImageUrl: string | null) => void;
@@ -68,6 +67,47 @@ const ProfileImageUpload: React.FC<ProfileImageUploadProps> = ({
       setPreviewImage(null);
     }
   }, [previewImage]);
+
+  // 🔧 Firebase Auth 안전 체크 함수
+  const checkFirebaseAuth = async (): Promise<FirebaseUser | null> => {
+    // auth가 null인 경우 즉시 null 반환
+    if (!auth) {
+      console.warn('Firebase auth 인스턴스가 초기화되지 않았습니다.');
+      return null;
+    }
+
+    // 현재 사용자가 있으면 바로 반환
+    if (auth.currentUser) {
+      return auth.currentUser;
+    }
+
+    // Auth 상태 변경 대기 (최대 3초)
+    return new Promise<FirebaseUser | null>((resolve) => {
+      if (!auth) {
+        resolve(null);
+        return;
+      }
+
+      const unsubscribe = onAuthStateChanged(
+        auth,
+        (fbAuthUser) => {
+          unsubscribe();
+          resolve(fbAuthUser);
+        },
+        (error) => {
+          console.error('Firebase auth 상태 확인 중 오류:', error);
+          unsubscribe();
+          resolve(null);
+        }
+      );
+
+      // 3초 타임아웃
+      setTimeout(() => {
+        unsubscribe();
+        resolve(auth?.currentUser || null);
+      }, 3000);
+    });
+  };
 
   const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -127,24 +167,8 @@ const ProfileImageUpload: React.FC<ProfileImageUploadProps> = ({
     setUploadProgress(0);
 
     try {
-      // Explicitly check Firebase auth state before proceeding
-      let currentFbUser = auth.currentUser;
-      if (!currentFbUser) {
-        currentFbUser = await new Promise<FirebaseUser | null>((resolve) => {
-          const unsubscribe = onAuthStateChanged(auth, (fbAuthUser) => {
-            unsubscribe();
-            resolve(fbAuthUser);
-          }, () => { // Error callback for onAuthStateChanged
-            unsubscribe();
-            resolve(null);
-          });
-          // Optional: Timeout for this specific check if needed, but onAuthStateChanged should fire
-           setTimeout(() => {
-             unsubscribe(); // Ensure unsubscription on timeout
-             resolve(auth.currentUser); // Fallback if timeout occurs before onAuthStateChanged fires
-           }, 2000); // 2-second timeout for this check
-        });
-      }
+      // 🔧 안전한 Firebase Auth 확인
+      const currentFbUser = await checkFirebaseAuth();
 
       if (!currentFbUser) {
         const firebaseLoginErrorMsg = 'Firebase 로그인이 필요합니다. 헤더의 로그인 버튼을 통해 Firebase에 로그인해주세요.';
@@ -160,13 +184,10 @@ const ProfileImageUpload: React.FC<ProfileImageUploadProps> = ({
         return;
       }
 
-      // Use AuthContext's user.id for the storage path.
-      // This assumes user.id from AuthContext is the intended identifier for storage paths.
-      // The uploadProfileImage function will internally verify Firebase auth again,
-      // but it should now succeed because of this pre-check.
+      // 사용자 ID 확인
       const userIdForPath = user.id;
       if (!userIdForPath) {
-          throw new Error('애플리케이션 사용자 ID를 찾을 수 없습니다.');
+        throw new Error('애플리케이션 사용자 ID를 찾을 수 없습니다.');
       }
 
       const onProgressCallback = (progress: number) => {
@@ -217,28 +238,24 @@ const ProfileImageUpload: React.FC<ProfileImageUploadProps> = ({
     setError('');
 
     try {
-      // Similar Firebase auth pre-check for delete
-      let currentFbUser = auth.currentUser;
-      if (!currentFbUser) {
-         currentFbUser = await new Promise<FirebaseUser | null>((resolve) => {
-            const unsubscribe = onAuthStateChanged(auth, (fbAuthUser) => {
-                unsubscribe();
-                resolve(fbAuthUser);
-            }, () => { unsubscribe(); resolve(null); });
-             setTimeout(() => { unsubscribe(); resolve(auth.currentUser); }, 2000);
-        });
-      }
+      // 🔧 안전한 Firebase Auth 확인
+      const currentFbUser = await checkFirebaseAuth();
+
       if (!currentFbUser) {
         const firebaseLoginErrorMsg = 'Firebase 로그인이 필요합니다. 작업을 계속할 수 없습니다.';
         setError(firebaseLoginErrorMsg);
-        toast({ title: "Firebase 로그인 필요", description: firebaseLoginErrorMsg, variant: "destructive" });
+        toast({ 
+          title: "Firebase 로그인 필요", 
+          description: firebaseLoginErrorMsg, 
+          variant: "destructive" 
+        });
         setIsUploading(false);
         return;
       }
 
       const userIdForPath = user.id;
       if (!userIdForPath) {
-          throw new Error('애플리케이션 사용자 ID를 찾을 수 없습니다.');
+        throw new Error('애플리케이션 사용자 ID를 찾을 수 없습니다.');
       }
 
       await deleteProfileImage(userIdForPath);

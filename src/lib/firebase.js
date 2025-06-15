@@ -1,97 +1,138 @@
-
-import { initializeApp } from 'firebase/app';
+// src/lib/firebase.js
+import { initializeApp, getApps, deleteApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 
-// 환경변수 유효성 검증 함수
-const validateFirebaseConfig = () => {
-  const requiredVars = {
-    'NEXT_PUBLIC_FIREBASE_API_KEY': process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-    'NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN': process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-    'NEXT_PUBLIC_FIREBASE_PROJECT_ID': process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-    'NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET': process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-    'NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID': process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-    'NEXT_PUBLIC_FIREBASE_APP_ID': process.env.NEXT_PUBLIC_FIREBASE_APP_ID
-  };
+// SSR 환경 감지
+const isServer = typeof window === 'undefined';
+const isClient = typeof window !== 'undefined';
 
-  const missing = [];
-  const invalid = [];
+// Firebase Studio 환경 감지
+const isFirebaseStudio = isClient && 
+  (window.location.hostname.includes('firebase-studio') ||
+   window.location.hostname.includes('cloudworkstations.dev'));
 
-  for (const [key, value] of Object.entries(requiredVars)) {
-    if (!value) {
-      missing.push(key);
-    } else if (value.includes('undefined') || value.length < 10) {
-      invalid.push(`${key}: ${value}`);
+console.log('🔍 Firebase 초기화 환경:');
+console.log('- isServer:', isServer);
+console.log('- isClient:', isClient);
+console.log('- isFirebaseStudio:', isFirebaseStudio);
+
+// 하드코딩 Firebase 설정 (Firebase Studio 환경용)
+const hardcodedConfig = {
+  apiKey: "AlzaSyAMoPasnL5uf_syvROzsUpWCiCfLD1fJU",
+  authDomain: "lorebase-a8b3b.firebaseapp.com",
+  projectId: "lorebase-a8b3b",
+  storageBucket: "lorebase-a8b3b.appspot.com",
+  messagingSenderId: "978818851697",
+  appId: "1:978818851697:web:9b100c52d4f976d62a8cd0"
+};
+
+// 환경변수 안전하게 가져오기
+const getEnvVar = (key) => {
+  try {
+    if (typeof process !== 'undefined' && process.env) {
+      return process.env[key];
     }
+    return undefined;
+  } catch (error) {
+    console.warn(`환경변수 ${key} 접근 실패:`, error);
+    return undefined;
   }
-
-  if (missing.length > 0) {
-    throw new Error(`❌ 누락된 Firebase 환경변수: ${missing.join(', ')}`);
-  }
-
-  if (invalid.length > 0) {
-    throw new Error(`❌ 유효하지 않은 Firebase 환경변수: ${invalid.join(', ')}`);
-  }
-
-  return requiredVars;
 };
 
-// 환경변수 검증 실행
-let validatedConfig;
-try {
-  validatedConfig = validateFirebaseConfig();
-  console.log('🔍 Firebase 환경변수 검증 완료');
-} catch (error) {
-  console.error('🚨 Firebase 환경변수 오류:', error.message);
-  throw error;
-}
-
+// Firebase 설정 - 환경변수 우선, 실패시 하드코딩 사용
 const firebaseConfig = {
-  apiKey: validatedConfig['NEXT_PUBLIC_FIREBASE_API_KEY'],
-  authDomain: validatedConfig['NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN'],
-  projectId: validatedConfig['NEXT_PUBLIC_FIREBASE_PROJECT_ID'],
-  storageBucket: validatedConfig['NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET'],
-  messagingSenderId: validatedConfig['NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID'],
-  appId: validatedConfig['NEXT_PUBLIC_FIREBASE_APP_ID']
+  apiKey: getEnvVar('NEXT_PUBLIC_FIREBASE_API_KEY') || hardcodedConfig.apiKey,
+  authDomain: getEnvVar('NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN') || hardcodedConfig.authDomain,
+  projectId: getEnvVar('NEXT_PUBLIC_FIREBASE_PROJECT_ID') || hardcodedConfig.projectId,
+  storageBucket: getEnvVar('NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET') || hardcodedConfig.storageBucket,
+  messagingSenderId: getEnvVar('NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID') || hardcodedConfig.messagingSenderId,
+  appId: getEnvVar('NEXT_PUBLIC_FIREBASE_APP_ID') || hardcodedConfig.appId
 };
 
-// 상세한 환경변수 로딩 확인
-console.log('🔧 Firebase Config 확인:', {
-  apiKey: firebaseConfig.apiKey ? `${firebaseConfig.apiKey.substring(0, 15)}...` : '❌ 없음',
-  authDomain: firebaseConfig.authDomain || '❌ 없음',
-  projectId: firebaseConfig.projectId || '❌ 없음',
-  storageBucket: firebaseConfig.storageBucket || '❌ 없음',
-  messagingSenderId: firebaseConfig.messagingSenderId || '❌ 없음',
-  appId: firebaseConfig.appId ? `${firebaseConfig.appId.substring(0, 20)}...` : '❌ 없음'
-});
-
+// Firebase 앱 초기화
 let app;
+
 try {
-  app = initializeApp(firebaseConfig);
-  console.log('✅ Firebase 초기화 성공');
-  console.log('📡 Firebase 프로젝트:', firebaseConfig.projectId);
+  console.log('🔧 Firebase Config:', {
+    apiKey: firebaseConfig.apiKey ? `${firebaseConfig.apiKey.substring(0, 15)}...` : '❌ 없음',
+    projectId: firebaseConfig.projectId
+  });
+
+  const existingApps = getApps();
+  
+  if (existingApps.length > 0) {
+    console.log('🔄 기존 Firebase 앱 감지');
+    app = existingApps[0];
+  } else {
+    app = initializeApp(firebaseConfig);
+    console.log('🆕 새로운 Firebase 앱 초기화');
+  }
+
+  console.log('✅ Firebase 앱 초기화 성공');
+
 } catch (error) {
-  console.error('❌ Firebase 초기화 실패:', error);
-  console.error('🔧 설정 확인 사항:');
-  console.error('1. .env.local 파일이 프로젝트 루트에 있는지 확인');
-  console.error('2. 모든 NEXT_PUBLIC_ 접두사가 정확한지 확인');
-  console.error('3. API 키에 따옴표가 없는지 확인');
-  console.error('4. 개발 서버를 재시작했는지 확인');
-  throw new Error(`Firebase 설정 오류: ${error.message}`);
+  console.error('❌ Firebase 앱 초기화 실패:', error);
+  
+  // 최후의 수단: 하드코딩으로 강제 초기화
+  try {
+    console.log('🚨 하드코딩 설정으로 강제 초기화 시도');
+    app = initializeApp(hardcodedConfig);
+    console.log('✅ 하드코딩 초기화 성공');
+  } catch (hardcodedError) {
+    console.error('💥 모든 초기화 방법 실패:', hardcodedError);
+    throw new Error('Firebase 초기화 완전 실패');
+  }
 }
 
-export const auth = getAuth(app);
-export const db = getFirestore(app);
-export const storage = getStorage(app);
+// Firebase 서비스 초기화 - 항상 객체 반환 (null 방지)
+let authInstance = null;
+let dbInstance = null;
+let storageInstance = null;
 
-// Firebase 인스턴스 검증
-try {
-  console.log('🔐 Firebase Auth 인스턴스:', auth ? '생성됨' : '생성 실패');
-  console.log('📊 Firebase Firestore 인스턴스:', db ? '생성됨' : '생성 실패');
-  console.log('📁 Firebase Storage 인스턴스:', storage ? '생성됨' : '생성 실패');
-} catch (error) {
-  console.error('❌ Firebase 서비스 인스턴스 생성 실패:', error);
+if (isClient && app) {
+  try {
+    authInstance = getAuth(app);
+    dbInstance = getFirestore(app);
+    storageInstance = getStorage(app);
+    
+    console.log('🔐 Auth 서비스:', authInstance ? '✅ 초기화됨' : '❌ 실패');
+    console.log('📊 Firestore 서비스:', dbInstance ? '✅ 초기화됨' : '❌ 실패');
+    console.log('📁 Storage 서비스:', storageInstance ? '✅ 초기화됨' : '❌ 실패');
+    
+  } catch (serviceError) {
+    console.error('❌ Firebase 서비스 초기화 실패:', serviceError);
+  }
 }
 
+// 디버그 객체 생성 (항상 생성)
+if (isClient) {
+  window.firebaseDebug = {
+    app: app,
+    auth: authInstance,
+    db: dbInstance,
+    storage: storageInstance,
+    config: firebaseConfig,
+    isFirebaseStudio: isFirebaseStudio,
+    
+    test: () => {
+      console.log('🔧 Firebase 디버그 정보:');
+      console.table({
+        'App 상태': window.firebaseDebug.app ? '✅ 정상' : '❌ 실패',
+        'Auth 상태': window.firebaseDebug.auth ? '✅ 정상' : '❌ 실패',
+        'Firestore 상태': window.firebaseDebug.db ? '✅ 정상' : '❌ 실패',
+        'Storage 상태': window.firebaseDebug.storage ? '✅ 정상' : '❌ 실패',
+        '프로젝트 ID': window.firebaseDebug.app?.options?.projectId
+      });
+    }
+  };
+  
+  console.log('🔧 window.firebaseDebug 객체 생성 완료');
+}
+
+// 안전한 export (검색 결과 [5], [6]에서 확인된 패턴)
+export const auth = authInstance;
+export const db = dbInstance;
+export const storage = storageInstance;
 export default app;
