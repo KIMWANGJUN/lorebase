@@ -1,3 +1,4 @@
+
 // src/contexts/AuthContext.tsx
 "use client";
 import type { User, NewUserDto as SignupUserDto } from '@/types';
@@ -33,43 +34,40 @@ const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [isAdmin, setIsAdmin] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(true);
   const [firebaseAuthReady, setFirebaseAuthReady] = useState(false);
+  const [authInstanceAvailable, setAuthInstanceAvailable] = useState(!!auth);
 
   useEffect(() => {
     console.log('🔥 AuthProvider useEffect 시작. Firebase auth 객체:', auth ? '로드됨' : '아직 로드 안됨');
     
     if (!auth) {
       console.warn('🚨 Firebase Auth 인스턴스가 AuthProvider에 아직 로드되지 않았습니다. 로딩 지연 가능성.');
+      let attempts = 0;
       const checkAuthInterval = setInterval(() => {
+        attempts++;
         if (auth) {
+          setAuthInstanceAvailable(true);
           setFirebaseAuthReady(true);
           clearInterval(checkAuthInterval);
-          console.log('✅ Firebase Auth 인스턴스 확인됨 (지연 후).');
+          console.log(`✅ Firebase Auth 인스턴스 확인됨 (시도 ${attempts}회 후).`);
+        } else if (attempts > 50) { // ~10초 후 타임아웃
+          clearInterval(checkAuthInterval);
+          console.error("🚨 Firebase Auth 인스턴스 초기화 시간 초과 (10초). 기능이 제대로 동작하지 않을 수 있습니다.");
+          setLoading(false); // Proceed with loading false to prevent indefinite loading screen
         }
-      }, 100);
-      // Increased timeout for Firebase initialization in some environments
-      const timeoutId = setTimeout(() => {
-        clearInterval(checkAuthInterval);
-        if (!auth) {
-            console.error("🚨 Firebase Auth 인스턴스 초기화 시간 초과 (10초). 기능이 제대로 동작하지 않을 수 있습니다.");
-            setLoading(false); // Proceed with loading false to prevent indefinite loading screen
-        }
-      }, 10000); 
-      return () => {
-        clearInterval(checkAuthInterval);
-        clearTimeout(timeoutId);
-      };
+      }, 200); // Check every 200ms
+      return () => clearInterval(checkAuthInterval);
     } else {
+        setAuthInstanceAvailable(true);
         setFirebaseAuthReady(true);
         console.log('✅ Firebase Auth 인스턴스 즉시 사용 가능.');
     }
   }, []);
 
   useEffect(() => {
-    if (!firebaseAuthReady || !auth) {
-        console.log("⏳ Firebase Auth 준비 대기 중...");
-        // If auth is null after firebaseAuthReady is true, it means something is wrong with firebase.js client-side init
-        if (firebaseAuthReady && !auth) {
-            console.error("🚨 CRITICAL: firebaseAuthReady is true, but auth object is still null. Check firebase.js client-side initialization logic.");
+    if (!firebaseAuthReady || !authInstanceAvailable || !auth) {
+        console.log("⏳ Firebase Auth 준비 대기 중... firebaseAuthReady:", firebaseAuthReady, "authInstanceAvailable:", authInstanceAvailable, "auth:", !!auth);
+        if (firebaseAuthReady && authInstanceAvailable && !auth) {
+            console.error("🚨 CRITICAL: firebaseAuthReady 및 authInstanceAvailable true, but auth object is null. Check firebase.js client-side initialization logic.");
             setLoading(false);
         }
         return;
@@ -86,7 +84,7 @@ const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
         if (appUser) {
           const updatedAppUser: User = {
             ...appUser,
-            id: firebaseUser.uid, // Ensure Firebase UID is used
+            id: firebaseUser.uid, 
             email: firebaseUser.email || appUser.email,
             nickname: firebaseUser.displayName || appUser.nickname,
             avatar: firebaseUser.photoURL || appUser.avatar,
@@ -98,7 +96,7 @@ const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
         } else {
           const newAppUser: User = {
             id: firebaseUser.uid,
-            username: firebaseUser.email!, // Using email as username identifier for new users
+            username: firebaseUser.email!, 
             nickname: firebaseUser.displayName || firebaseUser.email?.split('@')[0] || '새 사용자',
             email: firebaseUser.email!,
             avatar: firebaseUser.photoURL || `https://placehold.co/100x100.png?text=${(firebaseUser.displayName || firebaseUser.email || 'N').substring(0,1).toUpperCase()}`,
@@ -124,12 +122,10 @@ const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
               email: newAppUser.email,
               avatar: newAppUser.avatar,
               socialProfiles: newAppUser.socialProfiles,
-              // Ensure all fields match the Omit type
-              password: 'passwordPlaceholder', // mockUsersData requires password
+              password: 'passwordPlaceholder',
               nicknameLastChanged: newAppUser.nicknameLastChanged,
               isBlocked: newAppUser.isBlocked,
               twoFactorEnabled: newAppUser.twoFactorEnabled,
-
             });
           }
           
@@ -157,7 +153,7 @@ const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
       console.log('🧹 AuthProvider cleanup: onAuthStateChanged 구독 해제');
       unsubscribe();
     };
-  }, [firebaseAuthReady]); // Removed 'auth' from dependency array to avoid re-running if auth object reference changes but content is same.
+  }, [firebaseAuthReady, authInstanceAvailable]);
 
   const login = async (email: string, password: string): Promise<{ success: boolean, message?: string }> => {
     if (!auth) {
@@ -166,7 +162,7 @@ const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     }
     setLoading(true);
     console.log('🔥 로그인 시도: Email:', email);
-    console.log('🔑 로그인 시 사용되는 Auth API Key:', auth?.app?.options?.apiKey ? '키 있음' : '❌ 키 없음 또는 auth 객체 문제');
+    console.log('🔑 로그인 시 사용되는 Auth API Key:', auth?.app?.options?.apiKey ? auth.app.options.apiKey.substring(0,15)+'...' : '❌ 키 없음 또는 auth 객체 문제');
 
     try {
       await signInWithEmailAndPassword(auth, email, password);
@@ -194,7 +190,7 @@ const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     }
     setLoading(true);
 
-    const firebaseEmail = userData.email; // Use the dedicated email field
+    const firebaseEmail = userData.email; 
     console.log('🔥 Firebase 회원가입 시도: Email:', firebaseEmail);
     console.log('🔑 회원가입 시 사용되는 Auth API Key:', auth?.app?.options?.apiKey ? auth.app.options.apiKey.substring(0,15)+'...' : '❌ 키 없음 또는 auth 객체 문제');
     
@@ -215,7 +211,6 @@ const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
         throw new Error('닉네임은 2자 이상이어야 합니다.');
       }
   
-      // Firebase 회원가입 시도
       const userCredential = await createUserWithEmailAndPassword(auth, firebaseEmail, userData.password);
       const firebaseUser = userCredential.user;
   
@@ -223,10 +218,9 @@ const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
       await updateProfile(firebaseUser, { displayName: userData.nickname });
       console.log('✅ Firebase 프로필 업데이트 성공 (닉네임)');
 
-      // Mock 데이터 목록에 새 사용자 추가 로직
       const newMockEntry: Omit<User, 'rank' | 'tetrisRank' | 'categoryStats' | 'score' | 'postScore' | 'selectedTitleIdentifier' | 'selectedNicknameEffectIdentifier' | 'selectedLogoIdentifier'> = {
         id: firebaseUser.uid,
-        username: firebaseEmail, // Storing email as username as per DTO for consistency
+        username: firebaseEmail, 
         password: userData.password,
         nickname: userData.nickname,
         email: firebaseEmail,
@@ -258,7 +252,7 @@ const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
         message = "비밀번호는 6자 이상이어야 합니다.";
       } else if (error.code === 'auth/api-key-not-valid') {
         message = "Firebase API 키가 유효하지 않습니다. 관리자에게 문의하거나 Firebase 설정을 확인해주세요.";
-      } else if (error.message.includes('유효한 이메일') || error.message.includes('비밀번호는') || error.message.includes('닉네임은')) {
+      } else if (error.message?.includes('유효한 이메일') || error.message?.includes('비밀번호는') || error.message?.includes('닉네임은')) {
         message = error.message;
       }
       setLoading(false);
@@ -278,7 +272,6 @@ const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     } catch (error) {
       console.error("🚨 로그아웃 오류:", error);
     } finally {
-      // Ensure local state is cleared regardless of signOut success/failure
       setUser(null);
       setIsAdmin(false);
       localStorage.removeItem('currentUser');
@@ -291,7 +284,6 @@ const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
       const updatedUserObject: User = {
         ...prevUser,
         ...updatedUserPartial,
-        // Ensure these potentially undefined fields from partial update fallback to existing or default
         selectedTitleIdentifier: updatedUserPartial.selectedTitleIdentifier || prevUser.selectedTitleIdentifier || 'none',
         selectedNicknameEffectIdentifier: updatedUserPartial.selectedNicknameEffectIdentifier || prevUser.selectedNicknameEffectIdentifier || 'none',
         selectedLogoIdentifier: updatedUserPartial.selectedLogoIdentifier || prevUser.selectedLogoIdentifier || 'none',
@@ -322,11 +314,10 @@ const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
-  if (!context) { // Removed defaultAuthContext comparison as it's less reliable for readiness
+  if (!context) {
     throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
 };
 
 export default AuthProvider;
-// Removed duplicate export { AuthProvider };

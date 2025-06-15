@@ -1,3 +1,4 @@
+
 // src/lib/firebase.js
 import { initializeApp, getApps } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
@@ -11,11 +12,10 @@ const firebaseConfig = {
   apiKey: "AlzaSyAMoPasnL5uf-_svvROzsUpWCiCfLD1fJU",
   authDomain: "lorebase-a8b3b.firebaseapp.com",
   projectId: "lorebase-a8b3b",
-  storageBucket: "lorebase-a8b3b.appspot.com", // Corrected from .firebasestorage.app to .appspot.com if that was a typo. Usually it's projectID.appspot.com
+  storageBucket: "lorebase-a8b3b.appspot.com",
   messagingSenderId: "978818851697",
   appId: "1:978818851697:web:9b100c52d4f976d62a8cd0",
-  // measurementId is optional for core services but good to have if Analytics is used.
-  // measurementId: "G-BZNR54SCJN" // If you have this, include it.
+  measurementId: "G-BZNR54SCJN" // 스크린샷에 있었던 측정 ID를 추가합니다.
 };
 
 // Log the environment (server/client) and the config being used
@@ -70,7 +70,7 @@ if (!isServer) { // Client-side initialization
   } catch (error) {
     console.error('❌ Firebase 클라이언트 서비스 초기화 실패:', error);
   }
-} else { // Server-side logging for services (they won't be functional for client operations)
+} else { 
   console.log('🔐 Firebase Auth 인스턴스 (Server): getAuth(app)는 클라이언트 전용입니다.');
   console.log('📊 Firebase Firestore 인스턴스 (Server): getFirestore(app)는 클라이언트 전용입니다.');
   console.log('📁 Firebase Storage 인스턴스 (Server): getStorage(app)는 클라이언트 전용입니다.');
