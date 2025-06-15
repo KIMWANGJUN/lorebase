@@ -11,9 +11,6 @@ import { auth } from '@/lib/firebase';
 import type { User as FirebaseUser } from 'firebase/auth';
 import { onAuthStateChanged } from 'firebase/auth';
 
-/**
- * 프로필 이미지 업로드 컴포넌트 Props 타입 정의
- */
 interface ProfileImageUploadProps {
   user: {
     uid?: string;
@@ -28,9 +25,6 @@ interface ProfileImageUploadProps {
   disabled?: boolean;
 }
 
-/**
- * 프로필 이미지 업로드 컴포넌트 (Firebase Auth 통합)
- */
 const ProfileImageUpload: React.FC<ProfileImageUploadProps> = ({
   user,
   onImageUpdate,
@@ -68,20 +62,16 @@ const ProfileImageUpload: React.FC<ProfileImageUploadProps> = ({
     }
   }, [previewImage]);
 
-  // 🔧 Firebase Auth 안전 체크 함수
   const checkFirebaseAuth = async (): Promise<FirebaseUser | null> => {
-    // auth가 null인 경우 즉시 null 반환
     if (!auth) {
       console.warn('Firebase auth 인스턴스가 초기화되지 않았습니다.');
       return null;
     }
 
-    // 현재 사용자가 있으면 바로 반환
     if (auth.currentUser) {
       return auth.currentUser;
     }
 
-    // Auth 상태 변경 대기 (최대 3초)
     return new Promise<FirebaseUser | null>((resolve) => {
       if (!auth) {
         resolve(null);
@@ -101,7 +91,6 @@ const ProfileImageUpload: React.FC<ProfileImageUploadProps> = ({
         }
       );
 
-      // 3초 타임아웃
       setTimeout(() => {
         unsubscribe();
         resolve(auth?.currentUser || null);
@@ -167,7 +156,6 @@ const ProfileImageUpload: React.FC<ProfileImageUploadProps> = ({
     setUploadProgress(0);
 
     try {
-      // 🔧 안전한 Firebase Auth 확인
       const currentFbUser = await checkFirebaseAuth();
 
       if (!currentFbUser) {
@@ -184,7 +172,6 @@ const ProfileImageUpload: React.FC<ProfileImageUploadProps> = ({
         return;
       }
 
-      // 사용자 ID 확인
       const userIdForPath = user.id;
       if (!userIdForPath) {
         throw new Error('애플리케이션 사용자 ID를 찾을 수 없습니다.');
@@ -238,7 +225,6 @@ const ProfileImageUpload: React.FC<ProfileImageUploadProps> = ({
     setError('');
 
     try {
-      // 🔧 안전한 Firebase Auth 확인
       const currentFbUser = await checkFirebaseAuth();
 
       if (!currentFbUser) {
