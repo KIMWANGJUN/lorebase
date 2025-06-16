@@ -1,3 +1,4 @@
+
 // src/app/(main)/profile/page.tsx
 "use client";
 import React, { useState, useEffect, useMemo } from 'react';
@@ -12,9 +13,9 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Edit3, Mail, MessageSquare, ShieldAlert, UserCog, ShieldCheck, Crown, Users, Gamepad2, Clock, CheckCircle, Wand2, Palette, VenetianMask, Star, Box, AppWindow, PenTool, LayoutGrid, Link2, CheckSquare, Square, Key, Shield, Send, Timer, Lock, Unlock, Camera } from 'lucide-react';
+import { Edit3, Mail, MessageSquare, ShieldAlert, UserCog, ShieldCheck, Crown, Users, Gamepad2, Clock, CheckCircle, Wand2, Palette, VenetianMask, Star, Box, AppWindow, PenTool, LayoutGrid, Link2, Key, Shield, Send, Timer, Lock, Unlock, Camera } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
-import type { User, PostMainCategory, AchievedRankType, TitleIdentifier, NicknameEffectIdentifier, LogoIdentifier } from '@/types';
+import type { User, PostMainCategory, TitleIdentifier, NicknameEffectIdentifier, LogoIdentifier } from '@/types';
 import { mockPosts, mockInquiries, mockUsers, tetrisTitles } from '@/lib/mockData';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
@@ -245,7 +246,19 @@ export default function ProfilePage() {
       toast({ title: "오류", description: "유효한 이메일 주소를 입력해주세요.", variant: "destructive"});
       return; 
     }
-    if (trimmedEmail && trimmedEmail !== (user.email || '')) {
+
+    const emailToCompare = user.email || '';
+    if (trimmedEmail.toLowerCase() === emailToCompare.toLowerCase() && !trimmedEmail && !emailToCompare) { // both empty, no change
+        setIsEditingEmail(false);
+        return;
+    }
+     if (trimmedEmail.toLowerCase() === emailToCompare.toLowerCase()) { // No actual change in value
+        setIsEditingEmail(false);
+        toast({ title: "알림", description: "이메일 주소가 변경되지 않았습니다."});
+        return;
+    }
+    
+    if (trimmedEmail) { // Only check for duplicates if new email is not empty
       const isDuplicate = mockUsers.some(u => u.id !== user.id && u.email?.toLowerCase() === trimmedEmail.toLowerCase());
       if (isDuplicate) {
         toast({ title: "오류", description: "이미 사용 중인 이메일입니다.", variant: "destructive"});
@@ -253,15 +266,8 @@ export default function ProfilePage() {
       }
     }
     
-    // If trimmedEmail is empty and user had an email, it means user wants to clear it
-    // If trimmedEmail is same as user.email, no actual change, but still show success and revert UI
-    if (trimmedEmail === (user.email || '') && !trimmedEmail && !(user.email || '')) { // Both empty, no change
-        setIsEditingEmail(false);
-        return;
-    }
-
     safeUpdateUser({ email: trimmedEmail || undefined }); // Use undefined to clear if empty
-    toast({ title: "성공", description: "이메일이 등록/수정되었습니다." });
+    toast({ title: "성공", description: trimmedEmail ? "이메일이 등록/수정되었습니다." : "이메일이 삭제되었습니다." });
     setIsEditingEmail(false); 
   };
 
@@ -599,7 +605,15 @@ export default function ProfilePage() {
                                 <div>
                                     <Label htmlFor="profileEmail" className="text-muted-foreground">이메일</Label>
                                     <div className="flex items-center gap-2">
-                                      <Input id="profileEmail" type="email" value={currentEmail} onChange={(e) => setCurrentEmail(e.target.value)} className="bg-input border-border text-foreground focus:ring-accent" placeholder="이메일을 등록해주세요." disabled={!isEditingEmail}/>
+                                      <Input 
+                                        id="profileEmail" 
+                                        type="email" 
+                                        value={currentEmail} 
+                                        onChange={(e) => setCurrentEmail(e.target.value)} 
+                                        className="bg-input border-border text-foreground focus:ring-accent" 
+                                        placeholder="이메일을 등록해주세요." 
+                                        disabled={!isEditingEmail}
+                                      />
                                       {isEditingEmail ? (
                                         <Button onClick={handleEmailSave} size="sm" className="bg-accent text-accent-foreground hover:bg-accent/90"><CheckCircle className="h-4 w-4 mr-1"/> 등록</Button>
                                       ) : (
@@ -895,7 +909,7 @@ export default function ProfilePage() {
                                           {isLinked ? (
                                               <div className="flex items-center gap-2">
                                                   <span className={cn("text-sm flex items-center", statusColorClass)}>
-                                                    <CheckSquare className={cn("h-4 w-4 mr-1", statusColorClass)} />연동됨
+                                                    <CheckCircle className={cn("h-4 w-4 mr-1", statusColorClass)} />연동됨
                                                   </span>
                                                   <Button variant="link" size="sm" className="text-xs text-muted-foreground hover:text-destructive p-0 h-auto" onClick={() => handleSocialUnlink(provider)}>연동 해제</Button>
                                               </div>
@@ -1010,4 +1024,3 @@ export default function ProfilePage() {
     </div>
   );
 }
-
