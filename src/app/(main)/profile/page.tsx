@@ -75,7 +75,7 @@ const titleOptionsForTest: SelectOption[] = [
   ...(['Unity', 'Unreal', 'Godot', 'General'] as PostMainCategory[]).flatMap(cat =>
     [1, 2, 3].map(rank => ({
       value: `category_${cat}_${rank}_title` as TitleIdentifier,
-      label: `테스트: ${getCategoryDisplayName(cat)} ${rank}위 칭호 (${rank===1?'금':rank===2?'은':'동'}색)`
+      label: `테스트: ${getCategoryDisplayName(cat as PostMainCategory)} ${rank}위 칭호 (${rank===1?'금':rank===2?'은':'동'}색)`
     }))
   )
 ];
@@ -86,9 +86,9 @@ const nicknameEffectOptionsForTest: SelectOption[] = [
   { value: 'global_2_effect', label: '테스트: 종합 2위 효과 (은색 텍스트/배경)' },
   { value: 'global_3_effect', label: '테스트: 종합 3위 효과 (동색 텍스트/배경)' },
   ...(['Unity', 'Unreal', 'Godot', 'General'] as PostMainCategory[]).flatMap(cat => [
-    { value: `category_${cat}_1-3_effect` as NicknameEffectIdentifier, label: `테스트: ${getCategoryDisplayName(cat)} 1-3위 효과 (테마 텍스트/배경)`},
-    { value: `category_${cat}_4-10_effect` as NicknameEffectIdentifier, label: `테스트: ${getCategoryDisplayName(cat)} 4-10위 효과 (테마 텍스트/배경)`},
-    { value: `category_${cat}_11-20_effect` as NicknameEffectIdentifier, label: `테스트: ${getCategoryDisplayName(cat)} 11-20위 효과 (테마 텍스트, 배경X)`},
+    { value: `category_${cat}_1-3_effect` as NicknameEffectIdentifier, label: `테스트: ${getCategoryDisplayName(cat as PostMainCategory)} 1-3위 효과 (테마 텍스트/배경)`},
+    { value: `category_${cat}_4-10_effect` as NicknameEffectIdentifier, label: `테스트: ${getCategoryDisplayName(cat as PostMainCategory)} 4-10위 효과 (테마 텍스트/배경)`},
+    { value: `category_${cat}_11-20_effect` as NicknameEffectIdentifier, label: `테스트: ${getCategoryDisplayName(cat as PostMainCategory)} 11-20위 효과 (테마 텍스트, 배경X)`},
   ]),
   { value: 'tetris_1_effect', label: '테스트: 테트리스 1위 효과 (금색 텍스트, 배경X)' },
   { value: 'tetris_2_effect', label: '테스트: 테트리스 2위 효과 (은색 텍스트, 배경X)' },
@@ -109,7 +109,7 @@ export default function ProfilePage() {
   const { toast } = useToast();
 
   const [nickname, setNickname] = useState('');
-  const [currentEmail, setCurrentEmail] = useState('');
+  const [inputEmail, setInputEmail] = useState(''); // For email input field
   const [isEditingNickname, setIsEditingNickname] = useState(false);
   const [isEditingEmail, setIsEditingEmail] = useState(false); 
 
@@ -182,7 +182,7 @@ export default function ProfilePage() {
       router.push('/login');
     } else if (user) {
       setNickname(user.nickname);
-      setCurrentEmail(user.email || '');
+      setInputEmail(user.email || ''); // Initialize inputEmail
       setCurrentTitle(user.selectedTitleIdentifier || 'none');
       setCurrentNicknameEffect(user.selectedNicknameEffectIdentifier || 'none');
       setCurrentLogo(user.selectedLogoIdentifier || 'none');
@@ -240,25 +240,21 @@ export default function ProfilePage() {
 
   const handleEmailSave = () => {
     if (!user) return;
-    const trimmedEmail = currentEmail.trim();
+    const trimmedEmail = inputEmail.trim(); // Use inputEmail here
 
     if (trimmedEmail && !/\S+@\S+\.\S+/.test(trimmedEmail)) {
       toast({ title: "오류", description: "유효한 이메일 주소를 입력해주세요.", variant: "destructive"});
       return; 
     }
 
-    const emailToCompare = user.email || '';
-    if (trimmedEmail.toLowerCase() === emailToCompare.toLowerCase() && !trimmedEmail && !emailToCompare) { // both empty, no change
-        setIsEditingEmail(false);
-        return;
-    }
-     if (trimmedEmail.toLowerCase() === emailToCompare.toLowerCase()) { // No actual change in value
-        setIsEditingEmail(false);
-        toast({ title: "알림", description: "이메일 주소가 변경되지 않았습니다."});
-        return;
+    const currentActualEmail = user.email || '';
+    if (trimmedEmail.toLowerCase() === currentActualEmail.toLowerCase()) {
+      setIsEditingEmail(false);
+      toast({ title: "알림", description: "이메일 주소가 변경되지 않았습니다."});
+      return;
     }
     
-    if (trimmedEmail) { // Only check for duplicates if new email is not empty
+    if (trimmedEmail) { 
       const isDuplicate = mockUsers.some(u => u.id !== user.id && u.email?.toLowerCase() === trimmedEmail.toLowerCase());
       if (isDuplicate) {
         toast({ title: "오류", description: "이미 사용 중인 이메일입니다.", variant: "destructive"});
@@ -266,7 +262,7 @@ export default function ProfilePage() {
       }
     }
     
-    safeUpdateUser({ email: trimmedEmail || undefined }); // Use undefined to clear if empty
+    safeUpdateUser({ email: trimmedEmail || undefined }); 
     toast({ title: "성공", description: trimmedEmail ? "이메일이 등록/수정되었습니다." : "이메일이 삭제되었습니다." });
     setIsEditingEmail(false); 
   };
@@ -608,14 +604,14 @@ export default function ProfilePage() {
                                       <Input 
                                         id="profileEmail" 
                                         type="email" 
-                                        value={currentEmail} 
-                                        onChange={(e) => setCurrentEmail(e.target.value)} 
+                                        value={inputEmail} 
+                                        onChange={(e) => setInputEmail(e.target.value)} 
                                         className="bg-input border-border text-foreground focus:ring-accent" 
                                         placeholder="이메일을 등록해주세요." 
                                         disabled={!isEditingEmail}
                                       />
                                       {isEditingEmail ? (
-                                        <Button onClick={handleEmailSave} size="sm" className="bg-accent text-accent-foreground hover:bg-muted/50 hover:border-accent hover:text-accent transition-colors"><CheckCircle className="h-4 w-4 mr-1"/> 등록</Button>
+                                        <Button onClick={handleEmailSave} variant="outline" size="sm" className="bg-accent text-accent-foreground border-accent hover:bg-muted/50 hover:text-accent hover:border-accent transition-colors"><CheckCircle className="h-4 w-4 mr-1"/> 등록</Button>
                                       ) : (
                                         <Button onClick={() => setIsEditingEmail(true)} variant="outline" size="sm" className="border-border text-muted-foreground hover:bg-muted/50 hover:border-accent hover:text-accent transition-colors"><Edit3 className="h-4 w-4 mr-1"/> 수정</Button>
                                       )}
@@ -1024,3 +1020,4 @@ export default function ProfilePage() {
     </div>
   );
 }
+
