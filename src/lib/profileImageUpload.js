@@ -2,7 +2,7 @@
 // src/lib/profileImageUpload.js
 import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject, listAll } from 'firebase/storage';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
-import { auth, db } from './firebase'; // Import db from firebase.js
+import { auth, db } from './firebase'; // Corrected import path
 import { onAuthStateChanged } from 'firebase/auth';
 import { resizeImage, validateImage, validateImageMimeType } from './imageUtils';
 
@@ -127,6 +127,7 @@ export const uploadProfileImage = async (file, appUserId, onProgress = null) => 
     if (onProgress) onProgress(90);
 
     if (!db) {
+      console.error('Firestore DB instance is not available in profileImageUpload.');
       throw new Error('Firestore 서비스가 초기화되지 않았습니다. 데이터베이스 업데이트를 할 수 없습니다.');
     }
     const userDocRef = doc(db, 'users', appUserId);
@@ -179,6 +180,7 @@ export const deleteProfileImage = async (appUserId) => {
     await deleteExistingProfileImages(appUserId);
 
     if (!db) {
+      console.error('Firestore DB instance is not available in deleteProfileImage.');
       throw new Error('Firestore 서비스가 초기화되지 않았습니다. 데이터베이스 업데이트를 할 수 없습니다.');
     }
     const userDocRef = doc(db, 'users', appUserId);
@@ -235,3 +237,4 @@ export const getUserProfileImages = async (appUserId) => {
     throw new Error('프로필 이미지 목록을 조회할 수 없습니다.');
   }
 };
+

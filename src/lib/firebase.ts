@@ -20,15 +20,17 @@ const isServer = typeof window === 'undefined';
 console.log(`🔍 Firebase 초기화 환경: isServer: ${isServer}, isClient: ${!isServer}`);
 
 // Fallback for IDE environment if .env.local is not loaded
-if (!firebaseConfig.apiKey && typeof import.meta.env !== 'undefined') {
-  console.log('📝 .env.local 로드 실패. IDE 내장 환경 변수로 대체 시도.');
-  firebaseConfig.apiKey = import.meta.env.NEXT_PUBLIC_FIREBASE_API_KEY;
-  firebaseConfig.authDomain = import.meta.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN;
-  firebaseConfig.projectId = import.meta.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID;
-  firebaseConfig.storageBucket = import.meta.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET;
-  firebaseConfig.messagingSenderId = import.meta.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID;
-  firebaseConfig.appId = import.meta.env.NEXT_PUBLIC_FIREBASE_APP_ID;
-  firebaseConfig.measurementId = import.meta.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID;
+if (!firebaseConfig.apiKey && typeof window !== 'undefined') {
+  console.log('📝 .env.local 로드 실패. 하드코딩 값으로 대체.');
+  Object.assign(firebaseConfig, {
+    apiKey: "AIzaSyAMoPasnL5uf-_svvROzsUpWCiCfLD1fJU",
+    authDomain: "lorebase-a8b3b.firebaseapp.com",
+    projectId: "lorebase-a8b3b",
+    storageBucket: "lorebase-a8b3b.firebasestorage.app",
+    messagingSenderId: "978818851697",
+    appId: "1:978818851697:web:9b100c52d4f976d62a8cd0",
+    measurementId: "G-BZNR54SCJN"
+  });
 }
 
 if (!firebaseConfig.apiKey) {
