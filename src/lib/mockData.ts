@@ -6,7 +6,7 @@ const fortyFiveDaysAgo = new Date(Date.now() - 45 * 24 * 60 * 60 * 1000);
 const fifteenDaysAgo = new Date(Date.now() - 15 * 24 * 60 * 60 * 1000);
 
 // 초기 사용자 데이터 (점수 관련 필드는 아래에서 재계산됨)
-export let mockUsersData: Omit<User, 'rank' | 'tetrisRank' | 'categoryStats' | 'score' | 'postScore' | 'selectedTitleIdentifier' | 'selectedNicknameEffectIdentifier' | 'selectedLogoIdentifier'>[] = [
+export const mockUsersData: Omit<User, 'rank' | 'tetrisRank' | 'categoryStats' | 'score' | 'postScore' | 'selectedTitleIdentifier' | 'selectedNicknameEffectIdentifier' | 'selectedLogoIdentifier'>[] = [
   {
     id: 'admin', 
     username: 'wangjunland', 
@@ -647,7 +647,8 @@ export const assignCalculatedScoresAndRanks = (
 
 export let mockUsers: User[] = assignCalculatedScoresAndRanks(mockUsersData);
 
-export type NewUserDto = Omit<User, 'email'| 'rank' | 'categoryStats' | 'tetrisRank' | 'id' | 'score' | 'nicknameLastChanged' | 'isBlocked' | 'avatar' | 'postScore' | 'selectedTitleIdentifier' | 'selectedNicknameEffectIdentifier' | 'selectedLogoIdentifier' | 'socialProfiles'> & { password?: string };
+export type NewUserDto = Omit<User, 'email'| 'rank' | 'categoryStats' | 'tetrisRank' | 'id' | 'score' | 'nicknameLastChanged' | 'isBlocked' | 'avatar' | 'postScore' | 'selectedTitleIdentifier' | 'selectedNicknameEffectIdentifier' | 'selectedLogoIdentifier' | 'socialProfiles'> & { password?: string; email: string; };
+
 
 export const addUserToMockList = (newUserData: NewUserDto): { success: boolean, message?: string, user?: User } => {
   const usernameError = validateUsername(newUserData.username);
@@ -673,6 +674,7 @@ export const addUserToMockList = (newUserData: NewUserDto): { success: boolean, 
   const newUserRaw: Omit<User, 'rank' | 'tetrisRank' | 'categoryStats' | 'score' | 'postScore' | 'selectedTitleIdentifier' | 'selectedNicknameEffectIdentifier' | 'selectedLogoIdentifier'> = {
     id: `user${Date.now()}${Math.floor(Math.random() * 1000)}`,
     username: newUserData.username,
+    email: newUserData.email, // Make sure email is included
     password: newUserData.password,
     nickname: newUserData.nickname,
     avatar: `https://placehold.co/100x100.png?text=${newUserData.nickname.substring(0,1).toUpperCase()}`,
