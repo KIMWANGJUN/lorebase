@@ -583,7 +583,7 @@ export default function ProfilePage() {
                                     <div className="flex items-center gap-2">
                                         <Input id="nickname" value={nickname} onChange={(e) => setNickname(e.target.value)} disabled={!isEditingNickname} className="bg-input border-border text-foreground focus:ring-accent" />
                                         {isEditingNickname ? (
-                                            <Button onClick={handleNicknameSave} size="sm" className="bg-accent text-accent-foreground hover:bg-accent/90"><CheckCircle className="h-4 w-4 mr-1"/> 저장</Button>
+                                            <Button onClick={handleNicknameSave} size="sm" className="bg-accent text-accent-foreground hover:bg-muted/50 hover:border-accent hover:text-accent transition-colors"><CheckCircle className="h-4 w-4 mr-1"/> 저장</Button>
                                         ) : (
                                             <Button onClick={() => setIsEditingNickname(true)} variant="outline" size="sm" disabled={!isAdmin && !nicknameChangeAllowed} className="border-border text-muted-foreground hover:bg-muted/50 hover:border-accent hover:text-accent transition-colors"><Edit3 className="h-4 w-4 mr-1"/> 변경</Button>
                                         )}
@@ -615,7 +615,7 @@ export default function ProfilePage() {
                                         disabled={!isEditingEmail}
                                       />
                                       {isEditingEmail ? (
-                                        <Button onClick={handleEmailSave} size="sm" className="bg-accent text-accent-foreground hover:bg-accent/90 hover:text-white"><CheckCircle className="h-4 w-4 mr-1"/> 등록</Button>
+                                        <Button onClick={handleEmailSave} size="sm" className="bg-accent text-accent-foreground hover:bg-muted/50 hover:border-accent hover:text-accent transition-colors"><CheckCircle className="h-4 w-4 mr-1"/> 등록</Button>
                                       ) : (
                                         <Button onClick={() => setIsEditingEmail(true)} variant="outline" size="sm" className="border-border text-muted-foreground hover:bg-muted/50 hover:border-accent hover:text-accent transition-colors"><Edit3 className="h-4 w-4 mr-1"/> 수정</Button>
                                       )}
