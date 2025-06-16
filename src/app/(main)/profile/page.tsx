@@ -110,6 +110,7 @@ export default function ProfilePage() {
   const [nickname, setNickname] = useState('');
   const [currentEmail, setCurrentEmail] = useState('');
   const [isEditingNickname, setIsEditingNickname] = useState(false);
+  const [isEditingEmail, setIsEditingEmail] = useState(false); 
 
   // 비밀번호 변경 관련 state
   const [newPassword, setNewPassword] = useState('');
@@ -118,7 +119,7 @@ export default function ProfilePage() {
   const [lastPasswordChangeDate, setLastPasswordChangeDate] = useState<string | null>(null);
 
   // 2차 인증 관련 state
-  const [currentPassword, setCurrentPassword] = useState('');
+  const [currentPasswordForTwoFactor, setCurrentPasswordForTwoFactor] = useState('');
   const [emailVerificationCode, setEmailVerificationCode] = useState('');
   const [sentVerificationCode, setSentVerificationCode] = useState('');
   const [isVerificationSent, setIsVerificationSent] = useState(false);
@@ -147,7 +148,7 @@ export default function ProfilePage() {
   }, [user, isAdmin]);
 
   // 비밀번호 validation
-  const validatePassword = (password: string): boolean => {
+  const validatePasswordStrength = (password: string): boolean => {
     const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d@$!%*#?&]{6,12}$/;
     return passwordRegex.test(password);
   };
@@ -230,28 +231,38 @@ export default function ProfilePage() {
         toast({ title: "오류", description: "이미 사용 중인 닉네임입니다.", variant: "destructive"});
         return;
     }
-    safeUpdateUser({ nickname: trimmedNickname });
+    safeUpdateUser({ nickname: trimmedNickname, nicknameLastChanged: new Date() });
     setIsEditingNickname(false);
-    setNicknameChangeAllowed(calculateCanChangeNickname());
+    setNicknameChangeAllowed(calculateCanChangeNickname()); // Recalculate after change
     toast({ title: "성공", description: "닉네임이 변경되었습니다." });
   };
 
   const handleEmailSave = () => {
     if (!user) return;
     const trimmedEmail = currentEmail.trim();
+
     if (trimmedEmail && !/\S+@\S+\.\S+/.test(trimmedEmail)) {
-        toast({ title: "오류", description: "유효한 이메일 주소를 입력해주세요.", variant: "destructive"});
-        return;
+      toast({ title: "오류", description: "유효한 이메일 주소를 입력해주세요.", variant: "destructive"});
+      return; 
     }
     if (trimmedEmail && trimmedEmail !== (user.email || '')) {
-        const isDuplicate = mockUsers.some(u => u.id !== user.id && u.email?.toLowerCase() === trimmedEmail.toLowerCase());
-        if (isDuplicate) {
-            toast({ title: "오류", description: "이미 사용 중인 이메일입니다.", variant: "destructive"});
-            return;
-        }
+      const isDuplicate = mockUsers.some(u => u.id !== user.id && u.email?.toLowerCase() === trimmedEmail.toLowerCase());
+      if (isDuplicate) {
+        toast({ title: "오류", description: "이미 사용 중인 이메일입니다.", variant: "destructive"});
+        return; 
+      }
     }
-    safeUpdateUser({ email: trimmedEmail || undefined });
+    
+    // If trimmedEmail is empty and user had an email, it means user wants to clear it
+    // If trimmedEmail is same as user.email, no actual change, but still show success and revert UI
+    if (trimmedEmail === (user.email || '') && !trimmedEmail && !(user.email || '')) { // Both empty, no change
+        setIsEditingEmail(false);
+        return;
+    }
+
+    safeUpdateUser({ email: trimmedEmail || undefined }); // Use undefined to clear if empty
     toast({ title: "성공", description: "이메일이 등록/수정되었습니다." });
+    setIsEditingEmail(false); 
   };
 
   const handlePasswordChange = () => {
@@ -266,7 +277,7 @@ export default function ProfilePage() {
       return;
     }
 
-    if (!validatePassword(newPassword)) {
+    if (!validatePasswordStrength(newPassword)) {
       toast({ 
         title: "오류", 
         description: "비밀번호는 영문자, 숫자를 포함하여 6-12자로 입력해주세요.", 
@@ -320,7 +331,7 @@ export default function ProfilePage() {
       return;
     }
 
-    if (!currentPassword) {
+    if (!currentPasswordForTwoFactor) {
       toast({ 
         title: "오류", 
         description: "현재 비밀번호를 입력해주세요.", 
@@ -355,7 +366,7 @@ export default function ProfilePage() {
     safeUpdateUser({ twoFactorEnabled: true });
     setIsTwoFactorEnabled(true);
     setIsSettingTwoFactor(false);
-    setCurrentPassword('');
+    setCurrentPasswordForTwoFactor('');
     setEmailVerificationCode('');
     setIsVerificationSent(false);
     setSentVerificationCode('');
@@ -566,7 +577,7 @@ export default function ProfilePage() {
                                     <div className="flex items-center gap-2">
                                         <Input id="nickname" value={nickname} onChange={(e) => setNickname(e.target.value)} disabled={!isEditingNickname} className="bg-input border-border text-foreground focus:ring-accent" />
                                         {isEditingNickname ? (
-                                            <Button onClick={handleNicknameSave} size="sm" className="bg-accent text-accent-foreground hover:bg-accent-hover hover:text-accent-foreground"><CheckCircle className="h-4 w-4 mr-1"/> 저장</Button>
+                                            <Button onClick={handleNicknameSave} size="sm" className="bg-accent text-accent-foreground hover:bg-accent/90"><CheckCircle className="h-4 w-4 mr-1"/> 저장</Button>
                                         ) : (
                                             <Button onClick={() => setIsEditingNickname(true)} variant="outline" size="sm" disabled={!isAdmin && !nicknameChangeAllowed} className="border-border text-muted-foreground hover:bg-muted/50 hover:border-accent hover:text-accent transition-colors"><Edit3 className="h-4 w-4 mr-1"/> 변경</Button>
                                         )}
@@ -588,8 +599,12 @@ export default function ProfilePage() {
                                 <div>
                                     <Label htmlFor="profileEmail" className="text-muted-foreground">이메일</Label>
                                     <div className="flex items-center gap-2">
-                                      <Input id="profileEmail" type="email" value={currentEmail} onChange={(e) => setCurrentEmail(e.target.value)} className="bg-input border-border text-foreground focus:ring-accent" placeholder="이메일을 등록해주세요." disabled={!!user.email}/>
-                                      <Button onClick={handleEmailSave} variant="outline" size="sm" className="border-border text-muted-foreground hover:bg-muted/50 hover:border-accent hover:text-accent transition-colors"><CheckCircle className="h-4 w-4 mr-1"/> 등록/수정</Button>
+                                      <Input id="profileEmail" type="email" value={currentEmail} onChange={(e) => setCurrentEmail(e.target.value)} className="bg-input border-border text-foreground focus:ring-accent" placeholder="이메일을 등록해주세요." disabled={!isEditingEmail}/>
+                                      {isEditingEmail ? (
+                                        <Button onClick={handleEmailSave} size="sm" className="bg-accent text-accent-foreground hover:bg-accent/90"><CheckCircle className="h-4 w-4 mr-1"/> 등록</Button>
+                                      ) : (
+                                        <Button onClick={() => setIsEditingEmail(true)} variant="outline" size="sm" className="border-border text-muted-foreground hover:bg-muted/50 hover:border-accent hover:text-accent transition-colors"><Edit3 className="h-4 w-4 mr-1"/> 수정</Button>
+                                      )}
                                     </div>
                                 </div>
 
@@ -636,7 +651,7 @@ export default function ProfilePage() {
                                                 오늘 {passwordChangesToday}/{MAX_PASSWORD_CHANGES_PER_DAY}회 변경
                                             </p>
                                         </div>
-                                        {newPassword && !validatePassword(newPassword) && (
+                                        {newPassword && !validatePasswordStrength(newPassword) && (
                                             <p className="text-xs text-destructive">비밀번호는 영문자, 숫자를 포함하여 6-12자로 입력해주세요.</p>
                                         )}
                                         {newPassword && confirmPassword && newPassword !== confirmPassword && (
@@ -698,8 +713,8 @@ export default function ProfilePage() {
                                                 <Input 
                                                     id="currentPasswordForTwoFactor" 
                                                     type="password" 
-                                                    value={currentPassword} 
-                                                    onChange={(e) => setCurrentPassword(e.target.value)} 
+                                                    value={currentPasswordForTwoFactor} 
+                                                    onChange={(e) => setCurrentPasswordForTwoFactor(e.target.value)} 
                                                     className="bg-input border-border text-foreground focus:ring-accent" 
                                                     placeholder="현재 계정 비밀번호를 입력해주세요"
                                                 />
@@ -719,7 +734,7 @@ export default function ProfilePage() {
                                                         onClick={handleSendVerificationCode} 
                                                         variant="outline" 
                                                         size="sm"
-                                                        disabled={!user.email || !currentPassword || (isVerificationSent && verificationTimer > 0)}
+                                                        disabled={!user.email || !currentPasswordForTwoFactor || (isVerificationSent && verificationTimer > 0)}
                                                         className="border-border text-muted-foreground hover:bg-muted/50 hover:border-accent hover:text-accent transition-colors"
                                                     >
                                                         <Send className="h-4 w-4 mr-1"/> 
@@ -744,7 +759,7 @@ export default function ProfilePage() {
                                                     onClick={handleEnableTwoFactor} 
                                                     variant="outline" 
                                                     size="sm" 
-                                                    disabled={!currentPassword || !emailVerificationCode}
+                                                    disabled={!currentPasswordForTwoFactor || !emailVerificationCode}
                                                     className="border-border text-muted-foreground hover:bg-muted/50 hover:border-accent hover:text-accent transition-colors"
                                                 >
                                                     <Lock className="h-4 w-4 mr-1"/> 2차 인증 활성화
@@ -995,3 +1010,4 @@ export default function ProfilePage() {
     </div>
   );
 }
+
