@@ -11,7 +11,6 @@ import { useToast } from "@/hooks/use-toast";
 import { LogIn, Mail, KeyRound } from 'lucide-react';
 import { auth } from '@/lib/firebase'; // Firebase auth instance
 import { signInWithEmailAndPassword } from 'firebase/auth';
-// Removed GoogleAuthProvider, signInWithPopup, OAuthProvider as social login is being removed
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -24,29 +23,39 @@ export default function LoginPage() {
     e.preventDefault();
     setIsLoading(true);
     
+    // Ensure auth is available at the time of the call
+    if (!auth) {
+      console.error("Login attempt failed: Firebase auth service is not available.");
+      toast({
+        title: "로그인 실패",
+        description: "인증 서비스를 현재 사용할 수 없습니다. 잠시 후 다시 시도해주세요.",
+        variant: "destructive",
+      });
+      setIsLoading(false);
+      return;
+    }
+    
     try {
-      // Firebase auth null check 추가
-      if (!auth) {
-        throw new Error('Firebase authentication이 초기화되지 않았습니다.');
-      }
-      
+      console.log(`Attempting login for email: ${email} with auth instance:`, auth?.app?.name);
       await signInWithEmailAndPassword(auth, email, password);
       toast({ title: "로그인 성공", description: "커뮤니티에 오신 것을 환영합니다!" });
       router.push('/'); 
     } catch (error: any) {
-      console.error("Firebase email login error:", error);
-      let errorMessage = "아이디 또는 비밀번호를 확인해주세요.";
+      console.error("Firebase email login error:", error.code, error.message); 
+      let errorMessage = "아이디 또는 비밀번호를 확인해주세요."; 
       
-      if (error.message?.includes('Firebase authentication이 초기화되지 않았습니다')) {
-        errorMessage = "시스템 오류가 발생했습니다. 페이지를 새로고침해주세요.";
-      } else if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
+      if (error.code === 'auth/user-not-found' || 
+          error.code === 'auth/wrong-password' || 
+          error.code === 'auth/invalid-credential') {
         errorMessage = "아이디 또는 비밀번호가 올바르지 않습니다.";
       } else if (error.code === 'auth/invalid-email') {
         errorMessage = "유효하지 않은 이메일 형식입니다.";
       } else if (error.code === 'auth/too-many-requests') {
         errorMessage = "너무 많은 로그인 시도가 있었습니다. 잠시 후 다시 시도해주세요.";
       } else if (error.code === 'auth/network-request-failed') {
-        errorMessage = "네트워크 연결을 확인해주세요.";
+        errorMessage = "네트워크 오류가 발생했습니다. 인터넷 연결을 확인해주세요.";
+      } else if (error.message?.includes('Firebase authentication이 초기화되지 않았습니다')) {
+        errorMessage = "시스템 오류가 발생했습니다. 페이지를 새로고침해주세요.";
       }
       
       toast({ title: "로그인 실패", description: errorMessage, variant: "destructive" });
@@ -55,7 +64,6 @@ export default function LoginPage() {
     }
   };
 
-  // Firebase auth가 초기화되지 않은 경우 UI 처리
   if (typeof window !== 'undefined' && !auth) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-background via-muted to-background p-4">
@@ -122,12 +130,11 @@ export default function LoginPage() {
             <Button 
               type="submit" 
               className="w-full bg-gradient-to-r from-primary to-accent text-primary-foreground" 
-              disabled={isLoading || !auth}
+              disabled={isLoading}
             >
               {isLoading ? '로그인 중...' : '로그인'}
             </Button>
           </form>
-          {/* Social login section removed */}
         </CardContent>
         <CardFooter className="flex flex-col items-center space-y-2 mt-6">
           <p className="text-sm text-muted-foreground">
