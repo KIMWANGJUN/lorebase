@@ -1,4 +1,3 @@
-
 // src/app/login/page.tsx
 "use client";
 import { useState } from 'react';
@@ -24,25 +23,57 @@ export default function LoginPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    
     try {
+      // Firebase auth null check 추가
+      if (!auth) {
+        throw new Error('Firebase authentication이 초기화되지 않았습니다.');
+      }
+      
       await signInWithEmailAndPassword(auth, email, password);
       toast({ title: "로그인 성공", description: "커뮤니티에 오신 것을 환영합니다!" });
       router.push('/'); 
     } catch (error: any) {
       console.error("Firebase email login error:", error);
       let errorMessage = "아이디 또는 비밀번호를 확인해주세요.";
-      if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
+      
+      if (error.message?.includes('Firebase authentication이 초기화되지 않았습니다')) {
+        errorMessage = "시스템 오류가 발생했습니다. 페이지를 새로고침해주세요.";
+      } else if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
         errorMessage = "아이디 또는 비밀번호가 올바르지 않습니다.";
       } else if (error.code === 'auth/invalid-email') {
         errorMessage = "유효하지 않은 이메일 형식입니다.";
+      } else if (error.code === 'auth/too-many-requests') {
+        errorMessage = "너무 많은 로그인 시도가 있었습니다. 잠시 후 다시 시도해주세요.";
+      } else if (error.code === 'auth/network-request-failed') {
+        errorMessage = "네트워크 연결을 확인해주세요.";
       }
+      
       toast({ title: "로그인 실패", description: errorMessage, variant: "destructive" });
     } finally {
       setIsLoading(false);
     }
   };
 
-  // handleSocialLogin function removed as social logins are being removed
+  // Firebase auth가 초기화되지 않은 경우 UI 처리
+  if (typeof window !== 'undefined' && !auth) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-background via-muted to-background p-4">
+        <Card className="w-full max-w-md shadow-2xl">
+          <CardContent className="text-center p-8">
+            <p className="text-muted-foreground">Firebase 인증 서비스를 초기화하는 중입니다...</p>
+            <Button 
+              onClick={() => window.location.reload()} 
+              variant="outline" 
+              className="mt-4"
+            >
+              페이지 새로고침
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-background via-muted to-background p-4">
@@ -68,6 +99,7 @@ export default function LoginPage() {
                   onChange={(e) => setEmail(e.target.value)}
                   required 
                   className="pl-10"
+                  autoComplete="email"
                 />
               </div>
             </div>
@@ -83,16 +115,21 @@ export default function LoginPage() {
                   onChange={(e) => setPassword(e.target.value)}
                   required 
                   className="pl-10"
+                  autoComplete="current-password"
                 />
               </div>
             </div>
-            <Button type="submit" className="w-full bg-gradient-to-r from-primary to-accent text-primary-foreground" disabled={isLoading}>
+            <Button 
+              type="submit" 
+              className="w-full bg-gradient-to-r from-primary to-accent text-primary-foreground" 
+              disabled={isLoading || !auth}
+            >
               {isLoading ? '로그인 중...' : '로그인'}
             </Button>
           </form>
           {/* Social login section removed */}
         </CardContent>
-        <CardFooter className="flex flex-col items-center space-y-2 mt-6"> {/* Added mt-6 for spacing */}
+        <CardFooter className="flex flex-col items-center space-y-2 mt-6">
           <p className="text-sm text-muted-foreground">
             계정이 없으신가요?{' '}
             <Button variant="link" asChild className="p-0 h-auto">

@@ -3,9 +3,13 @@
 "use client";
 import type { User, NewUserDto as SignupUserDto } from '@/types';
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
-import { mockUsers as fallBackMockUsers, mockUsersData as initialMockUsersData, assignCalculatedScoresAndRanks } from '@/lib/mockData';
+import { mockUsers as importedMockUsers, mockUsersData as importedMockUsersData, assignCalculatedScoresAndRanks } from '@/lib/mockData';
 import { auth } from '@/lib/firebase'; // Firebase auth instance
 import { onAuthStateChanged, signOut, createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile, type User as FirebaseUserType } from 'firebase/auth';
+
+// Create mutable copies of the imported mock data
+let fallBackMockUsers = [...importedMockUsers];
+let initialMockUsersData = [...importedMockUsersData];
 
 interface AuthContextType {
   user: User | null;
@@ -37,11 +41,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   useEffect(() => {
     if (!auth) {
       console.warn("⏳ AuthContext: Firebase Auth service instance from firebase.ts is not available yet. Waiting for it to initialize.");
-      // setLoading(true); // Keep loading true if auth might become available
-      // If auth is guaranteed to be null permanently (e.g. server-side where it's not init),
-      // then setLoading(false) and setting user to null might be appropriate.
-      // For client-side, we expect `auth` to become available.
-      // If after a timeout `auth` is still null, then we might stop loading.
       const timer = setTimeout(() => {
         if (!auth) {
             console.error("🚨 AuthContext: Firebase Auth service instance remained unavailable after timeout.");
@@ -49,12 +48,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             setUser(null);
             setIsAdmin(false);
         }
-      }, 5000); // Wait 5 seconds for auth to potentially become available
+      }, 5000); 
       return () => clearTimeout(timer);
     }
 
     console.log("🚀 AuthContext: Firebase Auth service available. Setting up onAuthStateChanged listener.");
-    setLoading(true); // Explicitly set loading to true before listener setup
+    setLoading(true);
 
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser: FirebaseUserType | null) => {
       console.log('🔥 AuthContext: Firebase Auth state changed:', firebaseUser ? firebaseUser.uid : 'null');
@@ -103,7 +102,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
               email: newAppUser.email,
               avatar: newAppUser.avatar,
               socialProfiles: newAppUser.socialProfiles,
-              password: 'passwordPlaceholder', // Placeholder, actual password not stored here
+              password: 'passwordPlaceholder', 
               nicknameLastChanged: newAppUser.nicknameLastChanged,
               isBlocked: newAppUser.isBlocked,
               twoFactorEnabled: newAppUser.twoFactorEnabled,
@@ -124,19 +123,19 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         setIsAdmin(false);
         localStorage.removeItem('currentUser');
       }
-      setLoading(false); // Auth state determined (or user is null)
-    }, (error) => {
+      setLoading(false); 
+    }, (error: any) => {
         console.error("🚨 AuthContext: onAuthStateChanged error:", error);
         setLoading(false);
         setUser(null);
         setIsAdmin(false);
-    });
+      });
 
     return () => {
       console.log('🧹 AuthContext: Cleaning up onAuthStateChanged listener.');
       unsubscribe();
     };
-  }, [auth]); // Depend on the auth object from firebase.ts
+  }, []); 
 
   const login = async (email: string, password: string): Promise<{ success: boolean, message?: string }> => {
     if (!auth) {
@@ -149,7 +148,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      // onAuthStateChanged will handle setting user state
       setLoading(false);
       return { success: true, message: "로그인 성공!" };
     } catch (error: any) {
@@ -176,7 +174,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     const firebaseEmail = userData.email; 
     console.log('🔥 Firebase 회원가입 시도: Email:', firebaseEmail);
-    console.log('🔑 회원가입 시 사용되는 Auth API Key:', auth?.app?.options?.apiKey ? auth.app.options.apiKey.substring(0,15)+'...' : '❌ 키 없음 또는 auth 객체 문제');
     
     if (!auth.app?.options?.apiKey) {
         console.error("🚨 치명적 오류: Auth 객체에 API 키가 설정되지 않았습니다. Firebase 초기화를 확인하세요.");
@@ -188,7 +185,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       if (!firebaseEmail || !/\S+@\S+\.\S+/.test(firebaseEmail)) {
         throw new Error('유효한 이메일 주소를 입력해주세요.');
       }
-      if (!userData.password || userData.password.length < 6) { // Firebase default is 6
+      if (!userData.password || userData.password.length < 6) { 
         throw new Error('비밀번호는 6자리 이상이어야 합니다.');
       }
       if (!userData.nickname || userData.nickname.length < 2) {
@@ -201,11 +198,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       console.log('✅ Firebase 회원가입 성공:', firebaseUser.uid);
       await updateProfile(firebaseUser, { displayName: userData.nickname });
       console.log('✅ Firebase 프로필 업데이트 성공 (닉네임)');
-
-      // onAuthStateChanged will handle setting the user state correctly,
-      // including creating the mock user if not found.
-      // The user object returned here might be slightly delayed if onAuthStateChanged hasn't fired yet.
-      // For immediate feedback, we can construct a preliminary user object.
       
       const preliminaryNewUser: User = {
         id: firebaseUser.uid,
@@ -224,7 +216,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         twoFactorEnabled: false,
       };
 
-      // Add to mockUsersData so onAuthStateChanged can pick it up correctly if it runs next
       const existingInitial = initialMockUsersData.find(u => u.id === preliminaryNewUser.id || u.email === preliminaryNewUser.email);
       if (!existingInitial) {
         initialMockUsersData.push({
@@ -239,21 +230,19 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           socialProfiles: preliminaryNewUser.socialProfiles,
           twoFactorEnabled: preliminaryNewUser.twoFactorEnabled,
         });
-         // Re-process mockUsers to include new user with calculated ranks/scores
-        fallBackMockUsers = assignCalculatedScoresAndRanks(initialMockUsersData);
+        const updatedMockUsers = assignCalculatedScoresAndRanks(initialMockUsersData);
+        fallBackMockUsers.length = 0; // 배열 초기화
+        fallBackMockUsers.push(...updatedMockUsers); // 새 데이터로 채움
       }
 
-
       setLoading(false);
-      // The user state will be set by onAuthStateChanged.
-      // The returned user here is for immediate use if needed by the caller,
-      // but the context's `user` will be the source of truth after onAuthStateChanged.
       return { success: true, message: "회원가입 성공! 자동으로 로그인됩니다.", user: preliminaryNewUser };
     } catch (error: any) {
       console.error("🚨 Firebase 회원가입 오류:", error.code, error.message);
       let message = "회원가입 중 오류가 발생했습니다.";
       if (error.code === 'auth/email-already-in-use') {
         message = "이미 사용 중인 이메일입니다.";
+        
       } else if (error.code === 'auth/invalid-email') {
         message = "유효하지 않은 이메일 형식입니다.";
       } else if (error.code === 'auth/weak-password') {
@@ -277,11 +266,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     try {
       await signOut(auth);
       console.log('✅ 로그아웃 성공');
-      // onAuthStateChanged will set user to null
     } catch (error) {
       console.error("🚨 로그아웃 오류:", error);
     } finally {
-      // Explicitly clear local state too, though onAuthStateChanged should handle it.
       setUser(null);
       setIsAdmin(false);
       localStorage.removeItem('currentUser');
@@ -301,7 +288,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       };
       localStorage.setItem('currentUser', JSON.stringify(updatedUserObject));
       
-      // Update in the mockUsers array as well for consistency across sessions if mockData is persisted/reused
       const userIndex = fallBackMockUsers.findIndex(u => u.id === prevUser.id);
       if (userIndex !== -1) {
         fallBackMockUsers[userIndex] = { ...fallBackMockUsers[userIndex], ...updatedUserObject };
@@ -312,16 +298,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             ...initialMockUsersData[mockDataIndex],
             nickname: updatedUserObject.nickname,
             avatar: updatedUserObject.avatar,
-            email: updatedUserObject.email, // if email can be changed
+            email: updatedUserObject.email,
             nicknameLastChanged: updatedUserObject.nicknameLastChanged,
             socialProfiles: updatedUserObject.socialProfiles,
             twoFactorEnabled: updatedUserObject.twoFactorEnabled,
-            // Update other relevant fields from updatedUserPartial
           };
-          // Optionally re-run assignCalculatedScoresAndRanks if scores/ranks could change
-          // fallBackMockUsers = assignCalculatedScoresAndRanks(initialMockUsersData);
        }
-
 
       console.log('👤 AuthContext: 사용자 정보 로컬 업데이트:', updatedUserObject.nickname);
       return updatedUserObject;

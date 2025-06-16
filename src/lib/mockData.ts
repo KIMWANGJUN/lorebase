@@ -1,6 +1,5 @@
-
 // src/lib/mockData.ts
-import type { User, StarterProject, AssetInfo, Post, Comment, RankEntry, Inquiry, PostMainCategory, TetrisRanker, AchievedRankType, UserCategoryStat, TitleIdentifier, NicknameEffectIdentifier, LogoIdentifier } from '@/types';
+import type { User, StarterProject, AssetInfo, Post, Comment, RankEntry, Inquiry, PostMainCategory, PostType, TetrisRanker, AchievedRankType, UserCategoryStat, TitleIdentifier, NicknameEffectIdentifier, LogoIdentifier } from '@/types';
 import { validateUsername, validatePassword, validateNickname } from './validationRules';
 
 const fortyFiveDaysAgo = new Date(Date.now() - 45 * 24 * 60 * 60 * 1000);
@@ -9,67 +8,129 @@ const fifteenDaysAgo = new Date(Date.now() - 15 * 24 * 60 * 60 * 1000);
 // 초기 사용자 데이터 (점수 관련 필드는 아래에서 재계산됨)
 export let mockUsersData: Omit<User, 'rank' | 'tetrisRank' | 'categoryStats' | 'score' | 'postScore' | 'selectedTitleIdentifier' | 'selectedNicknameEffectIdentifier' | 'selectedLogoIdentifier'>[] = [
   {
-    id: 'admin', username: 'wangjunland', password: 'WJLAND1013$', nickname: 'WANGJUNLAND', email: 'admin@example.com',
+    id: 'admin', 
+    username: 'wangjunland', 
+    password: 'WJLAND1013$', 
+    nickname: 'WANGJUNLAND', 
+    email: 'admin@example.com',
     avatar: 'https://placehold.co/100x100.png?text=WJ',
     nicknameLastChanged: new Date('2023-01-01'),
+    twoFactorEnabled: false,
+    isBlocked: false,
     socialProfiles: {},
   },
   {
-    id: 'user1', username: 'unitymaster', password: 'Password123!', nickname: '유니티장인', email: 'unity@example.com',
+    id: 'user1', 
+    username: 'unitymaster', 
+    password: 'Password123!', 
+    nickname: '유니티장인', 
+    email: 'unity@example.com',
     avatar: 'https://placehold.co/100x100.png?text=UM',
     nicknameLastChanged: fortyFiveDaysAgo,
+    twoFactorEnabled: false,
+    isBlocked: false,
     socialProfiles: {},
   },
   {
-    id: 'user2', username: 'unrealdev', password: 'Password123!', nickname: '언리얼신', email: 'unreal@example.com',
+    id: 'user2', 
+    username: 'unrealdev', 
+    password: 'Password123!', 
+    nickname: '언리얼신', 
+    email: 'unreal@example.com',
     avatar: 'https://placehold.co/100x100.png?text=UD',
     nicknameLastChanged: fifteenDaysAgo,
+    twoFactorEnabled: false,
+    isBlocked: false,
     socialProfiles: { google: 'unrealdev_google_id' },
   },
   {
-    id: 'user3', username: 'godotfan', password: 'Password123!', nickname: '고도엔진팬', email: 'godot@example.com',
+    id: 'user3', 
+    username: 'godotfan', 
+    password: 'Password123!', 
+    nickname: '고도엔진팬', 
+    email: 'godot@example.com',
     avatar: 'https://placehold.co/100x100.png?text=GF',
+    twoFactorEnabled: false,
+    isBlocked: false,
     socialProfiles: {},
   },
   {
-    id: 'user4', username: 'indiedreamer', password: 'Password123!', nickname: '인디드리머', email: 'dreamer@example.com',
+    id: 'user4', 
+    username: 'indiedreamer', 
+    password: 'Password123!', 
+    nickname: '인디드리머', 
+    email: 'dreamer@example.com',
     avatar: 'https://placehold.co/100x100.png?text=ID',
     nicknameLastChanged: new Date('2024-07-01'),
+    twoFactorEnabled: false,
+    isBlocked: false,
     socialProfiles: { naver: 'indiedreamer_naver_id' },
   },
   {
-    id: 'user5', username: 'pixelartist', password: 'Password123!', nickname: '픽셀아티스트',
+    id: 'user5', 
+    username: 'pixelartist', 
+    password: 'Password123!', 
+    nickname: '픽셀아티스트',
     avatar: 'https://placehold.co/100x100.png?text=PA',
     nicknameLastChanged: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
+    twoFactorEnabled: false,
+    isBlocked: false,
     socialProfiles: {},
   },
   {
-    id: 'user6', username: 'generalenjoyer', password: 'Password123!', nickname: '일반글애호가', email: 'general@example.com',
+    id: 'user6', 
+    username: 'generalenjoyer', 
+    password: 'Password123!', 
+    nickname: '일반글애호가', 
+    email: 'general@example.com',
     avatar: 'https://placehold.co/100x100.png?text=GE',
     nicknameLastChanged: new Date('2024-07-06'),
+    twoFactorEnabled: false,
+    isBlocked: false,
     socialProfiles: {},
   },
   {
-    id: 'user7', username: 'unitynewbie', password: 'Password123!', nickname: '유니티뉴비',
+    id: 'user7', 
+    username: 'unitynewbie', 
+    password: 'Password123!', 
+    nickname: '유니티뉴비',
     avatar: 'https://placehold.co/100x100.png?text=UN',
     nicknameLastChanged: new Date('2024-07-07'),
+    twoFactorEnabled: false,
+    isBlocked: false,
     socialProfiles: {},
   },
   {
-    id: 'user8', username: 'unrealartist', password: 'Password123!', nickname: '언리얼아티스트',
+    id: 'user8', 
+    username: 'unrealartist', 
+    password: 'Password123!', 
+    nickname: '언리얼아티스트',
     avatar: 'https://placehold.co/100x100.png?text=UA',
     nicknameLastChanged: new Date('2024-07-08'),
+    twoFactorEnabled: false,
+    isBlocked: false,
     socialProfiles: {},
   },
   {
-    id: 'user9_multi_rank', username: 'multiranker', password: 'Password123!', nickname: '멀티랭커', email: 'multi@example.com',
+    id: 'user9_multi_rank', 
+    username: 'multiranker', 
+    password: 'Password123!', 
+    nickname: '멀티랭커', 
+    email: 'multi@example.com',
     avatar: 'https://placehold.co/100x100.png?text=MR',
     nicknameLastChanged: new Date('2024-06-01'),
+    twoFactorEnabled: false,
+    isBlocked: false,
     socialProfiles: { kakao: 'multiranker_kakao_id' },
   },
   {
-    id: 'user10_tetris_cat_rank', username: 'tetriscatenjoyer', password: 'Password123!', nickname: '테트리스냥이',
+    id: 'user10_tetris_cat_rank', 
+    username: 'tetriscatenjoyer', 
+    password: 'Password123!', 
+    nickname: '테트리스냥이',
     avatar: 'https://placehold.co/100x100.png?text=TC',
+    twoFactorEnabled: false,
+    isBlocked: false,
     socialProfiles: {},
   },
   {
@@ -77,34 +138,78 @@ export let mockUsersData: Omit<User, 'rank' | 'tetrisRank' | 'categoryStats' | '
     username: 'testwang1', 
     password: 'Password123!', 
     nickname: '테스트왕', 
-    email: 'testwang1@example.com', // Keep email for test user for now
+    email: 'testwang1@example.com',
     avatar: 'https://placehold.co/100x100.png?text=TW',
     nicknameLastChanged: new Date(),
+    twoFactorEnabled: false,
+    isBlocked: false,
     socialProfiles: {},
   },
   // Social Login Mock Users
   {
-    id: 'googleMockUser', username: 'googleuser', password: 'socialPasswordPlaceholder', nickname: '구글로그인유저',
-    avatar: 'https://placehold.co/100x100.png?text=GU', socialProfiles: { google: 'google_user_mock_id' }
+    id: 'googleMockUser', 
+    username: 'googleuser', 
+    password: 'socialPasswordPlaceholder', 
+    nickname: '구글로그인유저',
+    avatar: 'https://placehold.co/100x100.png?text=GU', 
+    twoFactorEnabled: false,
+    isBlocked: false,
+    socialProfiles: { google: 'google_user_mock_id' }
   },
   {
-    id: 'naverMockUser', username: 'naveruser', password: 'socialPasswordPlaceholder', nickname: '네이버로그인유저',
-    avatar: 'https://placehold.co/100x100.png?text=NU', socialProfiles: { naver: 'naver_user_mock_id' }
+    id: 'naverMockUser', 
+    username: 'naveruser', 
+    password: 'socialPasswordPlaceholder', 
+    nickname: '네이버로그인유저',
+    avatar: 'https://placehold.co/100x100.png?text=NU', 
+    twoFactorEnabled: false,
+    isBlocked: false,
+    socialProfiles: { naver: 'naver_user_mock_id' }
   },
   {
-    id: 'kakaoMockUser', username: 'kakaouser', password: 'socialPasswordPlaceholder', nickname: '카카오로그인유저',
-    avatar: 'https://placehold.co/100x100.png?text=KU', socialProfiles: { kakao: 'kakao_user_mock_id' }
+    id: 'kakaoMockUser', 
+    username: 'kakaouser', 
+    password: 'socialPasswordPlaceholder', 
+    nickname: '카카오로그인유저',
+    avatar: 'https://placehold.co/100x100.png?text=KU', 
+    twoFactorEnabled: false,
+    isBlocked: false,
+    socialProfiles: { kakao: 'kakao_user_mock_id' }
   },
-   // 카테고리별 랭커 추가 (4-20위권)
-  ...Array.from({ length: 17 }, (_, i) => ({
+  // 카테고리별 랭커 추가 (충분한 수로 확장)
+  ...Array.from({ length: 25 }, (_, i) => ({
     id: `user_cat_filler_${i + 1}`,
     username: `catfiller${i + 1}`, 
     password: 'Password123!',
     nickname: `카테고리필러${i + 1}`,
     avatar: `https://placehold.co/100x100.png?text=CF${i+1}`,
+    twoFactorEnabled: false,
+    isBlocked: false,
     socialProfiles: {},
   })),
 ];
+
+// 안전한 사용자 선택 함수
+const getSafeUser = (preferredIndex: number, fallbackId?: string) => {
+  const catfillerUsers = mockUsersData.filter(u => u.username.startsWith('catfiller'));
+  const safeIndex = (preferredIndex - 1) % catfillerUsers.length;
+  const selectedUser = catfillerUsers[safeIndex];
+  
+  if (selectedUser) {
+    return {
+      id: selectedUser.id,
+      nickname: selectedUser.nickname
+    };
+  }
+  
+  // Fallback to regular users if catfiller not found
+  const regularUsers = mockUsersData.filter(u => u.id !== 'admin' && !u.username.startsWith('catfiller'));
+  const fallbackUser = regularUsers[0];
+  return {
+    id: fallbackUser?.id || fallbackId || 'user1',
+    nickname: fallbackUser?.nickname || '기본사용자'
+  };
+};
 
 export const tetrisTitles: { [key: number]: string } = {
   1: '♛테트리스♕',
@@ -136,86 +241,308 @@ const calculatePostScore = (post: Omit<Post, 'postScore'>): number => {
   return parseFloat(score.toFixed(2));
 };
 
-export let mockPosts: Post[] = [
-  { id: 'post_unity_qna1', mainCategory: 'Unity', title: 'Unity Rigidbody 관련 질문입니다.', content: 'Rigidbody.MovePosition과 transform.Translate의 정확한 차이점과 사용 사례가 궁금합니다.', authorId: 'user4', authorNickname: '인디드리머', createdAt: new Date(Date.now() - 86400000 * 3).toISOString(), updatedAt: new Date(Date.now() - 86400000 * 3).toISOString(), type: 'QnA', upvotes: 10, downvotes: 0, views: 120, commentCount: 2, tags: ['Unity', 'Physics', 'Rigidbody'] },
-  { id: 'post_unity_knowledge1', mainCategory: 'Unity', title: 'Unity DOTS 사용 후기 공유합니다.', content: '최근에 Unity DOTS를 사용해서 프로젝트를 진행해봤는데, 성능 최적화에 정말 큰 도움이 되었습니다. 처음엔 학습 곡선이 좀 있지만 익숙해지니 좋네요. 다른 분들 경험은 어떠신가요?', authorId: 'user1', authorNickname: '유니티장인', createdAt: new Date(Date.now() - 86400000 * 2).toISOString(), updatedAt: new Date(Date.now() - 86400000 * 2).toISOString(), type: 'Knowledge', upvotes: 25, downvotes: 1, views: 150, commentCount: 7, isPinned: true, tags: ['Unity', 'DOTS', 'Performance'] },
-  { id: 'post_unity_devlog1', mainCategory: 'Unity', title: '나만의 2D 플랫포머 개발 일지 #1 - 캐릭터 구현', content: 'Unity로 2D 플랫포머 게임을 만들고 있습니다. 오늘은 기본 캐릭터 움직임과 점프를 구현했습니다!', authorId: 'user5', authorNickname: '픽셀아티스트', createdAt: new Date(Date.now() - 86400000 * 1).toISOString(), updatedAt: new Date(Date.now() - 86400000 * 1).toISOString(), type: 'DevLog', upvotes: 15, downvotes: 0, views: 90, commentCount: 3, tags: ['Unity', '2D', 'Platformer', 'DevLog'] },
-  { id: 'post_unreal_qna1', mainCategory: 'Unreal', title: 'Unreal Engine 5에서 Lumen 사용할 때 팁 있나요?', content: 'Lumen으로 실시간 GI를 구현 중인데, 특정 환경에서 빛샘 현상이 발생하네요. 해결 방법이나 최적화 팁 아시는 분 계시면 공유 부탁드립니다!', authorId: 'user2', authorNickname: '언리얼신', createdAt: new Date(Date.now() - 86400000 * 1).toISOString(), updatedAt: new Date(Date.now() - 86400000 * 1).toISOString(), type: 'QnA', upvotes: 18, downvotes: 0, views: 220, commentCount: 3, tags: ['Unreal Engine 5', 'Lumen', 'Lighting'] },
-  { id: 'post_unreal_knowledge1', mainCategory: 'Unreal', title: '언리얼 블루프린트 최적화 팁 몇가지', content: '블루프린트 사용 시 자주 발생하는 성능 저하를 피하기 위한 몇 가지 팁을 공유합니다. Nativization, Pure 함수 활용 등...', authorId: 'user2', authorNickname: '언리얼신', createdAt: new Date(Date.now() - 86400000 * 4).toISOString(), updatedAt: new Date(Date.now() - 86400000 * 4).toISOString(), type: 'Knowledge', upvotes: 30, downvotes: 0, views: 250, commentCount: 5, tags: ['Unreal Engine', 'Blueprint', 'Optimization'] },
-  { id: 'post_unreal_devlog1', mainCategory: 'Unreal', title: 'UE5 오픈월드 프로젝트 시작합니다!', content: '사이버펑크 컨셉의 오픈월드 게임 개발을 시작했습니다. 현재 기본 환경 구성 중입니다. #UE5 #OpenWorld', authorId: 'user10_tetris_cat_rank', authorNickname: '테트리스냥이', createdAt: new Date(Date.now() - 86400000 * 0.5).toISOString(), updatedAt: new Date(Date.now() - 86400000 * 0.5).toISOString(), type: 'DevLog', upvotes: 22, downvotes: 0, views: 180, commentCount: 4, tags: ['Unreal Engine 5', 'Open World', 'Cyberpunk'] },
-  { id: 'post_godot_qna1', mainCategory: 'Godot', title: 'Godot에서 GDScript와 C# 선택 기준이 뭘까요?', content: 'Godot 엔진을 처음 시작하는데, GDScript와 C# 중 어떤 언어를 사용하는 것이 좋을지 고민입니다. 각 언어의 장단점이나 추천 사용 사례가 있을까요?', authorId: 'user4', authorNickname: '인디드리머', createdAt: new Date(Date.now() - 86400000 * 2).toISOString(), updatedAt: new Date(Date.now() - 86400000 * 2).toISOString(), type: 'QnA', upvotes: 12, downvotes: 0, views: 100, commentCount: 4, tags: ['Godot', 'GDScript', 'C#'] },
-  { id: 'post_godot_knowledge1', mainCategory: 'Godot', title: 'Godot 씬 관리 효율적으로 하는 법', content: '프로젝트가 커질수록 씬 관리가 복잡해지는데, Godot에서 씬을 효율적으로 구성하고 관리하는 노하우가 있다면 공유해주세요.', authorId: 'user3', authorNickname: '고도엔진팬', createdAt: new Date(Date.now() - 86400000 * 1.5).toISOString(), updatedAt: new Date(Date.now() - 86400000 * 1.5).toISOString(), type: 'Knowledge', upvotes: 20, downvotes: 0, views: 130, commentCount: 3, tags: ['Godot', 'Scene Management', 'Workflow'] },
-  { id: 'post_godot_devlog1', mainCategory: 'Godot', title: '[홍보] 저희 팀이 만든 고도 엔진 게임입니다!', content: '안녕하세요! 저희 팀에서 Godot Engine으로 개발한 인디 게임 OOO가 스팀에 출시되었습니다! 많은 관심 부탁드립니다. 피드백도 환영합니다!', authorId: 'user3', authorNickname: '고도엔진팬', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(), type: 'DevLog', upvotes: 30, downvotes: 2, views: 300, commentCount: 1, tags: ['Godot', 'Game Release', 'Indie Game'] },
-  { id: 'post_general_notice1', mainCategory: 'General', title: '[공지] 커뮤니티 이용 규칙 업데이트 안내', content: '커뮤니티 이용 규칙이 일부 개정되었습니다. 자세한 내용은 공지사항 게시판을 확인해주시기 바랍니다. 모든 회원분들의 적극적인 협조 부탁드립니다.', authorId: 'admin', authorNickname: 'WANGJUNLAND', createdAt: new Date(Date.now() - 86400000 * 5).toISOString(), updatedAt: new Date(Date.now() - 86400000 * 5).toISOString(), type: 'Notice', upvotes: 50, downvotes: 0, views: 500, commentCount: 0, isPinned: true, tags: ['Community', 'Rules'] },
-  { id: 'post_general_post1', mainCategory: 'General', title: '인디 게임 개발자가 갖춰야 할 마인드셋', content: '성공적인 인디 게임 개발을 위해 어떤 마음가짐이 중요하다고 생각하시나요? 자유롭게 의견 나눠봐요.', authorId: 'user4', authorNickname: '인디드리머', createdAt: new Date(Date.now() - 86400000 * 6).toISOString(), updatedAt: new Date(Date.now() - 86400000 * 6).toISOString(), type: 'GeneralPost', upvotes: 40, downvotes: 1, views: 400, commentCount: 10, tags: ['IndieDev', 'Mindset'] },
-  { id: 'post_general_humor1', mainCategory: 'General', title: '개발자 유머) 버그 없는 코드.jpg', content: '코딩하다 보면 항상 예상치 못한 버그가...', authorId: 'user5', authorNickname: '픽셀아티스트', createdAt: new Date(Date.now() - 86400000 * 0.2).toISOString(), updatedAt: new Date(Date.now() - 86400000 * 0.2).toISOString(), type: 'Humor', upvotes: 60, downvotes: 0, views: 600, commentCount: 15, tags: ['Humor', 'Programming'] },
-  { id: 'post_general_humor2', mainCategory: 'General', title: '내 게임이 드디어 빌드 성공했을 때 내 모습', content: '(움짤 첨부) ...은 아니고 일단 기쁨의 커피 한잔', authorId: 'user1', authorNickname: '유니티장인', createdAt: new Date(Date.now() - 86400000 * 0.1).toISOString(), updatedAt: new Date(Date.now() - 86400000 * 0.1).toISOString(), type: 'Humor', upvotes: 55, downvotes: 0, views: 550, commentCount: 8, tags: ['Humor', 'Build', 'GameDevLife'] },
-  ...Array.from({ length: 15 }, (_, i) => ({
-    id: `post_general_older_${i + 1}`,
-    mainCategory: 'General' as PostMainCategory,
-    title: `오래된 일반 게시글 ${i + 1}`,
-    content: `이것은 오래된 일반 게시글 내용입니다. (${i + 1})`,
-    authorId: mockUsersData.find(u => u.username === `catfiller${i+1}`)?.id || mockUsersData.filter(u => u.id !== 'admin' && !u.username.startsWith("catfiller"))[(i + 1) % (mockUsersData.filter(u => u.id !== 'admin' && !u.username.startsWith("catfiller")).length)].id,
-    authorNickname: mockUsersData.find(u => u.username === `catfiller${i+1}`)?.nickname || mockUsersData.filter(u => u.id !== 'admin' && !u.username.startsWith("catfiller"))[(i + 1) % (mockUsersData.filter(u => u.id !== 'admin' && !u.username.startsWith("catfiller")).length)].nickname,
-    createdAt: new Date(Date.now() - 86400000 * (7 + i)).toISOString(),
-    updatedAt: new Date(Date.now() - 86400000 * (7 + i)).toISOString(),
-    type: 'GeneralPost' as PostType,
-    upvotes: 5 + i * 3,
-    downvotes: 0,
-    views: 50 + i * 15,
-    commentCount: i % 5,
-    tags: ['Old', 'General']
-  })),
-  ...Array.from({ length: 8 }, (_, i) => ({
-    id: `post_unity_older_${i + 1}`,
-    mainCategory: 'Unity' as PostMainCategory,
-    title: `오래된 Unity QnA ${i + 1}`,
-    content: `Unity 관련 오래된 질문입니다. (${i + 1})`,
-    authorId: mockUsersData.find(u => u.username === `catfiller${i+3}`)?.id || mockUsersData.filter(u => u.id !== 'admin' && !u.username.startsWith("catfiller"))[(i + 2) % (mockUsersData.filter(u => u.id !== 'admin' && !u.username.startsWith("catfiller")).length)].id,
-    authorNickname: mockUsersData.find(u => u.username === `catfiller${i+3}`)?.nickname || mockUsersData.filter(u => u.id !== 'admin' && !u.username.startsWith("catfiller"))[(i + 2) % (mockUsersData.filter(u => u.id !== 'admin' && !u.username.startsWith("catfiller")).length)].nickname,
-    createdAt: new Date(Date.now() - 86400000 * (10 + i)).toISOString(),
-    updatedAt: new Date(Date.now() - 86400000 * (10 + i)).toISOString(),
-    type: 'QnA' as PostType,
-    upvotes: 3 + i * 2,
-    downvotes: 0,
-    views: 30 + i * 10,
-    commentCount: i % 3,
-    tags: ['Old', 'Unity', 'QnA']
-  })),
-  ...Array.from({ length: 10 }, (_, i) => ({ 
-    id: `post_unreal_filler_${i + 1}`,
-    mainCategory: 'Unreal' as PostMainCategory,
-    title: `언리얼 필러 게시글 ${i + 1}`,
-    content: `언리얼 카테고리 랭킹을 위한 게시글 내용입니다. (${i + 1})`,
-    authorId: mockUsersData.find(u => u.username === `catfiller${i+5}`)?.id || 'user_cat_filler_5', 
-    authorNickname: mockUsersData.find(u => u.username === `catfiller${i+5}`)?.nickname || `카테고리필러${i+5}`,
-    createdAt: new Date(Date.now() - 86400000 * (2 + i*0.5)).toISOString(),
-    updatedAt: new Date(Date.now() - 86400000 * (2 + i*0.5)).toISOString(),
-    type: 'Knowledge' as PostType,
-    upvotes: 10 + i * 2,
-    downvotes: 0,
-    views: 100 + i * 20,
-    commentCount: 1 + i % 4,
-    tags: ['Unreal', 'Filler']
-  })),
-    ...Array.from({ length: 10 }, (_, i) => ({ 
-    id: `post_godot_filler_${i + 1}`,
-    mainCategory: 'Godot' as PostMainCategory,
-    title: `고도 필러 게시글 ${i + 1}`,
-    content: `고도 카테고리 랭킹을 위한 게시글 내용입니다. (${i + 1})`,
-    authorId: mockUsersData.find(u => u.username === `catfiller${i+10}`)?.id || 'user_cat_filler_10', 
-    authorNickname: mockUsersData.find(u => u.username === `catfiller${i+10}`)?.nickname || `카테고리필러${i+10}`,
-    createdAt: new Date(Date.now() - 86400000 * (1 + i*0.3)).toISOString(),
-    updatedAt: new Date(Date.now() - 86400000 * (1 + i*0.3)).toISOString(),
-    type: 'DevLog' as PostType,
-    upvotes: 8 + i * 1,
-    downvotes: 0,
-    views: 80 + i * 15,
-    commentCount: 1 + i % 2,
-    tags: ['Godot', 'Filler']
-  })),
-].map(post => ({ ...post, postScore: calculatePostScore(post) }));
+// 기본 게시물들을 먼저 정의 (Omit<Post, 'postScore'> 타입으로)
+const basePostsWithoutScore: Omit<Post, 'postScore'>[] = [
+  { 
+    id: 'post_unity_qna1', 
+    mainCategory: 'Unity' as PostMainCategory, 
+    title: 'Unity Rigidbody 관련 질문입니다.', 
+    content: 'Rigidbody.MovePosition과 transform.Translate의 정확한 차이점과 사용 사례가 궁금합니다.', 
+    authorId: 'user4', 
+    authorNickname: '인디드리머', 
+    createdAt: new Date(Date.now() - 86400000 * 3).toISOString(), 
+    updatedAt: new Date(Date.now() - 86400000 * 3).toISOString(), 
+    type: 'QnA' as PostType, 
+    upvotes: 10, 
+    downvotes: 0, 
+    views: 120, 
+    commentCount: 2, 
+    tags: ['Unity', 'Physics', 'Rigidbody']
+  },
+  { 
+    id: 'post_unity_knowledge1', 
+    mainCategory: 'Unity' as PostMainCategory, 
+    title: 'Unity DOTS 사용 후기 공유합니다.', 
+    content: '최근에 Unity DOTS를 사용해서 프로젝트를 진행해봤는데, 성능 최적화에 정말 큰 도움이 되었습니다. 처음엔 학습 곡선이 좀 있지만 익숙해지니 좋네요. 다른 분들 경험은 어떠신가요?', 
+    authorId: 'user1', 
+    authorNickname: '유니티장인', 
+    createdAt: new Date(Date.now() - 86400000 * 2).toISOString(), 
+    updatedAt: new Date(Date.now() - 86400000 * 2).toISOString(), 
+    type: 'Knowledge' as PostType, 
+    upvotes: 25, 
+    downvotes: 1, 
+    views: 150, 
+    commentCount: 7, 
+    isPinned: true, 
+    tags: ['Unity', 'DOTS', 'Performance']
+  },
+  { 
+    id: 'post_unity_devlog1', 
+    mainCategory: 'Unity' as PostMainCategory, 
+    title: '나만의 2D 플랫포머 개발 일지 #1 - 캐릭터 구현', 
+    content: 'Unity로 2D 플랫포머 게임을 만들고 있습니다. 오늘은 기본 캐릭터 움직임과 점프를 구현했습니다!', 
+    authorId: 'user5', 
+    authorNickname: '픽셀아티스트', 
+    createdAt: new Date(Date.now() - 86400000 * 1).toISOString(), 
+    updatedAt: new Date(Date.now() - 86400000 * 1).toISOString(), 
+    type: 'DevLog' as PostType, 
+    upvotes: 15, 
+    downvotes: 0, 
+    views: 90, 
+    commentCount: 3, 
+    tags: ['Unity', '2D', 'Platformer', 'DevLog']
+  },
+  { 
+    id: 'post_unreal_qna1', 
+    mainCategory: 'Unreal' as PostMainCategory, 
+    title: 'Unreal Engine 5에서 Lumen 사용할 때 팁 있나요?', 
+    content: 'Lumen으로 실시간 GI를 구현 중인데, 특정 환경에서 빛샘 현상이 발생하네요. 해결 방법이나 최적화 팁 아시는 분 계시면 공유 부탁드립니다!', 
+    authorId: 'user2', 
+    authorNickname: '언리얼신', 
+    createdAt: new Date(Date.now() - 86400000 * 1).toISOString(), 
+    updatedAt: new Date(Date.now() - 86400000 * 1).toISOString(), 
+    type: 'QnA' as PostType, 
+    upvotes: 18, 
+    downvotes: 0, 
+    views: 220, 
+    commentCount: 3, 
+    tags: ['Unreal Engine 5', 'Lumen', 'Lighting']
+  },
+  { 
+    id: 'post_unreal_knowledge1', 
+    mainCategory: 'Unreal' as PostMainCategory, 
+    title: '언리얼 블루프린트 최적화 팁 몇가지', 
+    content: '블루프린트 사용 시 자주 발생하는 성능 저하를 피하기 위한 몇 가지 팁을 공유합니다. Nativization, Pure 함수 활용 등...', 
+    authorId: 'user2', 
+    authorNickname: '언리얼신', 
+    createdAt: new Date(Date.now() - 86400000 * 4).toISOString(), 
+    updatedAt: new Date(Date.now() - 86400000 * 4).toISOString(), 
+    type: 'Knowledge' as PostType, 
+    upvotes: 30, 
+    downvotes: 0, 
+    views: 250, 
+    commentCount: 5, 
+    tags: ['Unreal Engine', 'Blueprint', 'Optimization']
+  },
+  { 
+    id: 'post_unreal_devlog1', 
+    mainCategory: 'Unreal' as PostMainCategory, 
+    title: 'UE5 오픈월드 프로젝트 시작합니다!', 
+    content: '사이버펑크 컨셉의 오픈월드 게임 개발을 시작했습니다. 현재 기본 환경 구성 중입니다. #UE5 #OpenWorld', 
+    authorId: 'user10_tetris_cat_rank', 
+    authorNickname: '테트리스냥이', 
+    createdAt: new Date(Date.now() - 86400000 * 0.5).toISOString(), 
+    updatedAt: new Date(Date.now() - 86400000 * 0.5).toISOString(), 
+    type: 'DevLog' as PostType, 
+    upvotes: 22, 
+    downvotes: 0, 
+    views: 180, 
+    commentCount: 4, 
+    tags: ['Unreal Engine 5', 'Open World', 'Cyberpunk']
+  },
+  { 
+    id: 'post_godot_qna1', 
+    mainCategory: 'Godot' as PostMainCategory, 
+    title: 'Godot에서 GDScript와 C# 선택 기준이 뭘까요?', 
+    content: 'Godot 엔진을 처음 시작하는데, GDScript와 C# 중 어떤 언어를 사용하는 것이 좋을지 고민입니다. 각 언어의 장단점이나 추천 사용 사례가 있을까요?', 
+    authorId: 'user4', 
+    authorNickname: '인디드리머', 
+    createdAt: new Date(Date.now() - 86400000 * 2).toISOString(), 
+    updatedAt: new Date(Date.now() - 86400000 * 2).toISOString(), 
+    type: 'QnA' as PostType, 
+    upvotes: 12, 
+    downvotes: 0, 
+    views: 100, 
+    commentCount: 4, 
+    tags: ['Godot', 'GDScript', 'C#']
+  },
+  { 
+    id: 'post_godot_knowledge1', 
+    mainCategory: 'Godot' as PostMainCategory, 
+    title: 'Godot 씬 관리 효율적으로 하는 법', 
+    content: '프로젝트가 커질수록 씬 관리가 복잡해지는데, Godot에서 씬을 효율적으로 구성하고 관리하는 노하우가 있다면 공유해주세요.', 
+    authorId: 'user3', 
+    authorNickname: '고도엔진팬', 
+    createdAt: new Date(Date.now() - 86400000 * 1.5).toISOString(), 
+    updatedAt: new Date(Date.now() - 86400000 * 1.5).toISOString(), 
+    type: 'Knowledge' as PostType, 
+    upvotes: 20, 
+    downvotes: 0, 
+    views: 130, 
+    commentCount: 3, 
+    tags: ['Godot', 'Scene Management', 'Workflow']
+  },
+  { 
+    id: 'post_godot_devlog1', 
+    mainCategory: 'Godot' as PostMainCategory, 
+    title: '[홍보] 저희 팀이 만든 고도 엔진 게임입니다!', 
+    content: '안녕하세요! 저희 팀에서 Godot Engine으로 개발한 인디 게임 OOO가 스팀에 출시되었습니다! 많은 관심 부탁드립니다. 피드백도 환영합니다!', 
+    authorId: 'user3', 
+    authorNickname: '고도엔진팬', 
+    createdAt: new Date().toISOString(), 
+    updatedAt: new Date().toISOString(), 
+    type: 'DevLog' as PostType, 
+    upvotes: 30, 
+    downvotes: 2, 
+    views: 300, 
+    commentCount: 1, 
+    tags: ['Godot', 'Game Release', 'Indie Game']
+  },
+  { 
+    id: 'post_general_notice1', 
+    mainCategory: 'General' as PostMainCategory, 
+    title: '[공지] 커뮤니티 이용 규칙 업데이트 안내', 
+    content: '커뮤니티 이용 규칙이 일부 개정되었습니다. 자세한 내용은 공지사항 게시판을 확인해주시기 바랍니다. 모든 회원분들의 적극적인 협조 부탁드립니다.', 
+    authorId: 'admin', 
+    authorNickname: 'WANGJUNLAND', 
+    createdAt: new Date(Date.now() - 86400000 * 5).toISOString(), 
+    updatedAt: new Date(Date.now() - 86400000 * 5).toISOString(), 
+    type: 'Notice' as PostType, 
+    upvotes: 50, 
+    downvotes: 0, 
+    views: 500, 
+    commentCount: 0, 
+    isPinned: true, 
+    tags: ['Community', 'Rules']
+  },
+  { 
+    id: 'post_general_post1', 
+    mainCategory: 'General' as PostMainCategory, 
+    title: '인디 게임 개발자가 갖춰야 할 마인드셋', 
+    content: '성공적인 인디 게임 개발을 위해 어떤 마음가짐이 중요하다고 생각하시나요? 자유롭게 의견 나눠봐요.', 
+    authorId: 'user4', 
+    authorNickname: '인디드리머', 
+    createdAt: new Date(Date.now() - 86400000 * 6).toISOString(), 
+    updatedAt: new Date(Date.now() - 86400000 * 6).toISOString(), 
+    type: 'GeneralPost' as PostType, 
+    upvotes: 40, 
+    downvotes: 1, 
+    views: 400, 
+    commentCount: 10, 
+    tags: ['IndieDev', 'Mindset']
+  },
+  { 
+    id: 'post_general_humor1', 
+    mainCategory: 'General' as PostMainCategory, 
+    title: '개발자 유머) 버그 없는 코드.jpg', 
+    content: '코딩하다 보면 항상 예상치 못한 버그가...', 
+    authorId: 'user5', 
+    authorNickname: '픽셀아티스트', 
+    createdAt: new Date(Date.now() - 86400000 * 0.2).toISOString(), 
+    updatedAt: new Date(Date.now() - 86400000 * 0.2).toISOString(), 
+    type: 'Humor' as PostType, 
+    upvotes: 60, 
+    downvotes: 0, 
+    views: 600, 
+    commentCount: 15, 
+    tags: ['Humor', 'Programming']
+  },
+  { 
+    id: 'post_general_humor2', 
+    mainCategory: 'General' as PostMainCategory, 
+    title: '내 게임이 드디어 빌드 성공했을 때 내 모습', 
+    content: '(움짤 첨부) ...은 아니고 일단 기쁨의 커피 한잔', 
+    authorId: 'user1', 
+    authorNickname: '유니티장인', 
+    createdAt: new Date(Date.now() - 86400000 * 0.1).toISOString(), 
+    updatedAt: new Date(Date.now() - 86400000 * 0.1).toISOString(), 
+    type: 'Humor' as PostType, 
+    upvotes: 55, 
+    downvotes: 0, 
+    views: 550, 
+    commentCount: 8, 
+    tags: ['Humor', 'Build', 'GameDevLife']
+  },
+  
+  // 수정된 자동 게시물 생성 (안전한 방식)
+  ...Array.from({ length: 15 }, (_, i): Omit<Post, 'postScore'> => {
+    const safeUser = getSafeUser(i + 1);
+    return {
+      id: `post_general_older_${i + 1}`,
+      mainCategory: 'General' as PostMainCategory,
+      title: `오래된 일반 게시글 ${i + 1}`,
+      content: `이것은 오래된 일반 게시글 내용입니다. (${i + 1})`,
+      authorId: safeUser.id,
+      authorNickname: safeUser.nickname,
+      createdAt: new Date(Date.now() - 86400000 * (7 + i)).toISOString(),
+      updatedAt: new Date(Date.now() - 86400000 * (7 + i)).toISOString(),
+      type: 'GeneralPost' as PostType,
+      upvotes: 5 + i * 3,
+      downvotes: 0,
+      views: 50 + i * 15,
+      commentCount: i % 5,
+      tags: ['Old', 'General']
+    };
+  }),
+  
+  ...Array.from({ length: 8 }, (_, i): Omit<Post, 'postScore'> => {
+    const safeUser = getSafeUser(i + 3);
+    return {
+      id: `post_unity_older_${i + 1}`,
+      mainCategory: 'Unity' as PostMainCategory,
+      title: `오래된 Unity QnA ${i + 1}`,
+      content: `Unity 관련 오래된 질문입니다. (${i + 1})`,
+      authorId: safeUser.id,
+      authorNickname: safeUser.nickname,
+      createdAt: new Date(Date.now() - 86400000 * (10 + i)).toISOString(),
+      updatedAt: new Date(Date.now() - 86400000 * (10 + i)).toISOString(),
+      type: 'QnA' as PostType,
+      upvotes: 3 + i * 2,
+      downvotes: 0,
+      views: 30 + i * 10,
+      commentCount: i % 3,
+      tags: ['Old', 'Unity', 'QnA']
+    };
+  }),
+  
+  ...Array.from({ length: 10 }, (_, i): Omit<Post, 'postScore'> => {
+    const safeUser = getSafeUser(i + 5);
+    return {
+      id: `post_unreal_filler_${i + 1}`,
+      mainCategory: 'Unreal' as PostMainCategory,
+      title: `언리얼 필러 게시글 ${i + 1}`,
+      content: `언리얼 카테고리 랭킹을 위한 게시글 내용입니다. (${i + 1})`,
+      authorId: safeUser.id,
+      authorNickname: safeUser.nickname,
+      createdAt: new Date(Date.now() - 86400000 * (2 + i*0.5)).toISOString(),
+      updatedAt: new Date(Date.now() - 86400000 * (2 + i*0.5)).toISOString(),
+      type: 'Knowledge' as PostType,
+      upvotes: 10 + i * 2,
+      downvotes: 0,
+      views: 100 + i * 20,
+      commentCount: 1 + i % 4,
+      tags: ['Unreal', 'Filler']
+    };
+  }),
+  
+  ...Array.from({ length: 10 }, (_, i): Omit<Post, 'postScore'> => {
+    const safeUser = getSafeUser(i + 10);
+    return {
+      id: `post_godot_filler_${i + 1}`,
+      mainCategory: 'Godot' as PostMainCategory,
+      title: `고도 필러 게시글 ${i + 1}`,
+      content: `고도 카테고리 랭킹을 위한 게시글 내용입니다. (${i + 1})`,
+      authorId: safeUser.id,
+      authorNickname: safeUser.nickname,
+      createdAt: new Date(Date.now() - 86400000 * (1 + i*0.3)).toISOString(),
+      updatedAt: new Date(Date.now() - 86400000 * (1 + i*0.3)).toISOString(),
+      type: 'DevLog' as PostType,
+      upvotes: 8 + i * 1,
+      downvotes: 0,
+      views: 80 + i * 15,
+      commentCount: 1 + i % 2,
+      tags: ['Godot', 'Filler']
+    };
+  }),
+];
 
+// 최종 mockPosts 배열 (postScore 포함)
+export let mockPosts: Post[] = basePostsWithoutScore.map(post => ({ 
+  ...post, 
+  postScore: calculatePostScore(post) 
+}));
+
+// 이하 나머지 코드는 동일...
 const calculateGlobalRanks = (usersToRank: User[]): void => {
   const nonAdminUsers = usersToRank.filter(u => u.username !== 'wangjunland');
   nonAdminUsers.sort((a, b) => b.score - a.score);
@@ -309,7 +636,7 @@ export const assignCalculatedScoresAndRanks = (
       selectedLogoIdentifier: typedUData.selectedLogoIdentifier || 'none',
       nicknameLastChanged: uData.nicknameLastChanged ? new Date(uData.nicknameLastChanged) : undefined,
       isBlocked: (uData as User).isBlocked || false,
-      socialProfiles: uData.socialProfiles || {}, // Ensure socialProfiles exists
+      socialProfiles: uData.socialProfiles || {},
     } as User; 
   });
 
@@ -346,13 +673,13 @@ export const addUserToMockList = (newUserData: NewUserDto): { success: boolean, 
   const newUserRaw: Omit<User, 'rank' | 'tetrisRank' | 'categoryStats' | 'score' | 'postScore' | 'selectedTitleIdentifier' | 'selectedNicknameEffectIdentifier' | 'selectedLogoIdentifier'> = {
     id: `user${Date.now()}${Math.floor(Math.random() * 1000)}`,
     username: newUserData.username,
-    password: newUserData.password, // Make sure password is included
+    password: newUserData.password,
     nickname: newUserData.nickname,
-    // email is now optional and not part of NewUserDto from signup form
     avatar: `https://placehold.co/100x100.png?text=${newUserData.nickname.substring(0,1).toUpperCase()}`,
     nicknameLastChanged: new Date(), 
     isBlocked: false,
-    socialProfiles: {}, // Initialize with empty social profiles
+    twoFactorEnabled: false,
+    socialProfiles: {},
   };
 
   mockUsersData.push(newUserRaw); 

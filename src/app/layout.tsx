@@ -1,6 +1,5 @@
 // src/app/layout.tsx
 "use client";
-// Removed Metadata import since it's not usable in a Client Component
 import './globals.css';
 import { ThemeProvider } from 'next-themes';
 import { ReactNode, useEffect, useState } from 'react';
@@ -8,9 +7,33 @@ import { Toaster } from "@/components/ui/toaster";
 import AuthProvider, { useAuth } from '@/contexts/AuthContext';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
+import { Loader2 } from 'lucide-react';
 
-function AppContent({ children }: { children: ReactNode }) {
-  const { user, isAdmin, logout } = useAuth();
+// This new component, AppShell, will handle both client mounting and auth loading states
+// to prevent hydration errors and ensure a smooth loading experience.
+function AppShell({ children }: { children: ReactNode }) {
+  const { user, isAdmin, logout, loading: authLoading } = useAuth();
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  // Render a consistent loading indicator on the server, and on the client
+  // before the component is mounted or while authentication is in progress.
+  // This prevents the "mismatch" error that was likely crashing the server.
+  if (!isMounted || authLoading) {
+    return (
+      <div className="flex min-h-screen w-full items-center justify-center bg-background">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="h-10 w-10 animate-spin text-primary" />
+          <p className="text-lg text-muted-foreground">Initializing...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Once the client has mounted and authentication is complete, render the actual application layout.
   return (
     <div className="flex min-h-screen flex-col">
       <Header user={user} isAdmin={isAdmin} logout={logout} />
@@ -23,12 +46,6 @@ function AppContent({ children }: { children: ReactNode }) {
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
-  const [isMounted, setIsMounted] = useState(false);
-
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
-
   return (
     <html lang="ko" suppressHydrationWarning>
       <head>
@@ -40,15 +57,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body className="font-body antialiased" suppressHydrationWarning>
         <AuthProvider>
-            <ThemeProvider
-              attribute="class"
-              defaultTheme="light"
-              enableSystem={false}
-              disableTransitionOnChange
-            >
-              {isMounted ? <AppContent>{children}</AppContent> : null}
-              <Toaster />
-            </ThemeProvider>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="light"
+            enableSystem={false}
+            disableTransitionOnChange
+          >
+            <AppShell>{children}</AppShell>
+            <Toaster />
+          </ThemeProvider>
         </AuthProvider>
       </body>
     </html>
