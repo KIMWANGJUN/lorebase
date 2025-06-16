@@ -66,6 +66,7 @@ interface SelectOption {
 
 const PROFILE_RANKERS_TO_SHOW = 50;
 const MAX_PASSWORD_CHANGES_PER_DAY = 3;
+const MAX_EMAIL_CHANGES_PER_DAY = 3; // 이메일 변경 횟수 제한 추가
 
 const titleOptionsForTest: SelectOption[] = [
   { value: 'none', label: '칭호 없음' },
@@ -109,17 +110,19 @@ export default function ProfilePage() {
   const { toast } = useToast();
 
   const [nickname, setNickname] = useState('');
-  const [inputEmail, setInputEmail] = useState(''); // For email input field
+  const [inputEmail, setInputEmail] = useState('');
   const [isEditingNickname, setIsEditingNickname] = useState(false);
-  const [isEditingEmail, setIsEditingEmail] = useState(false); 
+  const [isEditingEmail, setIsEditingEmail] = useState(false);
 
-  // 비밀번호 변경 관련 state
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [passwordChangesToday, setPasswordChangesToday] = useState(0);
   const [lastPasswordChangeDate, setLastPasswordChangeDate] = useState<string | null>(null);
 
-  // 2차 인증 관련 state
+  // 이메일 변경 횟수 관련 state 추가
+  const [emailChangesToday, setEmailChangesToday] = useState(0);
+  const [lastEmailChangeDate, setLastEmailChangeDate] = useState<string | null>(null);
+
   const [currentPasswordForTwoFactor, setCurrentPasswordForTwoFactor] = useState('');
   const [emailVerificationCode, setEmailVerificationCode] = useState('');
   const [sentVerificationCode, setSentVerificationCode] = useState('');
@@ -148,7 +151,6 @@ export default function ProfilePage() {
     return new Date(new Date(user.nicknameLastChanged).getTime() + (30 * 24 * 60 * 60 * 1000));
   }, [user, isAdmin]);
 
-  // 비밀번호 validation
   const validatePasswordStrength = (password: string): boolean => {
     const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d@$!%*#?&]{6,12}$/;
     return passwordRegex.test(password);
@@ -162,7 +164,16 @@ export default function ProfilePage() {
     return passwordChangesToday < MAX_PASSWORD_CHANGES_PER_DAY;
   }, [passwordChangesToday, lastPasswordChangeDate]);
 
-  // 인증 타이머 효과
+  // 이메일 변경 가능 여부 계산
+  const canChangeEmailToday = useMemo(() => {
+    if (isAdmin) return true; // 관리자는 제한 없음
+    const today = new Date().toDateString();
+    if (lastEmailChangeDate !== today) {
+      return true; // 날짜가 다르면 초기화
+    }
+    return emailChangesToday < MAX_EMAIL_CHANGES_PER_DAY;
+  }, [emailChangesToday, lastEmailChangeDate, isAdmin]);
+
   useEffect(() => {
     let interval: NodeJS.Timeout;
     if (verificationTimer > 0) {
@@ -176,29 +187,30 @@ export default function ProfilePage() {
     return () => clearInterval(interval);
   }, [verificationTimer, isVerificationSent]);
 
-  // user 상태 초기화 및 안전 검사 추가
   useEffect(() => {
     if (!authLoading && !user) {
       router.push('/login');
     } else if (user) {
       setNickname(user.nickname);
-      setInputEmail(user.email || ''); // Initialize inputEmail
+      setInputEmail(user.email || '');
       setCurrentTitle(user.selectedTitleIdentifier || 'none');
       setCurrentNicknameEffect(user.selectedNicknameEffectIdentifier || 'none');
       setCurrentLogo(user.selectedLogoIdentifier || 'none');
       setNicknameChangeAllowed(calculateCanChangeNickname());
       
-      // Mock data for password changes
       const today = new Date().toDateString();
-      setLastPasswordChangeDate(today);
-      setPasswordChangesToday(0);
+      // Mock data for password changes (can be replaced with actual data fetching later)
+      setLastPasswordChangeDate(today); // Assuming password changes are reset daily for mock
+      setPasswordChangesToday(0);      // Assuming 0 changes today for mock
+
+      // Mock data for email changes (can be replaced with actual data fetching later)
+      setLastEmailChangeDate(today); // Assuming email changes are reset daily for mock
+      setEmailChangesToday(0);     // Assuming 0 changes today for mock
       
-      // 안전한 2차 인증 상태 설정 (null 체크 추가)
       setIsTwoFactorEnabled(user.twoFactorEnabled ? !!user.twoFactorEnabled : false);
     }
   }, [user, authLoading, router]);
 
-  // updateUser 함수 안전성 검사
   const safeUpdateUser = (updates: Partial<User>) => {
     if (updateUser && typeof updateUser === 'function') {
       updateUser(updates);
@@ -234,13 +246,23 @@ export default function ProfilePage() {
     }
     safeUpdateUser({ nickname: trimmedNickname, nicknameLastChanged: new Date() });
     setIsEditingNickname(false);
-    setNicknameChangeAllowed(calculateCanChangeNickname()); // Recalculate after change
+    setNicknameChangeAllowed(calculateCanChangeNickname());
     toast({ title: "성공", description: "닉네임이 변경되었습니다." });
   };
 
   const handleEmailSave = () => {
     if (!user) return;
-    const trimmedEmail = inputEmail.trim(); // Use inputEmail here
+
+    if (!isAdmin && !canChangeEmailToday) {
+      toast({ 
+        title: "변경 한도 초과", 
+        description: `이메일은 하루에 ${MAX_EMAIL_CHANGES_PER_DAY}번까지만 변경할 수 있습니다.`, 
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const trimmedEmail = inputEmail.trim();
 
     if (trimmedEmail && !/\S+@\S+\.\S+/.test(trimmedEmail)) {
       toast({ title: "오류", description: "유효한 이메일 주소를 입력해주세요.", variant: "destructive"});
@@ -264,16 +286,26 @@ export default function ProfilePage() {
     
     safeUpdateUser({ email: trimmedEmail || undefined }); 
     toast({ title: "성공", description: trimmedEmail ? "이메일이 등록/수정되었습니다." : "이메일이 삭제되었습니다." });
-    setIsEditingEmail(false); 
+    setIsEditingEmail(false);
+
+    if (!isAdmin) {
+        const today = new Date().toDateString();
+        if (lastEmailChangeDate === today) {
+          setEmailChangesToday(prev => prev + 1);
+        } else {
+          setEmailChangesToday(1);
+          setLastEmailChangeDate(today);
+        }
+    }
   };
 
   const handlePasswordChange = () => {
     if (!user) return;
     
-    if (!canChangePasswordToday) {
+    if (!isAdmin && !canChangePasswordToday) {
       toast({ 
         title: "오류", 
-        description: "비밀번호는 하루에 3번까지만 변경할 수 있습니다.", 
+        description: `비밀번호는 하루에 ${MAX_PASSWORD_CHANGES_PER_DAY}번까지만 변경할 수 있습니다.`, 
         variant: "destructive"
       });
       return;
@@ -297,15 +329,16 @@ export default function ProfilePage() {
       return;
     }
 
-    // Mock password change
-    const today = new Date().toDateString();
-    if (lastPasswordChangeDate === today) {
-      setPasswordChangesToday(prev => prev + 1);
-    } else {
-      setPasswordChangesToday(1);
-      setLastPasswordChangeDate(today);
+    if(!isAdmin) {
+        const today = new Date().toDateString();
+        if (lastPasswordChangeDate === today) {
+          setPasswordChangesToday(prev => prev + 1);
+        } else {
+          setPasswordChangesToday(1);
+          setLastPasswordChangeDate(today);
+        }
     }
-
+    
     setNewPassword('');
     setConfirmPassword('');
     toast({ title: "성공", description: "비밀번호가 변경되었습니다." });
@@ -342,11 +375,10 @@ export default function ProfilePage() {
       return;
     }
 
-    // Mock verification code generation
     const code = Math.floor(100000 + Math.random() * 900000).toString();
     setSentVerificationCode(code);
     setIsVerificationSent(true);
-    setVerificationTimer(300); // 5분
+    setVerificationTimer(300);
 
     toast({ 
       title: "인증코드 전송", 
@@ -364,7 +396,6 @@ export default function ProfilePage() {
       return;
     }
 
-    // 안전한 updateUser 호출
     safeUpdateUser({ twoFactorEnabled: true });
     setIsTwoFactorEnabled(true);
     setIsSettingTwoFactor(false);
@@ -400,7 +431,6 @@ export default function ProfilePage() {
     toast({ title: "성공", description: "대표 표시 설정이 변경되었습니다. 다른 페이지에서 반영됩니다." });
   };
 
-  // 프로필 이미지 업데이트 핸들러 추가
   const handleImageUpdate = (newImageUrl: string | null) => {
     if (!user) {
       toast({
@@ -410,11 +440,7 @@ export default function ProfilePage() {
       });
       return;
     }
-
-    // newImageUrl이 null일 경우 undefined를 전달하여 삭제 의도 전달
- safeUpdateUser({ avatar: newImageUrl === null ? undefined : newImageUrl });
-
-    
+    safeUpdateUser({ avatar: newImageUrl === null ? undefined : newImageUrl });
     if (newImageUrl) {
       toast({
         title: "성공",
@@ -561,7 +587,6 @@ export default function ProfilePage() {
                         <Card className="bg-card border-border">
                             <CardHeader><CardTitle className="text-foreground">계정 정보 수정</CardTitle></CardHeader>
                             <CardContent className="space-y-6">
-                                {/* 현재 ID (변경 불가, 회색 처리) */}
                                 <div>
                                     <Label htmlFor="userId" className="text-muted-foreground">현재 ID</Label>
                                     <Input 
@@ -573,7 +598,6 @@ export default function ProfilePage() {
                                     <p className="text-xs text-muted-foreground mt-1">ID는 변경할 수 없습니다.</p>
                                 </div>
 
-                                {/* 닉네임 변경 */}
                                 <div>
                                     <Label htmlFor="nickname" className="text-muted-foreground">닉네임</Label>
                                     <div className="flex items-center gap-2">
@@ -597,7 +621,6 @@ export default function ProfilePage() {
                                     )}
                                 </div>
 
-                                {/* 이메일 등록/수정 */}
                                 <div>
                                     <Label htmlFor="profileEmail" className="text-muted-foreground">이메일</Label>
                                     <div className="flex items-center gap-2">
@@ -613,12 +636,17 @@ export default function ProfilePage() {
                                       {isEditingEmail ? (
                                         <Button onClick={handleEmailSave} variant="outline" size="sm" className="bg-accent text-accent-foreground border-accent hover:bg-muted/50 hover:text-accent hover:border-accent transition-colors"><CheckCircle className="h-4 w-4 mr-1"/> 등록</Button>
                                       ) : (
-                                        <Button onClick={() => setIsEditingEmail(true)} variant="outline" size="sm" className="border-border text-muted-foreground hover:bg-muted/50 hover:border-accent hover:text-accent transition-colors"><Edit3 className="h-4 w-4 mr-1"/> 수정</Button>
+                                        <Button onClick={() => setIsEditingEmail(true)} variant="outline" size="sm" className="border-border text-muted-foreground hover:bg-muted/50 hover:border-accent hover:text-accent transition-colors" disabled={!isAdmin && !canChangeEmailToday}><Edit3 className="h-4 w-4 mr-1"/> 수정</Button>
                                       )}
                                     </div>
+                                    {!isAdmin && (
+                                      <p className="text-xs text-muted-foreground mt-1">
+                                        오늘 {emailChangesToday}/{MAX_EMAIL_CHANGES_PER_DAY}회 변경 가능
+                                        {!canChangeEmailToday && " (오늘 변경 한도 도달)"}
+                                      </p>
+                                    )}
                                 </div>
 
-                                {/* 비밀번호 변경 */}
                                 <div className="border-t border-border pt-6">
                                     <div className="flex items-center gap-2 mb-4">
                                         <Key className="h-5 w-5 text-primary" />
@@ -652,14 +680,16 @@ export default function ProfilePage() {
                                                 onClick={handlePasswordChange} 
                                                 variant="outline" 
                                                 size="sm" 
-                                                disabled={!canChangePasswordToday || !newPassword || !confirmPassword}
+                                                disabled={!isAdmin && (!canChangePasswordToday || !newPassword || !confirmPassword)}
                                                 className="border-border text-muted-foreground hover:bg-muted/50 hover:border-accent hover:text-accent transition-colors"
                                             >
                                                 <Key className="h-4 w-4 mr-1"/> 비밀번호 변경
                                             </Button>
-                                            <p className="text-xs text-muted-foreground">
-                                                오늘 {passwordChangesToday}/{MAX_PASSWORD_CHANGES_PER_DAY}회 변경
-                                            </p>
+                                            {!isAdmin && (
+                                              <p className="text-xs text-muted-foreground">
+                                                  오늘 {passwordChangesToday}/{MAX_PASSWORD_CHANGES_PER_DAY}회 변경 가능
+                                              </p>
+                                            )}
                                         </div>
                                         {newPassword && !validatePasswordStrength(newPassword) && (
                                             <p className="text-xs text-destructive">비밀번호는 영문자, 숫자를 포함하여 6-12자로 입력해주세요.</p>
@@ -670,7 +700,6 @@ export default function ProfilePage() {
                                     </div>
                                 </div>
 
-                                {/* 2차 인증 설정 */}
                                 <div className="border-t border-border pt-6">
                                     <div className="flex items-center gap-2 mb-4">
                                         <Shield className="h-5 w-5 text-primary" />
@@ -828,7 +857,6 @@ export default function ProfilePage() {
                                     </TabsTrigger>
                                   </TabsList>
                                   
-                                  {/* 프로필 이미지 탭 - 수정된 ProfileImageUpload 사용 */}
                                   <TabsContent value="profile_image_tab">
                                     <div className="space-y-4">
                                       <h3 className="font-semibold text-foreground">프로필 이미지</h3>
@@ -840,7 +868,6 @@ export default function ProfilePage() {
                                     </div>
                                   </TabsContent>
                                   
-                                  {/* 기존 탭들 */}
                                   <TabsContent value="title_tab">
                                     <RadioGroup value={currentTitle} onValueChange={(v) => handlePreferenceChange('title', v)}>
                                       {currentTitleOptions.map(opt => (
