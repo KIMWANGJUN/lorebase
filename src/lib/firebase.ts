@@ -5,65 +5,71 @@ import { getFirestore, Firestore } from 'firebase/firestore';
 import { getStorage, FirebaseStorage } from 'firebase/storage';
 import { getAnalytics, Analytics, isSupported as isAnalyticsSupported } from 'firebase/analytics';
 
-// Firebase Config from Environment Variables
-const firebaseConfig = {
+const firebaseConfigValues = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
   authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
   projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
   storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
   messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
-  measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID, // If you use it
+  measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID,
 };
 
 const isServer = typeof window === 'undefined';
-console.log(`🔍 Firebase 초기화 환경: isServer: ${isServer}, isClient: ${!isServer}`);
+console.log(`[Firebase] Initialization Environment: ${isServer ? 'Server' : 'Client'}`);
 
-// Fallback for IDE environment if .env.local is not loaded
-if (!firebaseConfig.apiKey && typeof window !== 'undefined') {
-  console.log('📝 .env.local 로드 실패. 하드코딩 값으로 대체.');
-  Object.assign(firebaseConfig, {
-    apiKey: "AIzaSyAMoPasnL5uf-_svvROzsUpWCiCfLD1fJU",
+// Validate and prepare config
+if (!firebaseConfigValues.apiKey && !isServer) {
+  console.warn('[Firebase] .env.local not loaded or API Key missing. Attempting fallback for client-side IDE/Studio environment (NOT FOR PRODUCTION).');
+  Object.assign(firebaseConfigValues, {
+    apiKey: "AlzaSyAMoPasnL5uf-_svvROzsUpWCiCfLD1fJU", // Ensure this is your actual key if using fallback
     authDomain: "lorebase-a8b3b.firebaseapp.com",
     projectId: "lorebase-a8b3b",
-    storageBucket: "lorebase-a8b3b.firebasestorage.app",
+    storageBucket: "lorebase-a8b3b.appspot.com", // Standard format for config
     messagingSenderId: "978818851697",
     appId: "1:978818851697:web:9b100c52d4f976d62a8cd0",
     measurementId: "G-BZNR54SCJN"
   });
 }
 
-if (!firebaseConfig.apiKey) {
-  console.error("🚨 Firebase API Key가 로드되지 않았습니다. .env.local 파일을 확인해주세요.");
+if (!firebaseConfigValues.apiKey) {
+  console.error("[Firebase] CRITICAL: Firebase API Key is missing. Authentication and other Firebase services will not work. Check your .env.local file and ensure it's loaded correctly by Next.js.");
 } else {
-  console.log('🔧 Firebase Config (From Env Vars):', {
-    apiKey: firebaseConfig.apiKey ? `${firebaseConfig.apiKey.substring(0, 10)}...` : '❌ 없음',
-    authDomain: firebaseConfig.authDomain,
-    projectId: firebaseConfig.projectId,
-    storageBucket: firebaseConfig.storageBucket,
+  console.log('[Firebase] Config (from .env.local or fallback):', {
+    apiKey: firebaseConfigValues.apiKey ? `${firebaseConfigValues.apiKey.substring(0, 5)}... (length: ${firebaseConfigValues.apiKey.length})` : '❌ MISSING!',
+    authDomain: firebaseConfigValues.authDomain,
+    projectId: firebaseConfigValues.projectId,
+    storageBucket: firebaseConfigValues.storageBucket,
   });
-}
-
-let app: FirebaseApp;
-const apps = getApps();
-if (apps.length > 0) {
-  app = apps[0]; // Use the existing app if already initialized
-  console.log('🔄 기존 Firebase 앱 사용');
-} else {
-  try {
-    app = initializeApp(firebaseConfig);
-    console.log('🆕 새로운 Firebase 앱 초기화 (From Env Vars)');
-  } catch (e) {
-    console.error("🚨 Firebase 앱 초기화 실패:", e);
-    app = { options: {} } as FirebaseApp; // Dummy app object to prevent further crashes
+  if (firebaseConfigValues.storageBucket && firebaseConfigValues.storageBucket.includes('.firebasestorage.app')) {
+    console.warn(`[Firebase] storageBucket in config ("${firebaseConfigValues.storageBucket}") looks like a URL. It should typically be the bucket ID (e.g., "your-project-id.appspot.com"). Please verify in Firebase console > Storage.`);
   }
 }
 
-if (app.options && app.options.projectId) {
-  console.log('✅ Firebase 앱 초기화 성공');
-  console.log('📡 Firebase 프로젝트:', app.options.projectId);
+let app: FirebaseApp;
+if (getApps().length > 0) {
+  app = getApp();
+  console.log('[Firebase] Using existing Firebase app instance.');
 } else {
-  console.error('🚨 Firebase 앱이 올바르게 초기화되지 않았습니다. Config를 확인하세요.');
+  if (!firebaseConfigValues.apiKey) {
+    console.error("[Firebase] Cannot initialize Firebase app due to missing API Key.");
+    // Create a dummy app to prevent crashes, but services will not work.
+    app = ({ options: { projectId: firebaseConfigValues.projectId || "unknown-project" } } as unknown) as FirebaseApp;
+  } else {
+    try {
+      app = initializeApp(firebaseConfigValues);
+      console.log('[Firebase] New Firebase app initialized successfully.');
+    } catch (e: any) {
+      console.error("[Firebase] CRITICAL: Firebase app initialization failed:", e.message);
+      app = ({ options: { projectId: firebaseConfigValues.projectId || "unknown-project" } } as unknown) as FirebaseApp;
+    }
+  }
+}
+
+if (app.options && app.options.projectId && app.options.projectId !== "unknown-project") {
+  console.log('[Firebase] App Project ID:', app.options.projectId);
+} else {
+  console.error('[Firebase] App does not seem to be initialized correctly or is a dummy instance.');
 }
 
 let authInstance: Auth | null = null;
@@ -71,33 +77,45 @@ let dbInstance: Firestore | null = null;
 let storageInstance: FirebaseStorage | null = null;
 let analyticsInstance: Analytics | null = null;
 
-if (app.options && app.options.projectId) { // Only try to get services if app was initialized
-  if (!isServer) { // Client-side initialization
-    try {
-      authInstance = getAuth(app);
-      console.log('🔐 Firebase Auth 인스턴스 (Client): 생성됨');
-      
-      dbInstance = getFirestore(app);
-      console.log('📊 Firebase Firestore 인스턴스 (Client): 생성됨');
-      
-      storageInstance = getStorage(app);
-      console.log('📁 Firebase Storage 인스턴스 (Client): 생성됨');
-      
-      isAnalyticsSupported().then((supported) => {
-        if (supported && firebaseConfig.measurementId) {
-          analyticsInstance = getAnalytics(app);
-          console.log('📈 Firebase Analytics 인스턴스 (Client): 생성됨');
-        } else {
-          console.log('📈 Firebase Analytics (Client): 지원되지 않거나 Measurement ID 없음');
-        }
-      }).catch(err => console.warn('Analytics support check error:', err));
-
-    } catch (error) {
-      console.error('❌ Firebase 클라이언트 서비스 초기화 실패:', error);
-    }
-  } else {
-    console.log('ℹ️ Firebase 서비스 (Auth, Firestore, Storage, Analytics)는 일반적으로 클라이언트 측에서 초기화됩니다.');
+if (!isServer && app.options.apiKey) { // Initialize client-side services only if API key exists and on client
+  console.log('[Firebase] Attempting to initialize client-side Firebase services...');
+  try {
+    authInstance = getAuth(app);
+    console.log('[Firebase] Auth instance: Initialized');
+  } catch (e: any) {
+    console.error('[Firebase] Failed to initialize Auth:', e.message);
   }
+
+  try {
+    dbInstance = getFirestore(app);
+    console.log('[Firebase] Firestore instance: Initialized');
+  } catch (e: any) {
+    console.error('[Firebase] Failed to initialize Firestore:', e.message);
+  }
+
+  try {
+    storageInstance = getStorage(app);
+    console.log('[Firebase] Storage instance: Initialized');
+  } catch (e: any) {
+    console.error('[Firebase] Failed to initialize Storage:', e.message);
+  }
+
+  isAnalyticsSupported().then((supported) => {
+    if (supported && firebaseConfigValues.measurementId) {
+      try {
+        analyticsInstance = getAnalytics(app);
+        console.log('[Firebase] Analytics instance: Initialized');
+      } catch (e: any) {
+        console.error('[Firebase] Failed to initialize Analytics:', e.message);
+      }
+    } else {
+      console.log(`[Firebase] Analytics: Not supported or Measurement ID missing (Supported: ${supported}, Has ID: ${!!firebaseConfigValues.measurementId})`);
+    }
+  }).catch(err => console.warn('[Firebase] Analytics support check error:', err.message));
+} else if (isServer) {
+  console.log('[Firebase] Skipping client-side service initialization on the server.');
+} else if (!app.options.apiKey) {
+  console.warn('[Firebase] Skipping client-side service initialization due to missing API Key in app config.');
 }
 
 export { authInstance as auth, dbInstance as db, storageInstance as storage, analyticsInstance as analytics };
