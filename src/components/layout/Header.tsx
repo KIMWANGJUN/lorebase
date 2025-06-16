@@ -1,13 +1,17 @@
-
+// src/components/layout/Header.tsx
 "use client";
-// import { useState } from 'react'; // No longer needed for LoginModal state
 import Link from 'next/link';
 import { Gamepad2, Users, Store, ShieldCheck, Wand2, LogIn } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useAuth } from '@/contexts/AuthContext';
 import UserAvatarDropdown from '@/components/shared/UserAvatarDropdown';
 import { ThemeToggleButton } from '@/components/shared/ThemeToggleButton';
-// import LoginModal from '@/components/Auth/LoginModal'; // LoginModal removed, using /login page
+import type { User } from '@/types';
+
+interface HeaderProps {
+  user: User | null;
+  isAdmin: boolean;
+  logout: () => void;
+}
 
 const navItems = [
   { href: '/game-workshop', label: '게임 공방', icon: Store },
@@ -15,10 +19,7 @@ const navItems = [
   { href: '/free-assets', label: '무료 에셋', icon: Gamepad2 },
 ];
 
-export default function Header() {
-  const { user, isAdmin, logout } = useAuth();
-  // const [isLoginModalOpen, setIsLoginModalOpen] = useState(false); // State for modal removed
-
+export default function Header({ user, isAdmin, logout }: HeaderProps) {
   return (
     <>
       <header className="sticky top-0 z-50 w-full bg-background/85 backdrop-blur supports-[backdrop-filter]:bg-background/60 shadow-md">
@@ -70,9 +71,6 @@ export default function Header() {
           </div>
         </div>
       </header>
-      {/* <LoginModal isOpen={isLoginModalOpen} onClose={() => setIsLoginModalOpen(false)} /> Removed */}
     </>
   );
 }
-
-    

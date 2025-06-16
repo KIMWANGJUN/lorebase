@@ -1,9 +1,9 @@
-// src/lib/firebase.js
-import { initializeApp, getApps, getApp } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore';
-import { getStorage } from 'firebase/storage';
-import { getAnalytics, isSupported as isAnalyticsSupported } from 'firebase/analytics';
+// src/lib/firebase.ts
+import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
+import { getAuth, Auth } from 'firebase/auth';
+import { getFirestore, Firestore } from 'firebase/firestore';
+import { getStorage, FirebaseStorage } from 'firebase/storage';
+import { getAnalytics, Analytics, isSupported as isAnalyticsSupported } from 'firebase/analytics';
 
 // Firebase Config from Environment Variables
 const firebaseConfig = {
@@ -19,6 +19,18 @@ const firebaseConfig = {
 const isServer = typeof window === 'undefined';
 console.log(`🔍 Firebase 초기화 환경: isServer: ${isServer}, isClient: ${!isServer}`);
 
+// Fallback for IDE environment if .env.local is not loaded
+if (!firebaseConfig.apiKey && typeof import.meta.env !== 'undefined') {
+  console.log('📝 .env.local 로드 실패. IDE 내장 환경 변수로 대체 시도.');
+  firebaseConfig.apiKey = import.meta.env.NEXT_PUBLIC_FIREBASE_API_KEY;
+  firebaseConfig.authDomain = import.meta.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN;
+  firebaseConfig.projectId = import.meta.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID;
+  firebaseConfig.storageBucket = import.meta.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET;
+  firebaseConfig.messagingSenderId = import.meta.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID;
+  firebaseConfig.appId = import.meta.env.NEXT_PUBLIC_FIREBASE_APP_ID;
+  firebaseConfig.measurementId = import.meta.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID;
+}
+
 if (!firebaseConfig.apiKey) {
   console.error("🚨 Firebase API Key가 로드되지 않았습니다. .env.local 파일을 확인해주세요.");
 } else {
@@ -30,7 +42,7 @@ if (!firebaseConfig.apiKey) {
   });
 }
 
-let app;
+let app: FirebaseApp;
 const apps = getApps();
 if (apps.length > 0) {
   app = apps[0]; // Use the existing app if already initialized
@@ -41,9 +53,7 @@ if (apps.length > 0) {
     console.log('🆕 새로운 Firebase 앱 초기화 (From Env Vars)');
   } catch (e) {
     console.error("🚨 Firebase 앱 초기화 실패:", e);
-    // Provide a non-functional app object or throw to prevent further errors
-    // This helps prevent subsequent errors if initialization fails.
-    app = { options: {} }; // Dummy app object to prevent further crashes
+    app = { options: {} } as FirebaseApp; // Dummy app object to prevent further crashes
   }
 }
 
@@ -54,10 +64,10 @@ if (app.options && app.options.projectId) {
   console.error('🚨 Firebase 앱이 올바르게 초기화되지 않았습니다. Config를 확인하세요.');
 }
 
-let authInstance = null;
-let dbInstance = null;
-let storageInstance = null;
-let analyticsInstance = null;
+let authInstance: Auth | null = null;
+let dbInstance: Firestore | null = null;
+let storageInstance: FirebaseStorage | null = null;
+let analyticsInstance: Analytics | null = null;
 
 if (app.options && app.options.projectId) { // Only try to get services if app was initialized
   if (!isServer) { // Client-side initialization
@@ -84,7 +94,6 @@ if (app.options && app.options.projectId) { // Only try to get services if app w
       console.error('❌ Firebase 클라이언트 서비스 초기화 실패:', error);
     }
   } else {
-    // Server-side logging for what typically isn't initialized here
     console.log('ℹ️ Firebase 서비스 (Auth, Firestore, Storage, Analytics)는 일반적으로 클라이언트 측에서 초기화됩니다.');
   }
 }

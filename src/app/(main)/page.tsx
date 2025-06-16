@@ -5,21 +5,23 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowRight, Code, Compass, Gift, MessageSquare, Users, Star, Wand2, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, ThumbsUp, Trophy, Box, AppWindow, PenTool, LayoutGrid, Crown, Gamepad2, User, ChevronUp, ChevronDown } from 'lucide-react';
+import { ArrowRight, Code, Compass, Gift, MessageSquare, Users, Star, Wand2, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, ThumbsUp, Trophy, Box, AppWindow, PenTool, LayoutGrid, Crown, Gamepad2, User, ChevronUp, ChevronDown, Loader2 } from 'lucide-react';
 import Image from 'next/image';
 import { mockUsers, mockPosts, mockTetrisRankings, tetrisTitles } from '@/lib/mockData';
 import { cn } from '@/lib/utils';
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import type { User as UserType, PostMainCategory, AchievedRankType, Post } from '@/types';
+import type { User as UserType, PostMainCategory, AchievedRankType, Post, TetrisRanker } from '@/types';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import NicknameDisplay from '@/components/shared/NicknameDisplay';
 import FormattedDateDisplay from '@/components/shared/FormattedDateDisplay';
 
 const POSTS_PER_PAGE = 10;
-const MAX_PAGES = 10; // Max pages to consider for initial data slice (to avoid processing too much)
-const RANKERS_TO_SHOW = 20; 
+const MAX_PAGES_SLICE_POSTS = 10; // Max pages to consider for initial data slice for posts
+const RANKERS_TO_SHOW_TETRIS = 20;
 const COMMUNITY_RANKERS_PER_PAGE = 10;
+const MAX_COMMUNITY_RANKERS_GLOBAL = 10; // For Global tab, show top 10 directly
+const MAX_COMMUNITY_RANKERS_CATEGORY = 20; // For Category tabs, paginate through top 20
 
 const CategorySpecificIcon: React.FC<{ category: PostMainCategory, className?: string }> = ({ category, className }) => {
   const defaultClassName = "h-3.5 w-3.5 shrink-0";
@@ -49,26 +51,59 @@ export default function HomePage() {
   const [totalPagesForPosts, setTotalPagesForPosts] = useState(0);
   const [isLoadingPosts, setIsLoadingPosts] = useState(true);
 
+  const [communityRankers, setCommunityRankers] = useState<UserType[]>([]);
+  const [isLoadingCommunityRankers, setIsLoadingCommunityRankers] = useState(true);
+  const [tetrisRankersDisplay, setTetrisRankersDisplay] = useState<TetrisRanker[]>([]);
+  const [isLoadingTetrisRankers, setIsLoadingTetrisRankers] = useState(true);
+
+
   const toggleGameSection = useCallback(() => {
     setIsGameSectionOpen(prev => !prev);
   }, []);
 
   useEffect(() => {
-    // This effect runs on the client after hydration
+    // Load Posts
     const allSortedPosts = [...mockPosts]
       .filter(p => p.authorId !== 'admin')
       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-    
-    const effectivePosts = allSortedPosts.slice(0, MAX_PAGES * POSTS_PER_PAGE);
-    
+    const effectivePosts = allSortedPosts.slice(0, MAX_PAGES_SLICE_POSTS * POSTS_PER_PAGE);
     setTotalPagesForPosts(Math.ceil(effectivePosts.length / POSTS_PER_PAGE));
-    
     const indexOfLastPost = currentPage * POSTS_PER_PAGE;
     const indexOfFirstPost = indexOfLastPost - POSTS_PER_PAGE;
     setPostsForDisplay(effectivePosts.slice(indexOfFirstPost, indexOfLastPost));
-    
     setIsLoadingPosts(false);
-  }, [currentPage]); // Re-run when currentPage changes
+
+    // Load Tetris Rankers
+    const sortedTetrisRankers = [...mockTetrisRankings]
+        .sort((a,b) => a.rank - b.rank)
+        .slice(0, RANKERS_TO_SHOW_TETRIS);
+    setTetrisRankersDisplay(sortedTetrisRankers);
+    setIsLoadingTetrisRankers(false);
+
+  }, [currentPage]);
+
+  const getTopNUsers = useCallback((users: UserType[], category: PostMainCategory | 'Global', count: number): UserType[] => {
+    const usersToRank = users.filter(u => u.username !== 'WANGJUNLAND');
+    let sortedUsers;
+    if (category === 'Global') {
+      sortedUsers = [...usersToRank].filter(u => u.rank > 0).sort((a, b) => a.rank - b.rank);
+    } else {
+      sortedUsers = [...usersToRank]
+        .filter(u => u.categoryStats && u.categoryStats[category] && typeof u.categoryStats[category]?.rankInCate === 'number' && u.categoryStats[category]!.rankInCate! > 0)
+        .sort((a, b) => (a.categoryStats![category]!.rankInCate || Infinity) - (b.categoryStats![category]!.rankInCate || Infinity));
+    }
+    return sortedUsers.slice(0, count);
+  }, []);
+  
+  useEffect(() => {
+    // Load Community Rankers based on activeRankingTab
+    setIsLoadingCommunityRankers(true);
+    const countToShow = activeRankingTab === 'Global' ? MAX_COMMUNITY_RANKERS_GLOBAL : MAX_COMMUNITY_RANKERS_CATEGORY;
+    const topUsers = getTopNUsers(mockUsers, activeRankingTab, countToShow);
+    setCommunityRankers(topUsers);
+    setIsLoadingCommunityRankers(false);
+  }, [activeRankingTab, getTopNUsers]);
+
 
   const paginate = (pageNumber: number) => {
     if (pageNumber > 0 && pageNumber <= totalPagesForPosts) {
@@ -100,36 +135,18 @@ export default function HomePage() {
     }
     return pageNumbers;
   };
-
-  const getTopNUsers = useCallback((users: UserType[], category: PostMainCategory | 'Global', count: number): UserType[] => {
-    const usersToRank = users.filter(u => u.username !== 'WANGJUNLAND');
-    let sortedUsers;
-    if (category === 'Global') {
-      sortedUsers = [...usersToRank].filter(u => u.rank > 0).sort((a, b) => a.rank - b.rank);
-    } else {
-      sortedUsers = [...usersToRank]
-        .filter(u => u.categoryStats && u.categoryStats[category] && typeof u.categoryStats[category]?.rankInCate === 'number' && u.categoryStats[category]!.rankInCate! > 0)
-        .sort((a, b) => (a.categoryStats![category]!.rankInCate || Infinity) - (b.categoryStats![category]!.rankInCate || Infinity));
-    }
-    return sortedUsers.slice(0, count);
-  }, []);
-
-  const rankedUsersToDisplay = useMemo(() => {
-    const countToShow = activeRankingTab === 'Global' ? COMMUNITY_RANKERS_PER_PAGE : RANKERS_TO_SHOW;
-    return getTopNUsers(mockUsers, activeRankingTab, countToShow);
-  }, [activeRankingTab, getTopNUsers]);
   
   const totalCommunityRankingPages = useMemo(() => {
     if (activeRankingTab === 'Global') return 1; 
-    return Math.ceil(rankedUsersToDisplay.length / COMMUNITY_RANKERS_PER_PAGE);
-  }, [activeRankingTab, rankedUsersToDisplay]);
+    return Math.ceil(communityRankers.length / COMMUNITY_RANKERS_PER_PAGE);
+  }, [activeRankingTab, communityRankers]);
 
   const currentCommunityRankersToDisplay = useMemo(() => {
-    if (activeRankingTab === 'Global') return rankedUsersToDisplay.slice(0, COMMUNITY_RANKERS_PER_PAGE);
+    if (activeRankingTab === 'Global') return communityRankers.slice(0, MAX_COMMUNITY_RANKERS_GLOBAL);
     const startIndex = (communityRankingCurrentPage - 1) * COMMUNITY_RANKERS_PER_PAGE;
     const endIndex = startIndex + COMMUNITY_RANKERS_PER_PAGE;
-    return rankedUsersToDisplay.slice(startIndex, endIndex);
-  }, [rankedUsersToDisplay, communityRankingCurrentPage, activeRankingTab]);
+    return communityRankers.slice(startIndex, endIndex);
+  }, [communityRankers, communityRankingCurrentPage, activeRankingTab]);
 
   const handleRankingTabChange = (value: PostMainCategory | 'Global') => {
     setActiveRankingTab(value);
@@ -196,28 +213,36 @@ export default function HomePage() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-4">
-                <div className="space-y-3">
-                  {mockTetrisRankings.slice(0, RANKERS_TO_SHOW).map((rankerData) => {
-                    const user = mockUsers.find(u => u.id === rankerData.userId);
-                    if (!user) return null;
-                    const rankNumberClasses = "font-bold w-5 text-center shrink-0 text-muted-foreground text-sm";
-                    return (
-                      <div key={rankerData.userId} className="flex items-center justify-between p-2.5 bg-card/50 border-border/70 rounded-md shadow-sm">
-                        <div className="flex items-center gap-2">
-                          <span className={rankNumberClasses}>{rankerData.rank}.</span>
-                          <Avatar className="h-8 w-8 border-2 border-accent/50 shrink-0">
-                              <AvatarImage src={user.avatar || `https://placehold.co/40x40.png?text=${rankerData.nickname.substring(0,1)}`} alt={rankerData.nickname} data-ai-hint="gamer avatar" />
-                              <AvatarFallback className="text-xs bg-muted text-muted-foreground">{rankerData.nickname.substring(0,1)}</AvatarFallback>
-                          </Avatar>
-                          <NicknameDisplay user={user} context="rankingList" />
+                {isLoadingTetrisRankers ? (
+                  <div className="flex justify-center items-center h-40">
+                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                  </div>
+                ) : tetrisRankersDisplay.length > 0 ? (
+                  <div className="space-y-3">
+                    {tetrisRankersDisplay.map((rankerData) => {
+                      const user = mockUsers.find(u => u.id === rankerData.userId);
+                      if (!user) return null;
+                      const rankNumberClasses = "font-bold w-5 text-center shrink-0 text-muted-foreground text-sm";
+                      return (
+                        <div key={rankerData.userId} className="flex items-center justify-between p-2.5 bg-card/50 border-border/70 rounded-md shadow-sm">
+                          <div className="flex items-center gap-2">
+                            <span className={rankNumberClasses}>{rankerData.rank}.</span>
+                            <Avatar className="h-8 w-8 border-2 border-accent/50 shrink-0">
+                                <AvatarImage src={user.avatar || `https://placehold.co/40x40.png?text=${rankerData.nickname.substring(0,1)}`} alt={rankerData.nickname} data-ai-hint="gamer avatar" />
+                                <AvatarFallback className="text-xs bg-muted text-muted-foreground">{rankerData.nickname.substring(0,1)}</AvatarFallback>
+                            </Avatar>
+                            <NicknameDisplay user={user} context="rankingList" />
+                          </div>
+                          {isAdmin && (
+                            <span className="text-xs font-semibold text-accent shrink-0">{rankerData.score.toLocaleString()} 점</span>
+                          )}
                         </div>
-                        {isAdmin && (
-                          <span className="text-xs font-semibold text-accent shrink-0">{rankerData.score.toLocaleString()} 점</span>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground text-center py-4">테트리스 랭킹 정보가 없습니다.</p>
+                )}
               </CardContent>
                <CardFooter className="justify-center pt-2">
                 <Button variant="outline" size="sm" className="border-accent/50 text-accent hover:bg-accent/10 hover:text-accent/90">
@@ -238,8 +263,8 @@ export default function HomePage() {
             </Button>
           </div>
           {isLoadingPosts ? (
-            <div className="text-center py-12">
-              <Compass className="mx-auto h-16 w-16 text-muted-foreground mb-4 animate-pulse" />
+            <div className="text-center py-12 flex flex-col items-center">
+              <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
               <p className="text-xl text-muted-foreground">게시글을 불러오는 중...</p>
             </div>
           ) : postsForDisplay.length > 0 ? (
@@ -314,7 +339,11 @@ export default function HomePage() {
 
                 {(['Global', 'Unity', 'Unreal', 'Godot', 'General'] as (PostMainCategory | 'Global')[]).map(tabValue => (
                   <TabsContent key={tabValue} value={tabValue}>
-                    {currentCommunityRankersToDisplay.length > 0 ? (
+                    {isLoadingCommunityRankers ? (
+                       <div className="flex justify-center items-center h-40">
+                         <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                       </div>
+                    ) : currentCommunityRankersToDisplay.length > 0 ? (
                       <div className="space-y-3">
                         {currentCommunityRankersToDisplay.map((user) => {
                           if (user.username === 'WANGJUNLAND' && tabValue !== 'Global') return null;
@@ -348,7 +377,7 @@ export default function HomePage() {
                   </TabsContent>
                 ))}
               </Tabs>
-               {totalCommunityRankingPages > 1 && activeRankingTab !== 'Global' && (
+               {totalCommunityRankingPages > 1 && activeRankingTab !== 'Global' && !isLoadingCommunityRankers && (
                 <div className="mt-4 flex items-center justify-between pt-2 border-t border-border/50">
                   <Button
                     variant="outline"
@@ -367,7 +396,7 @@ export default function HomePage() {
                     variant="outline"
                     size="sm"
                     onClick={() => setCommunityRankingCurrentPage(prev => Math.min(totalCommunityRankingPages, prev + 1))}
-                    disabled={communityRankingCurrentPage === totalCommunityRankingPages || rankedUsersToDisplay.length <= COMMUNITY_RANKERS_PER_PAGE * communityRankingCurrentPage}
+                    disabled={communityRankingCurrentPage === totalCommunityRankingPages || communityRankers.length <= COMMUNITY_RANKERS_PER_PAGE * communityRankingCurrentPage}
                     className="border-accent/50 text-accent hover:bg-accent/10 hover:text-accent/90"
                   >
                     다음
