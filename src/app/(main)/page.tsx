@@ -63,6 +63,7 @@ export default function HomePage() {
 
   useEffect(() => {
     // Load Posts
+    setIsLoadingPosts(true);
     const allSortedPosts = [...mockPosts]
       .filter(p => p.authorId !== 'admin')
       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
@@ -72,15 +73,17 @@ export default function HomePage() {
     const indexOfFirstPost = indexOfLastPost - POSTS_PER_PAGE;
     setPostsForDisplay(effectivePosts.slice(indexOfFirstPost, indexOfLastPost));
     setIsLoadingPosts(false);
+  }, [currentPage]);
 
+  useEffect(() => {
     // Load Tetris Rankers
+    setIsLoadingTetrisRankers(true);
     const sortedTetrisRankers = [...mockTetrisRankings]
         .sort((a,b) => a.rank - b.rank)
         .slice(0, RANKERS_TO_SHOW_TETRIS);
     setTetrisRankersDisplay(sortedTetrisRankers);
     setIsLoadingTetrisRankers(false);
-
-  }, [currentPage]);
+  }, []);
 
   const getTopNUsers = useCallback((users: UserType[], category: PostMainCategory | 'Global', count: number): UserType[] => {
     const usersToRank = users.filter(u => u.username !== 'WANGJUNLAND');
@@ -154,7 +157,7 @@ export default function HomePage() {
   };
 
   return (
-    <div className="container mx-auto py-8 px-4">
+    <div className="py-8 px-4">
       <div className="flex justify-center mb-6">
         <Button 
           onClick={toggleGameSection}
