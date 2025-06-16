@@ -39,7 +39,7 @@ export default function GameWorkshopPage() {
   const bannerImageUrl = "https://placehold.co/1920x800.png";
 
   return (
-    <div className="container mx-auto py-8 px-4">
+    <div className="py-8 px-4">
       <section 
         className="text-center py-20 md:py-32 rounded-xl shadow-xl mb-10 relative bg-cover bg-center"
         style={{ backgroundImage: `url(${bannerImageUrl})` }}

@@ -95,16 +95,16 @@ export default function AdminPage() {
   }, [isAdmin, loading, router]);
 
   if (loading) {
-    return <div className="container mx-auto py-8 px-4 text-center text-foreground">관리자 정보를 확인 중...</div>;
+    return <div className="text-center text-foreground py-8 px-4">관리자 정보를 확인 중...</div>;
   }
   if (!isAdmin) {
-     return <div className="container mx-auto py-8 px-4 text-center text-foreground">접근 권한이 없습니다.</div>;
+     return <div className="text-center text-foreground py-8 px-4">접근 권한이 없습니다.</div>;
   }
 
   const bannerImageUrl = "https://placehold.co/1920x600.png";
 
   return (
-    <div className="container mx-auto py-8 px-4">
+    <div className="py-8 px-4">
       <section 
         className="text-center py-20 md:py-32 rounded-xl shadow-xl mb-10 relative bg-cover bg-center"
         style={{ backgroundImage: `url(${bannerImageUrl})` }}
