@@ -122,12 +122,12 @@ export default function PostDetailPage() {
 
 
   if (post === undefined) {
-    return <div className="container mx-auto py-8 px-4 text-center text-foreground">게시글을 불러오는 중...</div>;
+    return <div className="py-8 px-4 text-center text-foreground">게시글을 불러오는 중...</div>;
   }
 
   if (!post) {
     return (
-      <div className="container mx-auto py-8 px-4 text-center">
+      <div className="py-8 px-4 text-center">
         <h1 className="text-2xl font-bold text-foreground">게시글을 찾을 수 없습니다.</h1>
         <Button variant="link" asChild className="mt-4">
           <Link href="/tavern">목록으로 돌아가기</Link>
@@ -147,88 +147,90 @@ export default function PostDetailPage() {
 
 
   return (
-    <div className="container mx-auto py-8 px-4 max-w-3xl">
-      <div className="flex justify-between items-center mb-6">
-        <Link href="/tavern" legacyBehavior={false} passHref>
-          <Button variant="outline" className="text-sm">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            목록으로 돌아가기
-          </Button>
-        </Link>
-        {canEdit && (
-          <Link href={`/tavern/${post.id}/edit`} legacyBehavior={false} passHref>
+    <div className="py-8 px-4">
+      <div className="max-w-5xl mx-auto">
+        <div className="flex justify-between items-center mb-6">
+          <Link href="/tavern" legacyBehavior={false} passHref>
             <Button variant="outline" className="text-sm">
-              <Edit3 className="mr-2 h-4 w-4" />
-              수정
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              목록으로 돌아가기
             </Button>
           </Link>
-        )}
-      </div>
+          {canEdit && (
+            <Link href={`/tavern/${post.id}/edit`} legacyBehavior={false} passHref>
+              <Button variant="outline" className="text-sm">
+                <Edit3 className="mr-2 h-4 w-4" />
+                수정
+              </Button>
+            </Link>
+          )}
+        </div>
 
 
-      <Card className={cn(
-        "mb-8 shadow-lg bg-card border-border",
-        post.isPinned && "border-t-4 border-primary",
-        isNotice && "bg-primary/10 border-primary/50"
-      )}>
-        <CardHeader>
-          <div className="flex justify-between items-start">
-            <CardTitle className="text-2xl font-bold flex items-center text-foreground font-headline">
-              {post.isPinned && <Pin className="h-6 w-6 mr-2 text-primary" />}
-              {isNotice && <MessageSquare className="h-6 w-6 mr-2 text-primary" />}
-              {post.title}
-              {post.isEdited && <span className="ml-2 text-xs font-normal text-muted-foreground">(수정됨)</span>}
-            </CardTitle>
-          </div>
-          <div className="flex items-center text-sm text-muted-foreground space-x-2 mt-2">
-            <Avatar className="h-8 w-8">
-              <AvatarImage src={authorUser?.avatar || `https://placehold.co/40x40.png?text=${getInitials(post.authorNickname)}`} alt={post.authorNickname} />
-              <AvatarFallback className="bg-muted">{getInitials(post.authorNickname)}</AvatarFallback>
-            </Avatar>
-            <div>
-               {authorUser ? <NicknameDisplay user={authorUser} context="postAuthor" postMainCategoryForAuthor={post.mainCategory} /> : <span className="text-base font-bold text-foreground">{post.authorNickname}</span>}
-              <div className="text-xs text-muted-foreground mt-0.5">
-                <span>{formattedDate}</span>
-                <span className="mx-1">·</span>
-                <span className="capitalize">{post.type}</span>
+        <Card className={cn(
+          "mb-8 shadow-lg bg-card border-border",
+          post.isPinned && "border-t-4 border-primary",
+          isNotice && "bg-primary/10 border-primary/50"
+        )}>
+          <CardHeader>
+            <div className="flex justify-between items-start">
+              <CardTitle className="text-2xl font-bold flex items-center text-foreground font-headline">
+                {post.isPinned && <Pin className="h-6 w-6 mr-2 text-primary" />}
+                {isNotice && <MessageSquare className="h-6 w-6 mr-2 text-primary" />}
+                {post.title}
+                {post.isEdited && <span className="ml-2 text-xs font-normal text-muted-foreground">(수정됨)</span>}
+              </CardTitle>
+            </div>
+            <div className="flex items-center text-sm text-muted-foreground space-x-2 mt-2">
+              <Avatar className="h-8 w-8">
+                <AvatarImage src={authorUser?.avatar || `https://placehold.co/40x40.png?text=${getInitials(post.authorNickname)}`} alt={post.authorNickname} />
+                <AvatarFallback className="bg-muted">{getInitials(post.authorNickname)}</AvatarFallback>
+              </Avatar>
+              <div>
+                 {authorUser ? <NicknameDisplay user={authorUser} context="postAuthor" postMainCategoryForAuthor={post.mainCategory} /> : <span className="text-base font-bold text-foreground">{post.authorNickname}</span>}
+                <div className="text-xs text-muted-foreground mt-0.5">
+                  <span>{formattedDate}</span>
+                  <span className="mx-1">·</span>
+                  <span className="capitalize">{post.type}</span>
+                </div>
               </div>
             </div>
-          </div>
-        </CardHeader>
-        <CardContent className="prose max-w-none text-sm text-foreground">
-          <div className="whitespace-pre-wrap">{post.content}</div>
-        </CardContent>
-        <CardFooter className="flex justify-between items-center text-muted-foreground border-t pt-4 mt-4">
-           <div className="flex gap-4 items-center text-xs">
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              onClick={handleToggleRecommend}
-              className={cn(
-                "p-1 h-auto text-xs flex items-center gap-1 hover:bg-accent/10",
-                isRecommendedByCurrentUser ? "text-primary hover:text-primary/80" : "text-muted-foreground hover:text-accent-foreground"
-              )}
-              aria-pressed={isRecommendedByCurrentUser}
-            >
-              <ThumbsUp className={cn("h-4 w-4", isRecommendedByCurrentUser && "fill-primary")} /> 
-              {displayUpvotes}
-            </Button>
-            <span className="flex items-center"><MessageSquare className="h-4 w-4 mr-1" /> {totalCommentCount}</span>
-            <span className="flex items-center"><Eye className="h-4 w-4 mr-1" /> {post.views}</span>
-          </div>
-           {post.tags && post.tags.length > 0 && (
-            <div className="flex flex-wrap gap-2">
-              {post.tags.map(tag => (
-                <span key={tag} className="px-2 py-1 text-[10px] bg-secondary text-secondary-foreground rounded-full">{tag}</span> 
-              ))}
+          </CardHeader>
+          <CardContent className="prose max-w-none text-sm text-foreground">
+            <div className="whitespace-pre-wrap">{post.content}</div>
+          </CardContent>
+          <CardFooter className="flex justify-between items-center text-muted-foreground border-t pt-4 mt-4">
+             <div className="flex gap-4 items-center text-xs">
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={handleToggleRecommend}
+                className={cn(
+                  "p-1 h-auto text-xs flex items-center gap-1 hover:bg-accent/10",
+                  isRecommendedByCurrentUser ? "text-primary hover:text-primary/80" : "text-muted-foreground hover:text-accent-foreground"
+                )}
+                aria-pressed={isRecommendedByCurrentUser}
+              >
+                <ThumbsUp className={cn("h-4 w-4", isRecommendedByCurrentUser && "fill-primary")} /> 
+                {displayUpvotes}
+              </Button>
+              <span className="flex items-center"><MessageSquare className="h-4 w-4 mr-1" /> {totalCommentCount}</span>
+              <span className="flex items-center"><Eye className="h-4 w-4 mr-1" /> {post.views}</span>
             </div>
-          )}
-        </CardFooter>
-      </Card>
+             {post.tags && post.tags.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {post.tags.map(tag => (
+                  <span key={tag} className="px-2 py-1 text-[10px] bg-secondary text-secondary-foreground rounded-full">{tag}</span> 
+                ))}
+              </div>
+            )}
+          </CardFooter>
+        </Card>
 
-      {authorUser && <CommentSection postId={post.id} initialComments={initialCommentsForPost} postMainCategory={post.mainCategory} />}
+        {authorUser && <CommentSection postId={post.id} initialComments={initialCommentsForPost} postMainCategory={post.mainCategory} />}
 
-      <MiniPostList allPosts={mockPosts} currentPostId={post.id} />
+        <MiniPostList allPosts={mockPosts} currentPostId={post.id} />
+      </div>
     </div>
   );
 }

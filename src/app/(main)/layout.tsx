@@ -1,17 +1,17 @@
-// src/app/(main)/layout.tsx
-import MainHeader from '@/components/layout/MainHeader'
+
+import MainHeader from '@/components/layout/MainHeader';
 
 export default function MainLayout({
   children,
 }: {
-  children: React.ReactNode
+  children: React.ReactNode;
 }) {
   return (
-    <div className="min-h-screen bg-background">
+    <div className="flex flex-col min-h-screen">
       <MainHeader />
-      <main className="container flex-1 py-6">
+      <main className="flex-1 container mx-auto px-4 py-8">
         {children}
       </main>
     </div>
-  )
+  );
 }
