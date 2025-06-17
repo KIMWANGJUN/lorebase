@@ -7,7 +7,7 @@ import { getPosts } from '@/lib/postApi';
 import type { PostMainCategory } from '@/types';
 import PostList from '@/components/shared/PostList';
 import CategoryRankingSidebar from '@/components/shared/CategoryRankingSidebar';
-import PostListSearch from '@/components/shared/PostListSearch'; // Changed to default import
+import { PostListSearch } from '@/components/shared/PostListSearch'; // Changed to named import
 import {
   PlusCircle, Box, AppWindow, PenTool, LayoutGrid
 } from 'lucide-react';

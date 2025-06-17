@@ -6,7 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { Input } from '@/components/ui/input';
 import { Search } from 'lucide-react';
 
-export default function PostListSearch({ initialSearchTerm }: { initialSearchTerm: string }) {
+export function PostListSearch({ initialSearchTerm }: { initialSearchTerm: string }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [searchTerm, setSearchTerm] = useState(initialSearchTerm);
