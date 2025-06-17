@@ -2,16 +2,17 @@
 // src/components/shared/CategoryRankingSidebar.tsx
 "use client";
 
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import type { User, PostMainCategory } from '@/types';
-import { mockUsers } from '@/lib/mockData';
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Box, AppWindow, PenTool, LayoutGrid, Trophy } from 'lucide-react';
-import NicknameDisplay from './NicknameDisplay'; // Make sure this path is correct
+import { Box, AppWindow, PenTool, LayoutGrid, Loader2 } from 'lucide-react';
+import NicknameDisplay from './NicknameDisplay';
 import { cn } from '@/lib/utils';
-import { useAuth } from '@/contexts/AuthContext'; // Import useAuth
+import { useAuth } from '@/contexts/AuthContext';
+// In a real app, you would fetch this data from an API
+// import { getCategoryRankers } from '@/lib/rankingApi';
 
 interface CategoryRankingSidebarProps {
   category: PostMainCategory;
@@ -48,22 +49,45 @@ const getCategoryDisplayName = (category: PostMainCategory): string => {
 
 export default function CategoryRankingSidebar({ category }: CategoryRankingSidebarProps) {
   const [currentPage, setCurrentPage] = useState(1);
-  const { user: currentUser, isAdmin } = useAuth(); 
+  const { user: currentUser, isAdmin } = useAuth();
+  const [rankers, setRankers] = useState<User[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const categoryRankers = useMemo(() => {
-    return mockUsers
-      .filter(u => u.username !== 'WANGJUNLAND' && u.categoryStats?.[category]?.rankInCate && u.categoryStats[category]!.rankInCate! > 0 && u.categoryStats[category]!.rankInCate! <= 20)
-      .sort((a, b) => (a.categoryStats![category]!.rankInCate!) - (b.categoryStats![category]!.rankInCate!))
-      .slice(0, 20); 
+  useEffect(() => {
+    setIsLoading(true);
+    // In a real app, you would call your API here:
+    // getCategoryRankers(category, 20).then(data => {
+    //   setRankers(data);
+    //   setIsLoading(false);
+    // });
+    // For now, we'll just use an empty array
+    setRankers([]);
+    setIsLoading(false);
   }, [category]);
 
-  const totalPages = Math.ceil(categoryRankers.length / POSTS_PER_PAGE);
-  const currentDisplayRankers = categoryRankers.slice(
+  const totalPages = Math.ceil(rankers.length / POSTS_PER_PAGE);
+  const currentDisplayRankers = rankers.slice(
     (currentPage - 1) * POSTS_PER_PAGE,
     currentPage * POSTS_PER_PAGE
   );
 
-  if (categoryRankers.length === 0) {
+  if (isLoading) {
+    return (
+        <Card className="shadow-lg bg-card border-border">
+            <CardHeader>
+                <CardTitle className="font-headline text-foreground text-lg flex items-center justify-center gap-2">
+                    <CategorySpecificIcon category={category} />
+                    {getCategoryDisplayName(category)} 랭킹
+                </CardTitle>
+            </CardHeader>
+            <CardContent className="flex justify-center items-center py-10">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            </CardContent>
+        </Card>
+    )
+  }
+
+  if (rankers.length === 0) {
     return (
       <Card className="shadow-lg bg-card border-border">
         <CardHeader>
@@ -84,7 +108,7 @@ export default function CategoryRankingSidebar({ category }: CategoryRankingSide
       <CardHeader>
         <CardTitle className="font-headline text-foreground text-lg flex items-center justify-center gap-2">
           <CategorySpecificIcon category={category} />
-          {getCategoryDisplayName(category)} 랭킹 (TOP 20)
+          {getCategoryDisplayName(category)} 랭킹 (TOP {rankers.length})
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
@@ -144,4 +168,3 @@ export default function CategoryRankingSidebar({ category }: CategoryRankingSide
     </Card>
   );
 }
-

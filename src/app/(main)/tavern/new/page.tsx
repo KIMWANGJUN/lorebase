@@ -6,43 +6,18 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
+import { Card } from '@/components/ui/card';
+import PostForm from '@/components/shared/PostForm';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from "@/hooks/use-toast";
-import type { Post, PostMainCategory, PostType } from '@/types';
-import { mockPosts } from '@/lib/mockData'; // Import mockPosts
-import { ArrowLeft, FilePlus2, LayoutPanelLeft, PenLine, Send, ListFilter, Bold, Italic, Strikethrough, Image as ImageIcon, Video } from 'lucide-react';
-
-const mainCategories: { value: PostMainCategory; label: string }[] = [
-  { value: 'Unity', label: 'Unity 게시판' },
-  { value: 'Unreal', label: 'Unreal 게시판' },
-  { value: 'Godot', label: 'Godot 게시판' },
-  { value: 'General', label: '일반 게시판' },
-];
-
-const postTypes: { value: PostType; label: string; mainCategories: PostMainCategory[] }[] = [
-  { value: 'QnA', label: '질문/답변', mainCategories: ['Unity', 'Unreal', 'Godot'] },
-  { value: 'Knowledge', label: '정보/지식공유', mainCategories: ['Unity', 'Unreal', 'Godot'] },
-  { value: 'DevLog', label: '개발일지/프로젝트', mainCategories: ['Unity', 'Unreal', 'Godot'] },
-  { value: 'GeneralPost', label: '자유글', mainCategories: ['General'] },
-  { value: 'Humor', label: '유머/일상', mainCategories: ['General'] },
-  { value: 'Notice', label: '공지사항', mainCategories: ['General'] },
-];
-
+import type { Post } from '@/types';
+import { addPost } from '@/lib/postApi';
+import { ArrowLeft, FilePlus2 } from 'lucide-react';
 
 export default function NewPostPage() {
   const { user, loading: authLoading } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
-
-  const [selectedMainCategory, setSelectedMainCategory] = useState<PostMainCategory | ''>('');
-  const [selectedPostType, setSelectedPostType] = useState<PostType | ''>('');
-  const [title, setTitle] = useState('');
-  const [content, setContent] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
@@ -52,78 +27,37 @@ export default function NewPostPage() {
     }
   }, [user, authLoading, router, toast]);
 
-  const availablePostTypes = selectedMainCategory
-    ? postTypes.filter(pt => pt.mainCategories.includes(selectedMainCategory))
-    : [];
-
-  const handleMainCategoryChange = (value: string) => {
-    setSelectedMainCategory(value as PostMainCategory);
-    setSelectedPostType(''); 
-  };
-  
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (data: Omit<Post, 'id' | 'author' | 'createdAt' | 'updatedAt' | 'upvotes' | 'downvotes' | 'views' | 'commentCount' | 'tags' | 'isPinned' | 'isEdited' | 'postScore'>) => {
     if (!user) {
       toast({ title: "오류", description: "로그인이 필요합니다.", variant: "destructive" });
       return;
     }
-    if (!selectedMainCategory) {
-      toast({ title: "오류", description: "게시판을 선택해주세요.", variant: "destructive" });
-      return;
-    }
-    if (!selectedPostType) {
-      toast({ title: "오류", description: "글 종류를 선택해주세요.", variant: "destructive" });
-      return;
-    }
-    if (!title.trim()) {
-      toast({ title: "오류", description: "제목을 입력해주세요.", variant: "destructive" });
-      return;
-    }
-    if (!content.trim()) {
-      toast({ title: "오류", description: "내용을 입력해주세요.", variant: "destructive" });
-      return;
-    }
 
     setIsLoading(true);
-    
-    // Simulate API call with a short delay
-    await new Promise(resolve => setTimeout(resolve, 300)); 
 
-    const newPost: Post = {
-      id: `post_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
-      title: title.trim(),
-      content: content.trim(), // Content is plain text for now
-      authorId: user.id,
-      authorNickname: user.nickname,
-      authorAvatar: user.avatar,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      mainCategory: selectedMainCategory as PostMainCategory,
-      type: selectedPostType as PostType,
-      upvotes: 0,
-      downvotes: 0, // Default to 0
-      views: 0,     // Default to 0
-      commentCount: 0, // Default to 0
-      tags: [],     // Placeholder for tags, can be implemented later
-      isPinned: false, // Default to not pinned
-    };
-
-    mockPosts.unshift(newPost); // Add to the beginning of the mockPosts array
-
-    setIsLoading(false);
-    toast({ title: "성공!", description: "게시글이 등록되었습니다. (커뮤니티 목록에서 확인 가능)" });
-    router.push('/tavern'); 
+    try {
+      const newPostId = await addPost(data, user.id);
+      
+      toast({ title: "성공!", description: "게시글이 성공적으로 등록되었습니다." });
+      router.push(`/tavern/${newPostId}`);
+      
+    } catch (error) {
+      console.error("Failed to create post:", error);
+      toast({ title: "오류", description: "게시글 작성에 실패했습니다.", variant: "destructive" });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   if (authLoading || !user) {
     return <div className="container mx-auto py-8 px-4 text-center">페이지를 불러오는 중...</div>;
   }
-  
+
   const bannerImageUrl = "https://placehold.co/1920x600.png";
 
   return (
     <div className="container mx-auto py-8 px-4">
-       <section 
+      <section
         className="text-center py-16 md:py-24 rounded-xl shadow-xl mb-10 relative bg-cover bg-center"
         style={{ backgroundImage: `url(${bannerImageUrl})` }}
         data-ai-hint="writing desk quill"
@@ -146,103 +80,11 @@ export default function NewPostPage() {
       </Button>
 
       <Card className="shadow-xl bg-card border-border">
-        <CardContent className="p-6">
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <Label htmlFor="mainCategory" className="text-muted-foreground flex items-center mb-2">
-                  <LayoutPanelLeft className="h-4 w-4 mr-2 text-primary" />
-                  게시판 선택
-                </Label>
-                <Select value={selectedMainCategory} onValueChange={handleMainCategoryChange}>
-                  <SelectTrigger id="mainCategory" className="w-full bg-input border-border text-foreground focus:ring-accent">
-                    <SelectValue placeholder="게시판을 선택하세요" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-popover border-border text-popover-foreground">
-                    {mainCategories.map(cat => (
-                      <SelectItem key={cat.value} value={cat.value}>{cat.label}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-               <div>
-                <Label htmlFor="postType" className="text-muted-foreground flex items-center mb-2">
-                  <ListFilter className="h-4 w-4 mr-2 text-primary" />
-                  글 종류 선택
-                </Label>
-                <Select 
-                  value={selectedPostType} 
-                  onValueChange={(value) => setSelectedPostType(value as PostType)}
-                  disabled={!selectedMainCategory || availablePostTypes.length === 0}
-                >
-                  <SelectTrigger id="postType" className="w-full bg-input border-border text-foreground focus:ring-accent">
-                    <SelectValue placeholder={selectedMainCategory ? "글 종류를 선택하세요" : "게시판을 먼저 선택하세요"} />
-                  </SelectTrigger>
-                  <SelectContent className="bg-popover border-border text-popover-foreground">
-                    {availablePostTypes.map(type => (
-                      <SelectItem key={type.value} value={type.value}>{type.label}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            <div>
-              <Label htmlFor="title" className="text-muted-foreground flex items-center mb-2">
-                <PenLine className="h-4 w-4 mr-2 text-primary" />
-                제목
-              </Label>
-              <Input
-                id="title"
-                type="text"
-                placeholder="게시글 제목을 입력하세요"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                required
-                className="text-lg bg-input border-border text-foreground focus:ring-accent"
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="content" className="text-muted-foreground flex items-center mb-2">
-                <PenLine className="h-4 w-4 mr-2 text-primary" />
-                본문 내용
-              </Label>
-              <div className="mb-2 p-2 border border-input rounded-md bg-background flex gap-1 flex-wrap">
-                <Button variant="outline" size="icon" type="button" title="Bold" className="h-8 w-8">
-                  <Bold className="h-4 w-4" />
-                </Button>
-                <Button variant="outline" size="icon" type="button" title="Italic" className="h-8 w-8">
-                  <Italic className="h-4 w-4" />
-                </Button>
-                <Button variant="outline" size="icon" type="button" title="Strikethrough" className="h-8 w-8">
-                  <Strikethrough className="h-4 w-4" />
-                </Button>
-                <Button variant="outline" size="icon" type="button" title="Add Image" className="h-8 w-8">
-                  <ImageIcon className="h-4 w-4" />
-                </Button>
-                <Button variant="outline" size="icon" type="button" title="Add Video" className="h-8 w-8">
-                  <Video className="h-4 w-4" />
-                </Button>
-              </div>
-              <Textarea
-                id="content"
-                placeholder="게시글 내용을 작성해주세요."
-                value={content}
-                onChange={(e) => setContent(e.target.value)}
-                required
-                className="min-h-[250px] text-base bg-input border-border text-foreground focus:ring-accent"
-                rows={10}
-              />
-            </div>
-
-            <CardFooter className="p-0 pt-4 flex justify-end">
-              <Button type="submit" className="bg-gradient-to-r from-primary to-accent text-primary-foreground hover:opacity-90 shadow-md text-base px-6 py-3" disabled={isLoading}>
-                {isLoading ? '게시 중...' : <><Send className="mr-2 h-4 w-4" /> 게시하기</>}
-              </Button>
-            </CardFooter>
-          </form>
-        </CardContent>
+        <PostForm
+          onSubmit={handleSubmit}
+          isLoading={isLoading}
+          submitButtonText="게시하기"
+        />
       </Card>
     </div>
   );

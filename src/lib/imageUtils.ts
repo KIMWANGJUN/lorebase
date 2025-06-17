@@ -1,161 +1,129 @@
-// src/lib/imageUtils.js
+
+// src/lib/imageUtils.ts
 
 /**
- * 지원되는 이미지 형식 검증
- * @param {File} file - 업로드할 파일
- * @returns {boolean} 지원 형식 여부
+ * Validates if the file is a supported image format.
+ * @param {File} file - The file to validate.
+ * @returns {boolean} - True if the format is allowed, false otherwise.
  */
-export const validateImageFormat = (file) => {
+export const validateImageFormat = (file: File): boolean => {
   const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
   return allowedTypes.includes(file.type);
 };
 
 /**
- * 파일 크기 검증 (1MB 이하)
- * @param {File} file - 업로드할 파일
- * @returns {boolean} 크기 제한 통과 여부
+ * Validates if the file size is within the allowed limit (1MB).
+ * @param {File} file - The file to validate.
+ * @returns {boolean} - True if the size is within the limit, false otherwise.
  */
-export const validateImageSize = (file) => {
+export const validateImageSize = (file: File): boolean => {
   const maxSize = 1024 * 1024; // 1MB
   return file.size <= maxSize;
 };
 
 /**
- * 이미지를 512x512px로 리사이징 (파일 크기 최적화 포함)
- * @param {File} file - 원본 이미지 파일
- * @param {number} targetSize - 목표 크기 (기본값: 512)
- * @returns {Promise<Blob>} 리사이징된 이미지 Blob
+ * Resizes an image to a square of the target size and optimizes its file size.
+ * @param {File} file - The original image file.
+ * @param {number} [targetSize=512] - The target width and height of the resized image.
+ * @returns {Promise<Blob | null>} A promise that resolves to the resized image Blob, or null on failure.
  */
-export const resizeImage = (file, targetSize = 512) => {
+export const resizeImage = (file: File, targetSize = 512): Promise<Blob | null> => {
   return new Promise((resolve, reject) => {
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
     const img = new Image();
-    let objectURL = null;
+    let objectURL: string | null = null;
 
     img.onload = () => {
+      if (!ctx) {
+        if (objectURL) URL.revokeObjectURL(objectURL);
+        return reject(new Error('Failed to get canvas context.'));
+      }
       try {
-        // Canvas 크기 설정
         canvas.width = targetSize;
         canvas.height = targetSize;
-
-        // 이미지를 정사각형으로 크롭하여 그리기
+        
         const minDimension = Math.min(img.width, img.height);
         const offsetX = (img.width - minDimension) / 2;
         const offsetY = (img.height - minDimension) / 2;
 
-        // 고품질 렌더링 설정
         ctx.imageSmoothingEnabled = true;
         ctx.imageSmoothingQuality = 'high';
+        ctx.drawImage(img, offsetX, offsetY, minDimension, minDimension, 0, 0, targetSize, targetSize);
 
-        ctx.drawImage(
-          img,
-          offsetX, offsetY, minDimension, minDimension, // 소스 영역
-          0, 0, targetSize, targetSize // 대상 영역
-        );
-
-        // 파일 크기 최적화를 위한 품질 조정
         let quality = 0.8;
-        
-        // 원본 파일 크기에 따라 품질 동적 조정
-        if (file.size > 500 * 1024) { // 500KB 이상
-          quality = 0.7;
-        } else if (file.size > 200 * 1024) { // 200KB 이상
-          quality = 0.75;
-        }
+        if (file.size > 500 * 1024) quality = 0.7;
+        else if (file.size > 200 * 1024) quality = 0.75;
 
-        // Canvas를 Blob으로 변환
         canvas.toBlob(
           (blob) => {
-            // Object URL 정리
-            if (objectURL) {
-              URL.revokeObjectURL(objectURL);
-            }
-            
-            if (blob) {
-              resolve(blob);
-            } else {
-              reject(new Error('이미지 리사이징에 실패했습니다.'));
-            }
+            if (objectURL) URL.revokeObjectURL(objectURL);
+            resolve(blob);
           },
           'image/jpeg',
           quality
         );
       } catch (error) {
-        // Object URL 정리
-        if (objectURL) {
-          URL.revokeObjectURL(objectURL);
-        }
-        reject(new Error('이미지 처리 중 오류가 발생했습니다.'));
+        if (objectURL) URL.revokeObjectURL(objectURL);
+        reject(error);
       }
     };
 
     img.onerror = () => {
-      if (objectURL) {
-        URL.revokeObjectURL(objectURL);
-      }
-      reject(new Error('이미지 로드에 실패했습니다.'));
+      if (objectURL) URL.revokeObjectURL(objectURL);
+      reject(new Error('Failed to load image.'));
     };
 
-    // 파일을 이미지로 로드
     objectURL = URL.createObjectURL(file);
     img.src = objectURL;
   });
 };
 
 /**
- * 종합 이미지 유효성 검사
- * @param {File} file - 검사할 파일
- * @returns {object} 검사 결과와 오류 메시지
+ * Performs comprehensive validation for an image file.
+ * @param {File | null | undefined} file - The file to validate.
+ * @returns {{isValid: boolean; error: string | null}} - An object containing the validation result and an error message.
  */
-export const validateImage = (file) => {
+export const validateImage = (file: File | null | undefined): { isValid: boolean; error: string | null } => {
   if (!file) {
-    return {
-      isValid: false,
-      error: '파일이 선택되지 않았습니다.'
-    };
+    return { isValid: false, error: 'A file was not selected.' };
   }
-
   if (!validateImageFormat(file)) {
-    return {
-      isValid: false,
-      error: 'JPEG, PNG, WebP 형식의 이미지만 업로드 가능합니다.'
-    };
+    return { isValid: false, error: 'Only JPEG, PNG, and WebP formats are allowed.' };
   }
-
   if (!validateImageSize(file)) {
-    return {
-      isValid: false,
-      error: '파일 크기는 1MB 이하여야 합니다.'
-    };
+    return { isValid: false, error: 'File size must be 1MB or less.' };
   }
-
   return { isValid: true, error: null };
 };
 
 /**
- * 이미지 MIME 타입 검증 (더블 체크)
- * @param {File} file - 검사할 파일
- * @returns {Promise<boolean>} 실제 이미지 파일 여부
+ * Validates the true MIME type of an image file by checking its magic numbers.
+ * @param {File} file - The file to inspect.
+ * @returns {Promise<boolean>} - A promise that resolves to true if the file signature matches a known image type.
  */
-export const validateImageMimeType = (file) => {
-  return new Promise((resolve) => {
-    const fileReader = new FileReader();
-    fileReader.onload = (e) => {
-      const uint = new Uint8Array(e.target.result);
-      let bytes = [];
-      uint.forEach((byte) => {
-        bytes.push(byte.toString(16));
-      });
-      const hex = bytes.join('').toUpperCase();
-      
-      // 이미지 파일 시그니처 검사
-      const isJPEG = hex.startsWith('FFD8');
-      const isPNG = hex.startsWith('89504E47');
-      const isWebP = hex.includes('57454250');
-      
-      resolve(isJPEG || isPNG || isWebP);
-    };
-    fileReader.readAsArrayBuffer(file.slice(0, 8));
-  });
+export const validateImageMimeType = (file: File): Promise<boolean> => {
+    return new Promise((resolve, reject) => {
+        const fileReader = new FileReader();
+        fileReader.onloadend = (e) => {
+            if (e.target?.result && e.target.result instanceof ArrayBuffer) {
+                const uint = new Uint8Array(e.target.result);
+                let bytes: string[] = [];
+                uint.forEach((byte) => {
+                    bytes.push(byte.toString(16).padStart(2, '0'));
+                });
+                const hex = bytes.join('').toUpperCase();
+                
+                const isJPEG = hex.startsWith('FFD8FF');
+                const isPNG = hex.startsWith('89504E47');
+                const isWEBP = hex.startsWith('52494646') && hex.endsWith('57454250');
+                
+                resolve(isJPEG || isPNG || isWEBP);
+            } else {
+                reject(new Error('Could not read file for MIME type validation.'));
+            }
+        };
+        fileReader.onerror = () => reject(new Error('FileReader error during MIME type validation.'));
+        fileReader.readAsArrayBuffer(file.slice(0, 8));
+    });
 };

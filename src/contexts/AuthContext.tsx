@@ -1,15 +1,31 @@
 
-// src/contexts/AuthContext.tsx
 "use client";
 import type { User, NewUserDto as SignupUserDto } from '@/types';
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
-import { mockUsers as importedMockUsers, mockUsersData as importedMockUsersData, assignCalculatedScoresAndRanks } from '@/lib/mockData';
-import { auth } from '@/lib/firebase'; // Firebase auth instance
-import { onAuthStateChanged, signOut, createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile, type User as FirebaseUserType } from 'firebase/auth';
-
-// Create mutable copies of the imported mock data
-let fallBackMockUsers = [...importedMockUsers];
-let initialMockUsersData = [...importedMockUsersData];
+import { auth, db } from '@/lib/firebase';
+import { 
+  onAuthStateChanged, 
+  signOut, 
+  createUserWithEmailAndPassword, 
+  signInWithEmailAndPassword, 
+  updateProfile, 
+  updatePassword,
+  updateEmail as firebaseUpdateEmail,
+  EmailAuthProvider,
+  reauthenticateWithCredential,
+  type User as FirebaseUserType 
+} from 'firebase/auth';
+import { 
+  doc, 
+  getDoc, 
+  setDoc, 
+  updateDoc, 
+  serverTimestamp,
+  collection,
+  query,
+  where,
+  getDocs
+} from 'firebase/firestore';
 
 interface AuthContextType {
   user: User | null;
@@ -17,7 +33,9 @@ interface AuthContextType {
   logout: () => Promise<void>;
   login: (email: string, password: string) => Promise<{ success: boolean, message?: string }>;
   signup: (userData: SignupUserDto) => Promise<{ success: boolean, message?: string, user?: User }>;
-  updateUser: (updatedUserPartial: Partial<User>) => void;
+  updateUser: (updatedUserPartial: Partial<User>) => Promise<void>;
+  updateUserPassword: (currentPassword: string, newPassword: string) => Promise<void>;
+  updateUserEmail: (newEmail: string, currentPassword: string) => Promise<void>;
   loading: boolean;
 }
 
@@ -27,7 +45,9 @@ const defaultAuthContext: AuthContextType = {
   logout: async () => {},
   login: async () => ({ success: false, message: "Auth context not ready." }),
   signup: async () => ({ success: false, message: "Auth context not ready." }),
-  updateUser: () => {},
+  updateUser: async () => {},
+  updateUserPassword: async () => {},
+  updateUserEmail: async () => {},
   loading: true,
 };
 
@@ -37,6 +57,51 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [user, setUser] = useState<User | null>(null);
   const [isAdmin, setIsAdmin] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(true);
+
+  // Firestore에서 사용자 데이터 로드
+  const loadUserFromFirestore = async (uid: string): Promise<User | null> => {
+    if (!db) {
+      console.warn('⚠️ Firestore 인스턴스가 없어서 mockData를 사용합니다.');
+      return null;
+    }
+    
+    try {
+      const userDoc = await getDoc(doc(db, 'users', uid));
+      if (userDoc.exists()) {
+        const userData = userDoc.data();
+        console.log('📊 Firestore에서 사용자 데이터 로드:', userData.nickname);
+        return { ...userData, id: uid } as User;
+      }
+    } catch (error) {
+      console.error('❌ Firestore 사용자 데이터 로드 실패:', error);
+    }
+    
+    return null;
+  };
+
+  // Firestore에 사용자 데이터 저장
+  const saveUserToFirestore = async (userData: User): Promise<void> => {
+    if (!db || !userData.id) {
+      console.warn('⚠️ Firestore 인스턴스가 없거나 사용자 ID가 없어서 저장을 건너뜁니다.');
+      return;
+    }
+    
+    try {
+      const userDocData = {
+        ...userData,
+        updatedAt: serverTimestamp(),
+        emailChangesToday: userData.emailChangesToday || 0,
+        lastEmailChangeDate: userData.lastEmailChangeDate || null,
+        passwordChangesToday: userData.passwordChangesToday || 0,
+        lastPasswordChangeDate: userData.lastPasswordChangeDate || null,
+      };
+      
+      await setDoc(doc(db, 'users', userData.id), userDocData, { merge: true });
+      console.log('💾 Firestore에 사용자 데이터 저장:', userData.nickname);
+    } catch (error) {
+      console.error('❌ Firestore 사용자 데이터 저장 실패:', error);
+    }
+  };
 
   useEffect(() => {
     if (!auth) {
@@ -59,8 +124,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       console.log('🔥 AuthContext: Firebase Auth state changed:', firebaseUser ? firebaseUser.uid : 'null');
       
       if (firebaseUser) {
-        let appUser = fallBackMockUsers.find(u => u.email === firebaseUser.email || u.id === firebaseUser.uid);
-
+        // 먼저 Firestore에서 사용자 데이터 로드 시도
+        let appUser = await loadUserFromFirestore(firebaseUser.uid);
+        
         if (appUser) {
           const updatedAppUser: User = {
             ...appUser,
@@ -68,12 +134,20 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             email: firebaseUser.email || appUser.email,
             nickname: firebaseUser.displayName || appUser.nickname,
             avatar: firebaseUser.photoURL || appUser.avatar,
+            emailChangesToday: appUser.emailChangesToday || 0,
+            lastEmailChangeDate: appUser.lastEmailChangeDate || null,
+            passwordChangesToday: appUser.passwordChangesToday || 0,
+            lastPasswordChangeDate: appUser.lastPasswordChangeDate || null,
           };
           setUser(updatedAppUser);
-          setIsAdmin(updatedAppUser.username === 'wangjunland');
+          setIsAdmin(updatedAppUser.isAdmin || false);
           localStorage.setItem('currentUser', JSON.stringify(updatedAppUser));
+          
+          // Firestore에 동기화
+          await saveUserToFirestore(updatedAppUser);
           console.log('👤 AuthContext: Existing user data updated:', updatedAppUser.nickname);
         } else {
+          // 새 사용자 생성
           const newAppUser: User = {
             id: firebaseUser.uid,
             username: firebaseUser.email!, 
@@ -91,31 +165,21 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             selectedNicknameEffectIdentifier: 'none',
             selectedLogoIdentifier: 'none',
             twoFactorEnabled: false,
+            emailChangesToday: 0,
+            lastEmailChangeDate: null,
+            passwordChangesToday: 0,
+            lastPasswordChangeDate: null,
+            isAdmin: false,
           };
           
-          const existingInitial = initialMockUsersData.find(u => u.id === newAppUser.id || u.email === newAppUser.email);
-          if (!existingInitial) {
-            initialMockUsersData.push({
-              id: newAppUser.id,
-              username: newAppUser.username,
-              nickname: newAppUser.nickname,
-              email: newAppUser.email,
-              avatar: newAppUser.avatar,
-              socialProfiles: newAppUser.socialProfiles,
-              password: 'passwordPlaceholder', 
-              nicknameLastChanged: newAppUser.nicknameLastChanged,
-              isBlocked: newAppUser.isBlocked,
-              twoFactorEnabled: newAppUser.twoFactorEnabled,
-            });
-          }
+          setUser(newAppUser);
+          setIsAdmin(newAppUser.isAdmin || false);
+          localStorage.setItem('currentUser', JSON.stringify(newAppUser));
           
-          const updatedMockUsersList = assignCalculatedScoresAndRanks(initialMockUsersData);
-          const finalNewUserFromMocks = updatedMockUsersList.find(u => u.id === newAppUser.id) || newAppUser;
-
-          setUser(finalNewUserFromMocks);
-          setIsAdmin(finalNewUserFromMocks.username === 'wangjunland');
-          localStorage.setItem('currentUser', JSON.stringify(finalNewUserFromMocks));
-          console.log('✨ AuthContext: New user created and data stored:', finalNewUserFromMocks.nickname);
+          // Firestore에 새 사용자 저장
+          await saveUserToFirestore(newAppUser);
+          
+          console.log('✨ AuthContext: New user created and data stored:', newAppUser.nickname);
         }
       } else {
         console.log("🚪 AuthContext: Firebase user logged out.");
@@ -144,7 +208,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
     setLoading(true);
     console.log('🔥 로그인 시도: Email:', email);
-    console.log('🔑 로그인 시 사용되는 Auth API Key:', auth?.app?.options?.apiKey ? auth.app.options.apiKey.substring(0,15)+'...' : '❌ 키 없음 또는 auth 객체 문제');
 
     try {
       await signInWithEmailAndPassword(auth, email, password);
@@ -205,7 +268,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         nickname: userData.nickname,
         email: firebaseEmail,
         avatar: firebaseUser.photoURL || `https://placehold.co/100x100.png?text=${userData.nickname.substring(0,1).toUpperCase()}`,
-        score: 0, rank: 0, tetrisRank: 0,
+        score: 0, 
+        rank: 0, 
+        tetrisRank: 0,
         categoryStats: { Unity: { score: 0 }, Unreal: { score: 0 }, Godot: { score: 0 }, General: { score: 0 } },
         nicknameLastChanged: new Date(),
         isBlocked: false,
@@ -214,26 +279,14 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         selectedNicknameEffectIdentifier: 'none',
         selectedLogoIdentifier: 'none',
         twoFactorEnabled: false,
+        emailChangesToday: 0,
+        lastEmailChangeDate: null,
+        passwordChangesToday: 0,
+        lastPasswordChangeDate: null,
       };
 
-      const existingInitial = initialMockUsersData.find(u => u.id === preliminaryNewUser.id || u.email === preliminaryNewUser.email);
-      if (!existingInitial) {
-        initialMockUsersData.push({
-          id: preliminaryNewUser.id,
-          username: preliminaryNewUser.username,
-          nickname: preliminaryNewUser.nickname,
-          email: preliminaryNewUser.email,
-          avatar: preliminaryNewUser.avatar,
-          password: 'passwordPlaceholder',
-          nicknameLastChanged: preliminaryNewUser.nicknameLastChanged,
-          isBlocked: preliminaryNewUser.isBlocked,
-          socialProfiles: preliminaryNewUser.socialProfiles,
-          twoFactorEnabled: preliminaryNewUser.twoFactorEnabled,
-        });
-        const updatedMockUsers = assignCalculatedScoresAndRanks(initialMockUsersData);
-        fallBackMockUsers.length = 0; // 배열 초기화
-        fallBackMockUsers.push(...updatedMockUsers); // 새 데이터로 채움
-      }
+      // Firestore에 저장
+      await saveUserToFirestore(preliminaryNewUser);
 
       setLoading(false);
       return { success: true, message: "회원가입 성공! 자동으로 로그인됩니다.", user: preliminaryNewUser };
@@ -242,7 +295,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       let message = "회원가입 중 오류가 발생했습니다.";
       if (error.code === 'auth/email-already-in-use') {
         message = "이미 사용 중인 이메일입니다.";
-        
       } else if (error.code === 'auth/invalid-email') {
         message = "유효하지 않은 이메일 형식입니다.";
       } else if (error.code === 'auth/weak-password') {
@@ -275,39 +327,131 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
-  const updateUser = (updatedUserPartial: Partial<User>) => {
-    setUser(prevUser => {
-      if (!prevUser) return null;
-      const updatedUserObject: User = {
-        ...prevUser,
-        ...updatedUserPartial,
-        selectedTitleIdentifier: updatedUserPartial.selectedTitleIdentifier || prevUser.selectedTitleIdentifier || 'none',
-        selectedNicknameEffectIdentifier: updatedUserPartial.selectedNicknameEffectIdentifier || prevUser.selectedNicknameEffectIdentifier || 'none',
-        selectedLogoIdentifier: updatedUserPartial.selectedLogoIdentifier || prevUser.selectedLogoIdentifier || 'none',
-        socialProfiles: updatedUserPartial.socialProfiles || prevUser.socialProfiles || {},
-      };
-      localStorage.setItem('currentUser', JSON.stringify(updatedUserObject));
-      
-      const userIndex = fallBackMockUsers.findIndex(u => u.id === prevUser.id);
-      if (userIndex !== -1) {
-        fallBackMockUsers[userIndex] = { ...fallBackMockUsers[userIndex], ...updatedUserObject };
-      }
-       const mockDataIndex = initialMockUsersData.findIndex(u => u.id === prevUser.id);
-       if (mockDataIndex !== -1) {
-          initialMockUsersData[mockDataIndex] = {
-            ...initialMockUsersData[mockDataIndex],
-            nickname: updatedUserObject.nickname,
-            avatar: updatedUserObject.avatar,
-            email: updatedUserObject.email,
-            nicknameLastChanged: updatedUserObject.nicknameLastChanged,
-            socialProfiles: updatedUserObject.socialProfiles,
-            twoFactorEnabled: updatedUserObject.twoFactorEnabled,
-          };
-       }
+  const updateUser = async (updatedUserPartial: Partial<User>) => {
+    if (!user) {
+      console.warn('⚠️ 사용자가 로그인되어 있지 않습니다.');
+      return;
+    }
 
-      console.log('👤 AuthContext: 사용자 정보 로컬 업데이트:', updatedUserObject.nickname);
-      return updatedUserObject;
-    });
+    const updatedUserObject: User = {
+      ...user,
+      ...updatedUserPartial,
+      selectedTitleIdentifier: updatedUserPartial.selectedTitleIdentifier || user.selectedTitleIdentifier || 'none',
+      selectedNicknameEffectIdentifier: updatedUserPartial.selectedNicknameEffectIdentifier || user.selectedNicknameEffectIdentifier || 'none',
+      selectedLogoIdentifier: updatedUserPartial.selectedLogoIdentifier || user.selectedLogoIdentifier || 'none',
+      socialProfiles: updatedUserPartial.socialProfiles || user.socialProfiles || {},
+    };
+
+    // 로컬 상태 업데이트
+    setUser(updatedUserObject);
+    localStorage.setItem('currentUser', JSON.stringify(updatedUserObject));
+    
+    // Firestore에 업데이트
+    if (db && user.id) {
+      try {
+        await updateDoc(doc(db, 'users', user.id), {
+          ...updatedUserPartial,
+          updatedAt: serverTimestamp()
+        });
+        console.log('💾 Firestore에 사용자 정보 업데이트:', updatedUserObject.nickname);
+      } catch (error) {
+        console.error('❌ Firestore 사용자 정보 업데이트 실패:', error);
+      }
+    }
+
+    console.log('👤 AuthContext: 사용자 정보 업데이트 완료:', updatedUserObject.nickname);
+  };
+
+  // 비밀번호 변경
+  const updateUserPassword = async (currentPassword: string, newPassword: string) => {
+    if (!auth?.currentUser || !user) {
+      throw new Error('사용자가 로그인되어 있지 않습니다.');
+    }
+
+    try {
+      // 현재 비밀번호로 재인증
+      const credential = EmailAuthProvider.credential(
+        auth.currentUser.email!,
+        currentPassword
+      );
+      await reauthenticateWithCredential(auth.currentUser, credential);
+
+      // 비밀번호 업데이트
+      await updatePassword(auth.currentUser, newPassword);
+
+      // 변경 횟수 업데이트
+      const today = new Date().toDateString();
+      const isNewDay = user.lastPasswordChangeDate !== today;
+      
+      await updateUser({
+        passwordChangesToday: isNewDay ? 1 : (user.passwordChangesToday || 0) + 1,
+        lastPasswordChangeDate: today
+      });
+
+      console.log('✅ 비밀번호 변경 성공');
+    } catch (error: any) {
+      console.error('❌ 비밀번호 변경 실패:', error);
+      if (error.code === 'auth/wrong-password') {
+        throw new Error('현재 비밀번호가 올바르지 않습니다.');
+      } else if (error.code === 'auth/weak-password') {
+        throw new Error('새 비밀번호가 너무 약합니다.');
+      }
+      throw error;
+    }
+  };
+
+  // 이메일 변경
+  const updateUserEmail = async (newEmail: string, currentPassword: string) => {
+    if (!auth?.currentUser || !user) {
+      throw new Error('사용자가 로그인되어 있지 않습니다.');
+    }
+
+    try {
+      // 이메일 중복 확인 (Firestore에서)
+      if (db) {
+        const emailQuery = query(
+          collection(db, 'users'),
+          where('email', '==', newEmail.toLowerCase())
+        );
+        const emailSnapshot = await getDocs(emailQuery);
+        
+        if (!emailSnapshot.empty && emailSnapshot.docs[0].id !== user.id) {
+          throw new Error('이미 사용 중인 이메일입니다.');
+        }
+      }
+
+      // 현재 비밀번호로 재인증
+      const credential = EmailAuthProvider.credential(
+        auth.currentUser.email!,
+        currentPassword
+      );
+      await reauthenticateWithCredential(auth.currentUser, credential);
+
+      // Firebase Auth 이메일 업데이트
+      await firebaseUpdateEmail(auth.currentUser, newEmail);
+
+      // 변경 횟수 업데이트
+      const today = new Date().toDateString();
+      const isNewDay = user.lastEmailChangeDate !== today;
+      
+      await updateUser({
+        email: newEmail.toLowerCase(),
+        emailChangesToday: isNewDay ? 1 : (user.emailChangesToday || 0) + 1,
+        lastEmailChangeDate: today
+      });
+
+      console.log('✅ 이메일 변경 성공');
+    } catch (error: any) {
+      console.error('❌ 이메일 변경 실패:', error);
+      if (error.code === 'auth/wrong-password') {
+        throw new Error('현재 비밀번호가 올바르지 않습니다.');
+      } else if (error.code === 'auth/email-already-in-use') {
+        throw new Error('이미 사용 중인 이메일입니다.');
+      } else if (error.code === 'auth/invalid-email') {
+        throw new Error('유효하지 않은 이메일 형식입니다.');
+      }
+      throw error;
+    }
   };
 
   const contextValue: AuthContextType = {
@@ -317,6 +461,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     login,
     signup,
     updateUser,
+    updateUserPassword,
+    updateUserEmail,
     loading,
   };
 

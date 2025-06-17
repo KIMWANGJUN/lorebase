@@ -1,18 +1,19 @@
+
 // src/app/(main)/game-workshop/page.tsx
 "use client";
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { mockStarterProjects } from '@/lib/mockData';
 import type { StarterProject } from '@/types';
 import Image from 'next/image';
-import Link from 'next/link';
-import { Box, AppWindow, PenTool, Search, Download, PlusCircle, Edit, Trash2, Compass, Sparkles } from 'lucide-react';
+import { Search, Download, PlusCircle, Edit, Trash2, Compass, Sparkles, AppWindow, Box, PenTool } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+// In a real app, you would fetch this data from an API
+// import { getStarterProjects } from '@/lib/workshopApi';
 
-const engineIcons = {
+const engineIcons: { [key: string]: React.ReactElement } = {
   Unity: <Box className="h-5 w-5 mr-2 text-purple-400" />,
   Unreal: <AppWindow className="h-5 w-5 mr-2 text-sky-400" />,
   Godot: <PenTool className="h-5 w-5 mr-2 text-emerald-400" />,
@@ -23,13 +24,18 @@ const EngineIcon = ({ engine }: { engine: StarterProject['engine'] }) => {
   return engineIcons[engine] || engineIcons['Other'];
 };
 
-
 export default function GameWorkshopPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedEngine, setSelectedEngine] = useState<string>('all');
   const { isAdmin } = useAuth();
+  const [projects, setProjects] = useState<StarterProject[]>([]);
 
-  const filteredProjects = mockStarterProjects.filter(project => {
+  // In a real app, you'd fetch the data
+  // useEffect(() => {
+  //   getStarterProjects().then(setProjects);
+  // }, []);
+
+  const filteredProjects = projects.filter(project => {
     const matchesSearch = project.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                           project.description.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesEngine = selectedEngine === 'all' || project.engine.toLowerCase() === selectedEngine.toLowerCase();

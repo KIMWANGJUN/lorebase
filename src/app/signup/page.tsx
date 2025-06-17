@@ -11,9 +11,11 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from "@/hooks/use-toast";
 import { UserPlus, Mail, KeyRound, AtSign, CheckCircle, XCircle } from 'lucide-react';
-import type { NewUserDto as SignupUserDto } from '@/types'; // Correctly aliasing NewUserDto
+import type { NewUserDto as SignupUserDto } from '@/types';
 import { validateEmail, validatePassword, validateNickname } from '@/lib/validationRules';
-import { mockUsers } from '@/lib/mockData';
+
+// In a real application, you would have API endpoints to check for email/nickname availability
+// e.g., import { checkEmailAvailability, checkNicknameAvailability } from '@/lib/userApi';
 
 export default function SignupPage() {
   const [email, setEmail] = useState('');
@@ -27,93 +29,41 @@ export default function SignupPage() {
   const [passwordError, setPasswordError] = useState<string | null>(null);
   const [confirmPasswordError, setConfirmPasswordError] = useState<string | null>(null);
 
-  const [isEmailChecked, setIsEmailChecked] = useState(false);
-  const [isEmailAvailable, setIsEmailAvailable] = useState(false);
-  const [isNicknameChecked, setIsNicknameChecked] = useState(false);
-  const [isNicknameAvailable, setIsNicknameAvailable] = useState(false);
+  // These states are now controlled by the result of the API call in `signup`
+  const [isEmailAvailable, setIsEmailAvailable] = useState(true);
+  const [isNicknameAvailable, setIsNicknameAvailable] = useState(true);
 
   const router = useRouter();
   const { signup } = useAuth();
   const { toast } = useToast();
 
   useEffect(() => {
-    if (email) {
-      const validationError = validateEmail(email);
-      setEmailError(validationError);
-      setIsEmailChecked(false);
-      setIsEmailAvailable(false);
-    } else {
-      setEmailError(null);
-    }
+    if (email) setEmailError(validateEmail(email));
+    else setEmailError(null);
   }, [email]);
 
   useEffect(() => {
-    if (nickname) {
-      setNicknameError(validateNickname(nickname));
-      setIsNicknameChecked(false);
-      setIsNicknameAvailable(false);
-    } else {
-      setNicknameError(null);
-    }
+    if (nickname) setNicknameError(validateNickname(nickname));
+    else setNicknameError(null);
   }, [nickname]);
 
   useEffect(() => {
-    if (password) {
-      setPasswordError(validatePassword(password));
-    } else {
-      setPasswordError(null);
-    }
+    if (password) setPasswordError(validatePassword(password));
+    else setPasswordError(null);
     if (confirmPassword && password !== confirmPassword) {
       setConfirmPasswordError("비밀번호가 일치하지 않습니다.");
     } else {
       setConfirmPasswordError(null);
     }
   }, [password, confirmPassword]);
-  
-  const handleCheckEmail = () => {
-    const validationError = validateEmail(email);
-    if (validationError) {
-      setEmailError(validationError);
-      toast({ title: "이메일 오류", description: validationError, variant: "destructive" });
-      setIsEmailChecked(true);
-      setIsEmailAvailable(false);
-      return;
-    }
-    setEmailError(null);
-    const isTaken = mockUsers.some(u => u.email?.toLowerCase() === email.toLowerCase());
-    if (isTaken) {
-      toast({ title: "이메일 중복", description: "이미 사용 중인 이메일입니다.", variant: "destructive" });
-      setIsEmailAvailable(false);
-    } else {
-      toast({ title: "이메일 사용 가능", description: "사용 가능한 이메일입니다." });
-      setIsEmailAvailable(true);
-    }
-    setIsEmailChecked(true);
-  };
-
-  const handleCheckNickname = () => {
-    const validationError = validateNickname(nickname);
-    if (validationError) {
-      setNicknameError(validationError);
-      toast({ title: "닉네임 오류", description: validationError, variant: "destructive" });
-      setIsNicknameChecked(true);
-      setIsNicknameAvailable(false);
-      return;
-    }
-    setNicknameError(null);
-    const isTaken = mockUsers.some(u => u.nickname.toLowerCase() === nickname.toLowerCase());
-    if (isTaken) {
-      toast({ title: "닉네임 중복", description: "이미 사용 중인 닉네임입니다.", variant: "destructive" });
-      setIsNicknameAvailable(false);
-    } else {
-      toast({ title: "닉네임 사용 가능", description: "사용 가능한 닉네임입니다." });
-      setIsNicknameAvailable(true);
-    }
-    setIsNicknameChecked(true);
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsLoading(true);
+
+    // Reset availability errors before submission
+    setIsEmailAvailable(true);
+    setIsNicknameAvailable(true);
 
     const currentEmailError = validateEmail(email);
     const currentNicknameError = validateNickname(nickname);
@@ -127,30 +77,19 @@ export default function SignupPage() {
 
     if (currentEmailError || currentNicknameError || currentPasswordError || currentConfirmPasswordError) {
       toast({ title: "입력 오류", description: "입력 내용을 다시 확인해주세요.", variant: "destructive" });
+      setIsLoading(false);
       return;
     }
 
-    if (!isEmailChecked || !isEmailAvailable) {
-      toast({ title: "이메일 확인 필요", description: "이메일 중복 확인을 해주세요.", variant: "destructive" });
-      return;
-    }
-    if (!isNicknameChecked || !isNicknameAvailable) {
-      toast({ title: "닉네임 확인 필요", description: "닉네임 중복 확인을 해주세요.", variant: "destructive" });
-      return;
-    }
-
-    setIsLoading(true);
-    
     const signupData: SignupUserDto = {
-      username: email.trim(), // This will be used as the email for Firebase Auth
+      username: email.trim(),
       nickname: nickname.trim(),
       password: password,
-      email: email.trim(), // Ensure all fields of SignupUserDto are provided
+      email: email.trim(),
     };
 
     const result = await signup(signupData);
-    setIsLoading(false);
-
+    
     if (result.success) {
       toast({ title: "회원가입 성공!", description: result.message || "로그인 페이지로 이동합니다." });
       router.push('/login');
@@ -158,22 +97,14 @@ export default function SignupPage() {
       toast({ title: "회원가입 실패", description: result.message || "알 수 없는 오류가 발생했습니다.", variant: "destructive" });
       if (result.message?.includes("이메일")) {
         setIsEmailAvailable(false);
-        setIsEmailChecked(true);
       }
       if (result.message?.includes("닉네임")) {
         setIsNicknameAvailable(false);
-        setIsNicknameChecked(true);
       }
     }
+    setIsLoading(false);
   };
   
-  const getFeedbackIcon = (isChecked: boolean, isAvailable: boolean, error: string | null) => {
-    if (!isChecked && !error) return null; 
-    if (error && (!isChecked || (isChecked && !isAvailable))) return <XCircle className="h-4 w-4 text-destructive" />;
-    if (isChecked && isAvailable) return <CheckCircle className="h-4 w-4 text-green-500" />;
-    return null;
-  };
-
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-background via-muted to-background p-4">
       <Card className="w-full max-w-lg shadow-2xl">
@@ -182,40 +113,28 @@ export default function SignupPage() {
             <UserPlus className="h-8 w-8" />
           </div>
           <CardTitle className="text-3xl font-headline">회원가입</CardTitle>
-          <CardDescription>새로운 계정을 만드세요. 이메일 주소는 로그인 아이디로 사용됩니다.</CardDescription>
+          <CardDescription>새로운 계정을 만드세요.</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <Label htmlFor="email">이메일 <span className="text-destructive">*</span></Label>
-              <div className="flex items-center gap-2">
-                <div className="relative flex-grow">
+              <div className="relative">
                   <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                  <Input id="email" type="email" placeholder="example@email.com" value={email} onChange={(e) => setEmail(e.target.value)} required className="pl-10 pr-8"/>
-                  <div className="absolute right-2 top-1/2 -translate-y-1/2">
-                    {getFeedbackIcon(isEmailChecked, isEmailAvailable, emailError)}
-                  </div>
-                </div>
-                <Button type="button" variant="outline" size="sm" onClick={handleCheckEmail} disabled={!!validateEmail(email) || email.length === 0} className="shrink-0">중복 확인</Button>
+                  <Input id="email" type="email" placeholder="example@email.com" value={email} onChange={(e) => setEmail(e.target.value)} required className="pl-10"/>
               </div>
               {emailError && <p className="mt-1 text-xs text-destructive">{emailError}</p>}
-              {!emailError && isEmailChecked && !isEmailAvailable && <p className="mt-1 text-xs text-destructive">이미 사용 중인 이메일입니다.</p>}
+              {!isEmailAvailable && <p className="mt-1 text-xs text-destructive">이미 사용 중인 이메일입니다.</p>}
             </div>
 
             <div>
               <Label htmlFor="nickname">닉네임 <span className="text-destructive">*</span></Label>
-               <div className="flex items-center gap-2">
-                <div className="relative flex-grow">
+               <div className="relative">
                   <AtSign className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                  <Input id="nickname" type="text" placeholder="2~14자 한글, 영문, 숫자" value={nickname} onChange={(e) => setNickname(e.target.value)} required className="pl-10 pr-8"/>
-                  <div className="absolute right-2 top-1/2 -translate-y-1/2">
-                     {getFeedbackIcon(isNicknameChecked, isNicknameAvailable, nicknameError)}
-                  </div>
-                </div>
-                <Button type="button" variant="outline" size="sm" onClick={handleCheckNickname} disabled={!!validateNickname(nickname) || nickname.length === 0} className="shrink-0">중복 확인</Button>
+                  <Input id="nickname" type="text" placeholder="2~14자 한글, 영문, 숫자" value={nickname} onChange={(e) => setNickname(e.target.value)} required className="pl-10"/>
               </div>
               {nicknameError && <p className="mt-1 text-xs text-destructive">{nicknameError}</p>}
-              {!nicknameError && isNicknameChecked && !isNicknameAvailable && <p className="mt-1 text-xs text-destructive">이미 사용 중인 닉네임입니다.</p>}
+              {!isNicknameAvailable && <p className="mt-1 text-xs text-destructive">이미 사용 중인 닉네임입니다.</p>}
             </div>
 
             <div>
@@ -239,15 +158,7 @@ export default function SignupPage() {
             <Button 
               type="submit" 
               className="w-full bg-gradient-to-r from-primary to-accent text-primary-foreground mt-6"
-              disabled={
-                isLoading || 
-                !!emailError || 
-                !!nicknameError || 
-                !!passwordError || 
-                !!confirmPasswordError ||
-                !isEmailChecked || !isEmailAvailable ||
-                !isNicknameChecked || !isNicknameAvailable
-              }
+              disabled={isLoading || !!emailError || !!nicknameError || !!passwordError || !!confirmPasswordError}
             >
               {isLoading ? '가입 중...' : '회원가입'}
             </Button>
@@ -265,4 +176,3 @@ export default function SignupPage() {
     </div>
   );
 }
-

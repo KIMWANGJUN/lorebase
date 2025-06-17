@@ -1,18 +1,19 @@
+
 // src/app/(main)/free-assets/page.tsx
 "use client";
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { mockAssetInfos } from '@/lib/mockData';
 import type { AssetInfo } from '@/types';
 import Image from 'next/image';
-import Link from 'next/link';
 import { Search, Compass, ExternalLink, Image as ImageIcon, Music, Box, PlusCircle, Edit, Trash2, Gem } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+// In a real app, you would fetch this data from an API
+// import { getAssetInfos } from '@/lib/assetApi';
 
-const assetTypeIcons = {
+const assetTypeIcons: { [key: string]: React.ReactElement } = {
   Texture: <ImageIcon className="h-5 w-5 mr-2 text-orange-400" />,
   Model: <Box className="h-5 w-5 mr-2 text-sky-400" />,
   Sound: <Music className="h-5 w-5 mr-2 text-lime-400" />,
@@ -28,12 +29,18 @@ export default function FreeAssetsPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedType, setSelectedType] = useState<string>('all');
   const { isAdmin } = useAuth();
+  const [assets, setAssets] = useState<AssetInfo[]>([]);
 
-  const filteredAssets = mockAssetInfos.filter(asset => {
+  // In a real app, you would fetch assets like this:
+  // useEffect(() => {
+  //   getAssetInfos({ isFree: true }).then(setAssets);
+  // }, []);
+
+  const filteredAssets = assets.filter(asset => {
     const matchesSearch = asset.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                           asset.description.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesType = selectedType === 'all' || asset.type.toLowerCase() === selectedType.toLowerCase();
-    return asset.isFree && matchesSearch && matchesType;
+    return matchesSearch && matchesType;
   });
 
   const bannerImageUrl = "https://placehold.co/1920x800.png";
