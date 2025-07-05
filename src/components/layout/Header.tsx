@@ -1060,7 +1060,7 @@ export default function Header() {
         <div className="container mx-auto flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
           {/* Logo Group */}
           <div className="flex-shrink-0">
-            <Link href="/" className="flex items-end gap-2 group logo-button">
+            <Link href="/" className="flex items-end gap-0.5 group logo-button">
               <Image
                 src="/assets/images/malamute-icon.png"
                 alt="LOREBASE Logo"
