@@ -141,6 +141,12 @@ body {
     @apply bg-background text-foreground;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    background-image: url('/assets/Images/white-wood.png');
+    background-repeat: repeat;
+    background-attachment: fixed;
+  }
+  .dark body {
+    background-image: url('/assets/Images/dark-wood.png');
   }
 }
 
