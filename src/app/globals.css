@@ -137,17 +137,22 @@ body {
   * {
     @apply border-border;
   }
+  
   body {
     background-color: hsl(var(--background));
     color: hsl(var(--foreground));
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    background-image: url('/assets/Images/white-wood.png');
+    background-image: url('/assets/images/white-wood.png');
     background-repeat: repeat;
     background-attachment: fixed;
+    background-size: 400px 400px;
+    min-height: 100vh;
   }
+  
+  html.dark body,
   .dark body {
-    background-image: url('/assets/Images/dark-wood.png');
+    background-image: url('/assets/images/dark-wood.png');
   }
 }
 
