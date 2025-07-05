@@ -1,5 +1,6 @@
 
 import { getAuth, onAuthStateChanged, User as FirebaseUser, signOut as firebaseSignOut } from 'firebase/auth';
+import { Timestamp } from 'firebase/firestore';
 import { app } from './firebase'; // Make sure this path is correct
 import type { User, PostMainCategory } from '@/types';
 
@@ -27,17 +28,24 @@ export function getCurrentUser(): Promise<User | null> {
           rank: 0, // Default value
           tetrisRank: 0, // Default value
           categoryStats: {
-            Unity: { score: 0 },
-            Unreal: { score: 0 },
-            Godot: { score: 0 },
-            General: { score: 0 },
+            Unity: { score: 0, rankInCate: 0 },
+            Unreal: { score: 0, rankInCate: 0 },
+            Godot: { score: 0, rankInCate: 0 },
+            General: { score: 0, rankInCate: 0 },
           },
           isBlocked: false,
           socialProfiles: {},
           selectedTitleIdentifier: 'none',
           selectedNicknameEffectIdentifier: 'none',
-        selectedLogoIdentifier: 'none',
+          selectedLogoIdentifier: 'none',
           twoFactorEnabled: false,
+          createdAt: Timestamp.now(),
+          nicknameLastChanged: Timestamp.now(),
+          emailChangesToday: 0,
+          lastEmailChangeDate: null,
+          passwordChangesToday: 0,
+          lastPasswordChangeDate: null,
+          isAdmin: false
         };
         resolve(appUser);
       } else {

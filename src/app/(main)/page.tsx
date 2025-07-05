@@ -1,386 +1,258 @@
 
 // src/app/(main)/page.tsx
 "use client";
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowRight, Code, Compass, Gift, MessageSquare, Users, Star, Wand2, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, ThumbsUp, Trophy, Box, AppWindow, PenTool, LayoutGrid, Crown, Gamepad2, User, ChevronUp, ChevronDown, Loader2 } from 'lucide-react';
-import Image from 'next/image';
-import { cn } from '@/lib/utils';
-import React, { useState, useMemo, useCallback, useEffect } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
-import type { User as UserType, PostMainCategory, AchievedRankType, Post, TetrisRanker } from '@/types';
+import { Timestamp } from 'firebase/firestore';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import type { Post, PostMainCategory, TetrisRanker, RankEntry, Ranking } from '@/types';
+import PostList from '@/components/shared/PostList';
+import CategoryRankingSidebar from '@/components/shared/CategoryRankingSidebar';
 import NicknameDisplay from '@/components/shared/NicknameDisplay';
 import FormattedDateDisplay from '@/components/shared/FormattedDateDisplay';
-import { getPosts } from '@/lib/postApi'; // Assuming you have these API functions
-import { getCommunityRankers, getTetrisRankers } from '@/lib/rankingApi'; // Assuming you have these
+import { getPosts } from '@/lib/postApi';
+import { getRankings, getTetrisRankers } from '@/lib/rankingApi';
+import { 
+  Gamepad2, TrendingUp, Crown, Star, 
+  ThumbsUp, Eye, MessageSquare, Play, Trophy,
+  Box, AppWindow, PenTool, LayoutGrid,
+  Clock, Flame, Award, Hammer, Beer, Gift
+} from 'lucide-react';
 
-const POSTS_PER_PAGE = 10;
-const RANKERS_TO_SHOW_TETRIS = 20;
-const COMMUNITY_RANKERS_PER_PAGE = 10;
+// 스켈레톤 컴포넌트들
+function FeaturedPostSkeleton() {
+  return (
+    <Card className="mb-8">
+      <CardHeader>
+        <Skeleton className="h-8 w-3/4 mb-2" />
+        <Skeleton className="h-4 w-1/4" />
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-2">
+          <Skeleton className="h-4 w-full" />
+          <Skeleton className="h-4 w-full" />
+          <Skeleton className="h-4 w-5/6" />
+        </div>
+        <div className="flex justify-between items-center mt-4">
+          <Skeleton className="h-5 w-20" />
+          <Skeleton className="h-5 w-24" />
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
 
-const CategorySpecificIcon: React.FC<{ category: PostMainCategory, className?: string }> = ({ category, className }) => {
-  const defaultClassName = "h-3.5 w-3.5 shrink-0";
-  const iconColorClass =
-    category === 'Unity' ? 'icon-unity' :
-    category === 'Unreal' ? 'icon-unreal' :
-    category === 'Godot' ? 'icon-godot' :
-    'icon-general';
+function RankingSkeleton() {
+  return (
+    <Card>
+      <CardHeader>
+        <Skeleton className="h-6 w-32" />
+      </CardHeader>
+      <CardContent className="space-y-3">
+        {[1, 2, 3].map((i) => (
+          <div key={i} className="flex items-center gap-3">
+            <Skeleton className="h-8 w-8 rounded-full" />
+            <div className="flex-1">
+              <Skeleton className="h-4 w-24 mb-1" />
+              <Skeleton className="h-3 w-16" />
+            </div>
+            <Skeleton className="h-4 w-12" />
+          </div>
+        ))}
+      </CardContent>
+    </Card>
+  );
+}
 
-  switch (category) {
-    case 'Unity': return <Box className={cn(defaultClassName, iconColorClass, className)} />;
-    case 'Unreal': return <AppWindow className={cn(defaultClassName, iconColorClass, className)} />;
-    case 'Godot': return <PenTool className={cn(defaultClassName, iconColorClass, className)} />;
-    case 'General': return <LayoutGrid className={cn(defaultClassName, iconColorClass, className)} />;
-    default: return null;
-  }
+const getCategoryPath = (category: PostMainCategory): string => {
+  const paths: Record<PostMainCategory, string> = {
+    'Unity': 'tavern', 'Unreal': 'tavern', 'Godot': 'tavern', 'General': 'tavern',
+    'game-workshop': 'game-workshop', 'tavern': 'tavern', 'free-assets': 'free-assets'
+  };
+  return paths[category] || 'tavern';
+}
+
+const categoryIcons: { [key in PostMainCategory]: React.ElementType } = {
+  Unity: Box, Unreal: AppWindow, Godot: PenTool, General: LayoutGrid,
+  'game-workshop': Hammer, 'tavern': Beer, 'free-assets': Gift,
+};
+
+const categoryColors: { [key in PostMainCategory]: string } = {
+  Unity: "text-orange-500", Unreal: "text-blue-500", Godot: "text-green-500",
+  General: "text-purple-500", 'game-workshop': "text-yellow-600",
+  'tavern': "text-amber-800", 'free-assets': "text-emerald-500",
 };
 
 export default function HomePage() {
-  const { user: currentUser, isAdmin } = useAuth();
-  const [currentPage, setCurrentPage] = useState(1);
-  const [activeRankingTab, setActiveRankingTab] = useState<PostMainCategory | 'Global'>('Global');
-  const [communityRankingCurrentPage, setCommunityRankingCurrentPage] = useState(1);
-  const [isGameSectionOpen, setIsGameSectionOpen] = useState(false);
-
-  const [allPosts, setAllPosts] = useState<Post[]>([]);
-  const [postsForDisplay, setPostsForDisplay] = useState<Post[]>([]);
-  const [totalPagesForPosts, setTotalPagesForPosts] = useState(0);
-  const [isLoadingPosts, setIsLoadingPosts] = useState(true);
-
-  const [communityRankers, setCommunityRankers] = useState<UserType[]>([]);
-  const [isLoadingCommunityRankers, setIsLoadingCommunityRankers] = useState(true);
-  const [tetrisRankersDisplay, setTetrisRankersDisplay] = useState<TetrisRanker[]>([]);
-  const [isLoadingTetrisRankers, setIsLoadingTetrisRankers] = useState(true);
-
-  const toggleGameSection = useCallback(() => setIsGameSectionOpen(prev => !prev), []);
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [popularPosts, setPopularPosts] = useState<Post[]>([]);
+  const [globalRankings, setGlobalRankings] = useState<RankEntry[]>([]);
+  const [categoryRankings, setCategoryRankings] = useState<Ranking[]>([]);
+  const [tetrisRankings, setTetrisRankings] = useState<TetrisRanker[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // This would be an API call in a real app
-    const fetchPosts = async () => {
-        setIsLoadingPosts(true);
-        // Replace with actual API call: const fetchedPosts = await getPosts({ limit: 50, sortBy: 'createdAt' });
-        const fetchedPosts:Post[] = [];
-        setAllPosts(fetchedPosts);
-        setIsLoadingPosts(false);
-    }
-    fetchPosts();
+    const fetchData = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const [fetchedPosts, fetchedRankings, fetchedTetrisRankers] = await Promise.all([
+          getPosts(), getRankings(), getTetrisRankers({ limit: 5 }),
+        ]);
+        
+        const sortedPosts = [...fetchedPosts].sort((a, b) => {
+          if (a.createdAt instanceof Timestamp && b.createdAt instanceof Timestamp) {
+            return b.createdAt.toDate().getTime() - a.createdAt.toDate().getTime();
+          }
+          return 0;
+        });
+        
+        const popularPostsData = [...fetchedPosts]
+          .sort((a, b) => (b.views + b.upvotes * 2) - (a.views + a.upvotes * 2))
+          .slice(0, 5);
+        
+        const overallRanking = fetchedRankings.find((r: Ranking) => r.category === 'Overall');
+        const catRankings = fetchedRankings.filter((r: Ranking) => r.category !== 'Overall');
+
+        setPosts(sortedPosts);
+        setPopularPosts(popularPostsData);
+        setGlobalRankings(overallRanking ? overallRanking.entries : []);
+        setCategoryRankings(catRankings);
+        setTetrisRankings(fetchedTetrisRankers);
+
+      } catch (err) {
+        console.error("Failed to fetch data:", err);
+        setError("데이터를 불러오는 데 실패했습니다.");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
   }, []);
-  
-  useEffect(() => {
-    const indexOfLastPost = currentPage * POSTS_PER_PAGE;
-    const indexOfFirstPost = indexOfLastPost - POSTS_PER_PAGE;
-    setPostsForDisplay(allPosts.slice(indexOfFirstPost, indexOfLastPost));
-    setTotalPagesForPosts(Math.ceil(allPosts.length / POSTS_PER_PAGE));
-  }, [currentPage, allPosts]);
 
-  useEffect(() => {
-    const fetchTetrisRankers = async () => {
-        setIsLoadingTetrisRankers(true);
-        // Replace with: const fetchedRankers = await getTetrisRankers({ limit: RANKERS_TO_SHOW_TETRIS });
-        const fetchedRankers:TetrisRanker[] = [];
-        setTetrisRankersDisplay(fetchedRankers);
-        setIsLoadingTetrisRankers(false);
-    }
-    fetchTetrisRankers();
-  }, []);
+  const featuredPost = !loading && posts.length > 0 ? posts[0] : null;
 
-  useEffect(() => {
-    const fetchCommunityRankers = async () => {
-        setIsLoadingCommunityRankers(true);
-        // Replace with: const fetchedRankers = await getCommunityRankers({ category: activeRankingTab, limit: 20 });
-        const fetchedRankers:UserType[] = [];
-        setCommunityRankers(fetchedRankers);
-        setIsLoadingCommunityRankers(false);
-    }
-    fetchCommunityRankers();
-  }, [activeRankingTab]);
-
-  const paginate = (pageNumber: number) => {
-    if (pageNumber > 0 && pageNumber <= totalPagesForPosts) {
-      setCurrentPage(pageNumber);
-    }
-  };
-    const renderPageNumbers = () => {
-    const pageNumbers = [];
-    const maxPagesToShow = 5;
-    let startPage = Math.max(1, currentPage - Math.floor(maxPagesToShow / 2));
-    let endPage = Math.min(totalPagesForPosts, startPage + maxPagesToShow - 1);
-    if (endPage - startPage + 1 < maxPagesToShow) {
-        startPage = Math.max(1, endPage - maxPagesToShow + 1);
-    }
-    if (totalPagesForPosts === 0) return null;
-    for (let i = startPage; i <= endPage; i++) {
-      pageNumbers.push(
-        <Button
-          key={i}
-          variant={currentPage === i ? 'default' : 'outline'}
-          size="sm"
-          onClick={() => paginate(i)}
-          className={cn("h-8 w-8 p-0 font-headline", currentPage === i ? "bg-primary text-primary-foreground border-primary" : "border-accent/50 text-accent hover:bg-accent/10 hover:text-accent/90")}
-        >
-          {i}
-        </Button>
-      );
-    }
-    return pageNumbers;
-  };
-  
-  const totalCommunityRankingPages = useMemo(() => {
-    if (activeRankingTab === 'Global') return 1; 
-    return Math.ceil(communityRankers.length / COMMUNITY_RANKERS_PER_PAGE);
-  }, [activeRankingTab, communityRankers]);
-
-  const currentCommunityRankersToDisplay = useMemo(() => {
-    if (activeRankingTab === 'Global') return communityRankers.slice(0, 10);
-    const startIndex = (communityRankingCurrentPage - 1) * COMMUNITY_RANKERS_PER_PAGE;
-    const endIndex = startIndex + COMMUNITY_RANKERS_PER_PAGE;
-    return communityRankers.slice(startIndex, endIndex);
-  }, [communityRankers, communityRankingCurrentPage, activeRankingTab]);
-
-  const handleRankingTabChange = (value: PostMainCategory | 'Global') => {
-    setActiveRankingTab(value);
-    setCommunityRankingCurrentPage(1);
-  };
+  if (error) {
+    return (
+      <div className="text-center"><div className="text-destructive">{error}</div>
+        <Button onClick={() => window.location.reload()}>다시 시도</Button>
+      </div>
+    );
+  }
 
   return (
-    <div className="py-8 px-4">
-      <div className="flex justify-center mb-6">
-        <Button 
-          onClick={toggleGameSection}
-          variant="outline"
-          size="lg"
-          className="border-accent/50 text-accent hover:bg-accent/10 hover:text-accent/90 font-headline transition-all duration-300"
-        >
-          <Gamepad2 className="mr-2 h-5 w-5" />
-          {isGameSectionOpen ? '게임 섹션 닫기' : '게임 섹션 열기'}
-          {isGameSectionOpen ? (
-            <ChevronUp className="ml-2 h-4 w-4" />
-          ) : (
-            <ChevronDown className="ml-2 h-4 w-4" />
-          )}
-        </Button>
-      </div>
-
-      <section 
-        className={cn(
-          "game-section-container overflow-hidden transition-all duration-500 ease-in-out mb-16 mt-8",
-          isGameSectionOpen 
-            ? "max-h-[1000px] opacity-100" 
-            : "max-h-0 opacity-0"
-        )}
-      >
-        <div className="grid lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2">
-            <Card className="shadow-xl bg-card border-border h-full">
-              <CardHeader>
-                <CardTitle className="font-headline text-center text-xl lg:text-2xl font-bold text-primary flex items-center justify-center">
-                  <Gamepad2 className="inline-block h-6 w-6 lg:h-7 lg:w-7 mr-2 text-accent" />
-                  플레이 테트리스
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="flex flex-col items-center justify-center p-4">
-                <Image
-                  src="https://placehold.co/600x400.png"
-                  alt="Tetris Game Placeholder"
-                  width={600}
-                  height={400}
-                  className="rounded-lg shadow-md border border-border"
-                  data-ai-hint="tetris game screen"
-                />
-                <Button className="mt-6 bg-gradient-to-r from-primary to-accent text-primary-foreground hover:opacity-90 shadow-lg text-lg px-8 py-3">
-                  <Gamepad2 className="mr-2 h-5 w-5" /> 게임 시작
-                </Button>
-              </CardContent>
-            </Card>
-          </div>
-          <div className="lg:col-span-1">
-            <Card className="shadow-xl bg-card border-border h-full">
-              <CardHeader>
-                <CardTitle className="font-headline text-center text-lg lg:text-xl font-bold text-foreground flex items-center justify-center">
-                  <Trophy className="inline-block h-5 w-5 lg:h-6 lg:w-6 mr-2 text-accent" />
-                  테트리스 월간 랭킹
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-4">
-                {isLoadingTetrisRankers ? (
-                  <div className="flex justify-center items-center h-40">
-                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                  </div>
-                ) : tetrisRankersDisplay.length > 0 ? (
-                  <div className="space-y-3">
-                    {tetrisRankersDisplay.map((rankerData) => {
-                      // This needs a way to get user info from rankerData.userId
-                      return (
-                        <div key={rankerData.userId} className="flex items-center justify-between p-2.5 bg-card/50 border-border/70 rounded-md shadow-sm">
-                          <div className="flex items-center gap-2">
-                            <span className="font-bold w-5 text-center shrink-0 text-muted-foreground text-sm">{rankerData.rank}.</span>
-                             <Avatar className="h-8 w-8 border-2 border-accent/50 shrink-0">
-                                <AvatarImage src={`https://placehold.co/40x40.png?text=${rankerData.nickname.substring(0,1)}`} alt={rankerData.nickname} />
-                                <AvatarFallback className="text-xs bg-muted text-muted-foreground">{rankerData.nickname.substring(0,1)}</AvatarFallback>
-                            </Avatar>
-                            <span className="font-medium text-foreground text-sm">{rankerData.nickname}</span>
-                          </div>
-                          {isAdmin && (
-                            <span className="text-xs font-semibold text-accent shrink-0">{rankerData.score.toLocaleString()} 점</span>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-                ) : (
-                  <p className="text-sm text-muted-foreground text-center py-4">테트리스 랭킹 정보가 없습니다.</p>
-                )}
-              </CardContent>
-               <CardFooter className="justify-center pt-2">
-                <Button variant="outline" size="sm" className="border-accent/50 text-accent hover:bg-accent/10 hover:text-accent/90">
-                  전체 테트리스 순위 보기
-                </Button>
-              </CardFooter>
-            </Card>
-          </div>
+    <div className="container mx-auto py-8">
+      <section className="mb-12 text-center">
+        <div className="p-8 md:p-12 rounded-3xl border border-border bg-gradient-to-r from-primary/10 via-accent/10 to-secondary/10">
+          <h1 className="text-4xl md:text-6xl font-bold mb-4 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">LOREBASE</h1>
+          <p className="text-lg md:text-xl text-muted-foreground mb-6">게임 개발자들을 위한 커뮤니티 플랫폼</p>
         </div>
       </section>
 
-      <section className="grid lg:grid-cols-3 gap-12 mb-16 mt-12">
-        <div className="lg:col-span-2">
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="font-headline text-2xl lg:text-3xl font-bold text-primary">최신 인기 글</h2>
-            <Button variant="outline" size="sm" asChild className="border-accent/50 text-accent hover:bg-accent/10 hover:text-accent/90 text-sm">
-              <Link href="/tavern">모든 글 보기 <ArrowRight className="ml-2 h-4 w-4" /></Link>
-            </Button>
-          </div>
-          {isLoadingPosts ? (
-            <div className="text-center py-12 flex flex-col items-center">
-              <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
-              <p className="text-xl text-muted-foreground">게시글을 불러오는 중...</p>
-            </div>
-          ) : postsForDisplay.length > 0 ? (
-            <>
-              <div className="space-y-4">
-                {postsForDisplay.map((post) => (
-                  <Link href={`/tavern/${post.id}`} key={post.id} className="block no-underline hover:no-underline group">
-                    <Card className="shadow-md hover:shadow-lg transition-shadow duration-300 bg-card border-border group-hover:border-primary/50 cursor-pointer">
-                      <CardHeader className="py-3 px-4">
-                       <div className="flex justify-between items-center">
-                          <CardTitle className="text-base lg:text-lg font-headline font-bold text-foreground group-hover:text-primary transition-colors line-clamp-1">
-                            {post.title}
-                             {post.isEdited && <span className="ml-2 text-xs font-normal text-muted-foreground">(수정됨)</span>}
-                          </CardTitle>
-                           <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                            <span className="flex items-center">
-                              <ThumbsUp className="mr-1 h-3.5 w-3.5" /> {post.upvotes}
-                            </span>
-                            <span className="flex items-center">
-                              <MessageSquare className="mr-1 h-3.5 w-3.5" /> {post.commentCount}
-                            </span>
-                          </div>
-                        </div>
-                        <div className="text-xs text-muted-foreground mt-1">
-                           <FormattedDateDisplay dateString={post.createdAt} />
-                           <span className="mx-1">·</span>
-                           <span className="capitalize">{post.mainCategory} / {post.type}</span>
-                        </div>
-                      </CardHeader>
-                    </Card>
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+        <div className="lg:col-span-3 space-y-8">
+          <section>
+            <div className="flex items-center gap-2 mb-6"><Star className="h-6 w-6 text-primary" /><h2 className="text-2xl font-bold">특집 게시물</h2></div>
+            {loading ? <FeaturedPostSkeleton /> : featuredPost ? (
+              <Card className="bg-gradient-to-tr from-primary/5 to-accent/5 border-primary/20 shadow-lg">
+                <CardHeader>
+                  <div className="flex items-center gap-2 mb-2"><Badge variant="secondary" className="bg-primary/10 text-primary">{featuredPost.mainCategory}</Badge><Badge variant="outline">{featuredPost.type}</Badge></div>
+                  <Link href={`/${getCategoryPath(featuredPost.mainCategory)}/${featuredPost.id}`} className="hover:underline">
+                    <CardTitle className="text-2xl md:text-3xl font-bold line-clamp-2">{featuredPost.title}</CardTitle>
                   </Link>
-                ))}
-              </div>
-              {totalPagesForPosts > 1 && (
-                <div className="mt-8 flex flex-col items-center gap-4">
-                    <div className="flex items-center gap-1 sm:gap-2">
-                        <Button variant="outline" size="icon" onClick={() => paginate(1)} disabled={currentPage === 1} className="border-accent/50 text-accent hover:bg-accent/10 hover:text-accent/90 h-8 w-8 font-headline" aria-label="First page"><ChevronsLeft className="h-4 w-4"/></Button>
-                        <Button variant="outline" size="icon" onClick={() => paginate(currentPage - 1)} disabled={currentPage === 1} className="border-accent/50 text-accent hover:bg-accent/10 hover:text-accent/90 h-8 w-8 font-headline" aria-label="Previous page"><ChevronLeft className="h-4 w-4"/></Button>
-                        {renderPageNumbers()}
-                        <Button variant="outline" size="icon" onClick={() => paginate(currentPage + 1)} disabled={currentPage === totalPagesForPosts} className="border-accent/50 text-accent hover:bg-accent/10 hover:text-accent/90 h-8 w-8 font-headline" aria-label="Next page"><ChevronRight className="h-4 w-4"/></Button>
-                        <Button variant="outline" size="icon" onClick={() => paginate(totalPagesForPosts)} disabled={currentPage === totalPagesForPosts} className="border-accent/50 text-accent hover:bg-accent/10 hover:text-accent/90 h-8 w-8 font-headline" aria-label="Last page"><ChevronsRight className="h-4 w-4"/></Button>
+                  <CardDescription className="flex items-center gap-2">
+                    <Avatar className="h-6 w-6"><AvatarImage src={featuredPost.author.avatar} /><AvatarFallback>{featuredPost.author.nickname.charAt(0)}</AvatarFallback></Avatar>
+                    <NicknameDisplay user={featuredPost.author} context="postAuthor" />
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-muted-foreground mb-4 line-clamp-3">{featuredPost.content.replace(/<[^>]*>/g, '').substring(0, 200)}...</p>
+                  <div className="flex items-center justify-between text-sm text-muted-foreground">
+                    <div className="flex items-center gap-4">
+                      <span className="flex items-center gap-1"><Eye className="h-4 w-4" />{featuredPost.views}</span>
+                      <span className="flex items-center gap-1"><ThumbsUp className="h-4 w-4" />{featuredPost.upvotes}</span>
+                      <span className="flex items-center gap-1"><MessageSquare className="h-4 w-4" />{featuredPost.commentCount}</span>
                     </div>
-                    <p className="text-sm text-muted-foreground font-headline">총 {totalPagesForPosts} 페이지 중 {currentPage} 페이지</p>
-                </div>
-              )}
-            </>
-          ) : (
-            <div className="text-center py-12">
-              <MessageSquare className="mx-auto h-16 w-16 text-muted-foreground mb-4" />
-              <p className="text-xl text-muted-foreground">표시할 게시글이 없습니다.</p>
-            </div>
-          )}
+                    {featuredPost.createdAt instanceof Timestamp && <FormattedDateDisplay date={featuredPost.createdAt.toDate()} />}
+                  </div>
+                </CardContent>
+              </Card>
+            ) : <Card className="flex items-center justify-center h-48"><p className="text-muted-foreground">특집 게시물이 없습니다.</p></Card>}
+          </section>
+
+          <section>
+            <div className="flex items-center gap-2 mb-6"><Flame className="h-6 w-6 text-orange-500" /><h2 className="text-2xl font-bold">인기 게시물</h2></div>
+            {loading ? (
+              <div className="grid gap-4">{[1, 2, 3].map(i => <Card key={i}><CardContent className="p-4"><div className="flex items-center gap-4"><Skeleton className="h-12 w-12 rounded" /><div className="flex-1"><Skeleton className="h-4 w-3/4 mb-2" /><Skeleton className="h-3 w-1/2" /></div><Skeleton className="h-8 w-16" /></div></CardContent></Card>)}</div>
+            ) : (
+              <div className="grid gap-4">{popularPosts.map((post, index) => {
+                const CategoryIcon = categoryIcons[post.mainCategory];
+                return (
+                  <Card key={post.id} className="hover:shadow-md transition-shadow"><CardContent className="p-4">
+                    <div className="flex items-center gap-4">
+                      <div className="flex items-center justify-center w-12 h-12 bg-gradient-to-br from-primary/10 to-accent/10 rounded-lg">
+                        {CategoryIcon && <CategoryIcon className={`h-6 w-6 ${categoryColors[post.mainCategory]}`} />}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <Link href={`/${getCategoryPath(post.mainCategory)}/${post.id}`} className="hover:underline"><h3 className="font-semibold line-clamp-1">{post.title}</h3></Link>
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
+                          <NicknameDisplay user={post.author} context="postAuthor" /><span>•</span>
+                          <span className="flex items-center gap-1"><Eye className="h-3 w-3" />{post.views}</span>
+                          <span className="flex items-center gap-1"><ThumbsUp className="h-3 w-3" />{post.upvotes}</span>
+                        </div>
+                      </div><Badge variant="outline" className="text-xs">#{index + 1}</Badge>
+                    </div>
+                  </CardContent></Card>
+                );
+              })}</div>
+            )}
+          </section>
+
+          <section>
+            <div className="flex items-center gap-2 mb-6"><Clock className="h-6 w-6 text-blue-500" /><h2 className="text-2xl font-bold">최신 게시물</h2></div>
+            <PostList initialPosts={posts.slice(1, 11)} initialMainCategory={'General'} initialSearchTerm="" />
+          </section>
         </div>
 
-        <div>
-          <Card className="shadow-xl bg-card border-border">
-            <CardHeader>
-              <CardTitle className="font-headline text-center text-lg lg:text-xl font-bold text-foreground">
-                <Trophy className="inline-block h-5 w-5 lg:h-6 lg:w-6 mr-2 text-accent" />
-                커뮤니티 랭킹
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-4">
-              <Tabs value={activeRankingTab} onValueChange={(value) => handleRankingTabChange(value as PostMainCategory | 'Global')} className="w-full">
-                <TabsList className="grid w-full grid-cols-3 sm:grid-cols-5 mb-4 bg-card border-border p-1 rounded-lg shadow-inner">
-                  <TabsTrigger value="Global">종합</TabsTrigger>
-                  <TabsTrigger value="Unity"><Box className="h-3.5 w-3.5 mr-1"/>Unity</TabsTrigger>
-                  <TabsTrigger value="Unreal"><AppWindow className="h-3.5 w-3.5 mr-1"/>Unreal</TabsTrigger>
-                  <TabsTrigger value="Godot"><PenTool className="h-3.5 w-3.5 mr-1"/>Godot</TabsTrigger>
-                  <TabsTrigger value="General"><LayoutGrid className="h-3.5 w-3.5 mr-1"/>일반</TabsTrigger>
-                </TabsList>
-                 <TabsContent value={activeRankingTab}>
-                    {isLoadingCommunityRankers ? (
-                       <div className="flex justify-center items-center h-40">
-                         <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                       </div>
-                    ) : currentCommunityRankersToDisplay.length > 0 ? (
-                      <div className="space-y-3">
-                        {currentCommunityRankersToDisplay.map((user) => {
-                          const displayRank = activeRankingTab === 'Global' ? user.rank : user.categoryStats?.[activeRankingTab as PostMainCategory]?.rankInCate;
-                          return (
-                            <div key={user.id} className="flex items-center justify-between p-2.5 bg-card/50 border-border/70 rounded-md shadow-sm">
-                               <div className="flex items-center gap-2.5">
-                                <span className="font-bold text-sm w-5 text-center shrink-0 text-muted-foreground">
-                                  {displayRank ? `${displayRank}.` : "-"}
-                                </span>
-                                <Avatar className="h-8 w-8 border-2 border-accent/70 shrink-0">
-                                  <AvatarImage src={user.avatar} alt={user.nickname} />
-                                  <AvatarFallback>{user.nickname.substring(0,1)}</AvatarFallback>
-                                </Avatar>
-                                <NicknameDisplay user={user} context="rankingList" activeCategory={activeRankingTab !== 'Global' ? activeRankingTab : undefined} />
-                              </div>
-                              {isAdmin && (
-                                <span className="text-xs font-semibold text-accent shrink-0">
-                                  {activeRankingTab === 'Global' ? user.score.toLocaleString() : (user.categoryStats?.[activeRankingTab as PostMainCategory]?.score || 0).toLocaleString()} 점
-                                </span>
-                              )}
-                            </div>
-                          );
-                        })}
-                      </div>
-                    ) : (
-                      <p className="text-sm text-muted-foreground text-center py-4">랭킹 정보가 없습니다.</p>
-                    )}
-                  </TabsContent>
-              </Tabs>
-               {totalCommunityRankingPages > 1 && activeRankingTab !== 'Global' && !isLoadingCommunityRankers && (
-                <div className="mt-4 flex items-center justify-between pt-2 border-t border-border/50">
-                  <Button variant="outline" size="sm" onClick={() => setCommunityRankingCurrentPage(p => Math.max(1, p - 1))} disabled={communityRankingCurrentPage === 1}>
-                    <ChevronLeft className="h-4 w-4 mr-1" /> 이전
-                  </Button>
-                  <span>{communityRankingCurrentPage} / {totalCommunityRankingPages}</span>
-                  <Button variant="outline" size="sm" onClick={() => setCommunityRankingCurrentPage(p => Math.min(totalCommunityRankingPages, p + 1))} disabled={communityRankingCurrentPage === totalCommunityRankingPages}>
-                    다음 <ChevronRight className="h-4 w-4 ml-1" />
-                  </Button>
-                </div>
-              )}
+        <div className="lg:col-span-1 space-y-6">
+          <Card>
+            <CardHeader><CardTitle className="text-lg">테트리스 랭킹</CardTitle></CardHeader>
+            <CardContent>
+              {loading ? <RankingSkeleton /> : tetrisRankings.length > 0 ? (
+                <div className="space-y-3">{tetrisRankings.map((ranker, index) => (
+                  <div key={ranker.userId} className="flex items-center gap-3">
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${index === 0 ? 'bg-yellow-500 text-white' : index === 1 ? 'bg-gray-400 text-white' : index === 2 ? 'bg-orange-600 text-white' : 'bg-gray-100 dark:bg-gray-800'}`}>{ranker.rank}</div>
+                    <div className="flex-1 min-w-0"><p className="font-medium text-sm truncate">{ranker.nickname}</p><p className="text-xs text-muted-foreground">{ranker.score.toLocaleString()} 점</p></div>
+                    {index < 3 && <Award className={`h-4 w-4 ${index === 0 ? 'text-yellow-500' : index === 1 ? 'text-gray-400' : 'text-orange-600'}`} />}
+                  </div>
+                ))}</div>
+              ) : <p className="text-muted-foreground text-sm text-center py-4">아직 랭킹이 없습니다</p>}
             </CardContent>
-            <CardFooter className="justify-center pt-2">
-              <Button variant="outline" asChild>
-                <Link href="/profile#ranking">전체 순위표 보기</Link>
-              </Button>
-            </CardFooter>
           </Card>
+          
+          <Card>
+            <CardHeader><CardTitle className="text-lg">전체 랭킹</CardTitle></CardHeader>
+            <CardContent>
+              {loading ? <RankingSkeleton /> : globalRankings.length > 0 ? (
+                <div className="space-y-3">{globalRankings.map((user) => (
+                  <div key={user.userId} className="flex items-center gap-3">
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${user.rank === 1 ? 'bg-yellow-500 text-white' : user.rank === 2 ? 'bg-gray-400 text-white' : user.rank === 3 ? 'bg-orange-600 text-white' : 'bg-gray-100 dark:bg-gray-800'}`}>{user.rank}</div>
+                    <Avatar className="h-8 w-8"><AvatarImage src={user.avatar} /><AvatarFallback>{user.nickname.charAt(0)}</AvatarFallback></Avatar>
+                    <div className="flex-1 min-w-0"><p className="font-medium text-sm truncate">{user.nickname}</p><p className="text-xs text-muted-foreground">{user.score.toLocaleString()} 점</p></div>
+                  </div>
+                ))}</div>
+              ) : <p className="text-muted-foreground text-sm text-center py-4">랭킹 정보가 없습니다</p>}
+            </CardContent>
+          </Card>
+
+          <CategoryRankingSidebar rankings={categoryRankings} />
         </div>
-      </section>
+      </div>
     </div>
   );
 }

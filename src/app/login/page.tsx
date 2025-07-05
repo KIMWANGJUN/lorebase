@@ -36,7 +36,7 @@ export default function LoginPage() {
     }
     
     try {
-      console.log(`Attempting login for email: ${email} with auth instance:`, auth?.app?.name);
+      console.log(`Attempting login for email: ${email} with auth instance: ${auth?.app?.name}`);
       await signInWithEmailAndPassword(auth, email, password);
       toast({ title: "로그인 성공", description: "커뮤니티에 오신 것을 환영합니다!" });
       router.push('/'); 

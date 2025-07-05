@@ -5,19 +5,24 @@ import { useState } from 'react';
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '@/lib/firebase'; // Firebase 설정 파일 경로 확인 필요
 
+interface LoginModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
+
 // 기본적인 모달 UI를 포함하여 로그인/회원가입 폼을 렌더링합니다.
 // 실제 UI 디자인은 필요에 따라 추가/수정해야 합니다.
-export default function LoginModal({ isOpen, onClose }) {
+export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isSignUp, setIsSignUp] = useState(false);
-  const [error, setError] = useState(null); // 오류 메시지 상태 추가
+  const [error, setError] = useState<string | null>(null); // 오류 메시지 상태 추가
 
   if (!isOpen) {
     return null; // 모달이 열려있지 않으면 아무것도 렌더링하지 않음
   }
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError(null); // 시도 전에 오류 초기화
     try {
@@ -29,7 +34,7 @@ export default function LoginModal({ isOpen, onClose }) {
         await signInWithEmailAndPassword(auth, email, password);
         onClose(); // 로그인 성공 시 모달 닫기
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('인증 오류:', err);
       // 사용자에게 더 친절한 오류 메시지 표시
       if (err.code === 'auth/user-not-found') {

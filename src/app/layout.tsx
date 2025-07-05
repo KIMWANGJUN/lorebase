@@ -12,7 +12,7 @@ import { Loader2 } from 'lucide-react';
 // This new component, AppShell, will handle both client mounting and auth loading states
 // to prevent hydration errors and ensure a smooth loading experience.
 function AppShell({ children }: { children: ReactNode }) {
-  const { user, isAdmin, logout, loading: authLoading } = useAuth();
+  const { loading: authLoading } = useAuth();
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
@@ -36,7 +36,7 @@ function AppShell({ children }: { children: ReactNode }) {
   // Once the client has mounted and authentication is complete, render the actual application layout.
   return (
     <div className="flex min-h-screen flex-col">
-      <Header user={user} isAdmin={isAdmin} logout={logout} />
+      <Header />
       <main className="flex-1">
         {children}
       </main>

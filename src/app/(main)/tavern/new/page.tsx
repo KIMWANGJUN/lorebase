@@ -14,6 +14,10 @@ import type { Post } from '@/types';
 import { addPost } from '@/lib/postApi';
 import { ArrowLeft, FilePlus2 } from 'lucide-react';
 
+// This is the expected data type from PostForm's onSubmit
+type PostFormData = Omit<Post, 'id' | 'author' | 'createdAt' | 'updatedAt' | 'upvotes' | 'downvotes' | 'views' | 'commentCount' | 'tags' | 'isPinned' | 'isEdited' | 'postScore' | 'replies'> & { authorId: string, authorNickname: string, authorAvatar?: string };
+
+
 export default function NewPostPage() {
   const { user, loading: authLoading } = useAuth();
   const router = useRouter();
@@ -27,7 +31,7 @@ export default function NewPostPage() {
     }
   }, [user, authLoading, router, toast]);
 
-  const handleSubmit = async (data: Omit<Post, 'id' | 'author' | 'createdAt' | 'updatedAt' | 'upvotes' | 'downvotes' | 'views' | 'commentCount' | 'tags' | 'isPinned' | 'isEdited' | 'postScore'>) => {
+  const handleSubmit = async (data: PostFormData) => {
     if (!user) {
       toast({ title: "오류", description: "로그인이 필요합니다.", variant: "destructive" });
       return;
@@ -36,7 +40,7 @@ export default function NewPostPage() {
     setIsLoading(true);
 
     try {
-      const newPostId = await addPost(data, user.id);
+      const newPostId = await addPost(data);
       
       toast({ title: "성공!", description: "게시글이 성공적으로 등록되었습니다." });
       router.push(`/tavern/${newPostId}`);

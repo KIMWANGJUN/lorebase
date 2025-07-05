@@ -1,113 +1,97 @@
+
 // src/app/(main)/tavern/[postId]/page.tsx
-import React from 'react';
-import { notFound } from 'next/navigation';
-import Link from 'next/link';
-import { getPost } from '@/lib/postApi';
-import { getCommentsByPost } from '@/lib/commentApi';
-import { getCurrentUser } from '@/lib/auth';
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import NicknameDisplay from '@/components/shared/NicknameDisplay';
-import FormattedDateDisplay from '@/components/shared/FormattedDateDisplay';
+"use client";
+import React, { useState, useEffect } from 'react';
+import { useParams, useRouter } from 'next/navigation';
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import type { Post, Comment } from '@/types';
 import CommentSection from '@/components/shared/CommentSection';
-import { ArrowLeft, Edit, ThumbsUp, ThumbsDown, Eye, MessageSquare, Pin } from 'lucide-react';
+import { getPost } from '@/lib/postApi';
+import { getComments } from '@/lib/commentApi';
+import FormattedDateDisplay from '@/components/shared/FormattedDateDisplay';
+import { useAuth } from '@/contexts/AuthContext';
+import Link from 'next/link';
+import { Timestamp } from 'firebase/firestore';
+import NicknameDisplay from '@/components/shared/NicknameDisplay';
 
-export default async function PostPage({ params }: { params: { postId: string } }) {
-  const { postId } = params;
-  
-  const [post, comments, currentUser] = await Promise.all([
-    getPost(postId),
-    getCommentsByPost(postId),
-    getCurrentUser()
-  ]);
+export default function PostPage() {
+    const { postId } = useParams();
+    const router = useRouter();
+    const { user } = useAuth();
+    const [post, setPost] = useState<Post | null>(null);
+    const [comments, setComments] = useState<Comment[]>([]);
+    const [loading, setLoading] = useState(true);
 
-  if (!post) {
-    notFound();
-  }
-  
-  const isAuthor = currentUser?.id === post.author.id;
-  const isAdmin = currentUser?.isAdmin || false;
+    useEffect(() => {
+        if (typeof postId === 'string') {
+            const fetchData = async () => {
+                try {
+                    const fetchedPost = await getPost(postId);
+                    if (fetchedPost) {
+                        setPost(fetchedPost);
+                        const fetchedComments = await getComments(postId);
+                        setComments(fetchedComments);
+                    } else {
+                        router.push('/404');
+                    }
+                } catch (error) {
+                    console.error("Failed to fetch post or comments:", error);
+                } finally {
+                    setLoading(false);
+                }
+            };
+            fetchData();
+        }
+    }, [postId, router]);
 
-  // 수정된 sanitizedContent 함수
-  const sanitizedContent = (htmlString: string) => {
-    // 모든 종류의 줄바꿈을 <br /> 태그로 변환
-    return htmlString.replace(/\r?\n/g, '<br />');
-  };
+    const handleCommentAdded = (newComment: Comment) => {
+        setComments(prevComments => [...prevComments, newComment]);
+    };
 
-  return (
-    <div className="container mx-auto max-w-4xl py-8 px-4">
-      <div className="mb-6 flex justify-between items-center">
-        <Button asChild variant="outline">
-          <Link href="/tavern">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            목록으로 돌아가기
-          </Link>
-        </Button>
-        {(isAuthor || isAdmin) && (
-          <Button asChild>
-            <Link href={`/tavern/${postId}/edit`}>
-              <Edit className="mr-2 h-4 w-4" />
-              수정하기
-            </Link>
-          </Button>
-        )}
-      </div>
+    if (loading) {
+        return <div className="container mx-auto py-8 text-center">게시글을 불러오는 중...</div>;
+    }
 
-      <Card className="shadow-lg">
-        <CardHeader>
-          <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
-            <span className="font-bold text-primary">[{post.mainCategory}]</span>
-            <span className="font-semibold text-accent">[{post.type}]</span>
-          </div>
-          <CardTitle className="text-3xl font-bold font-headline text-foreground">
-            {post.isPinned && <Pin className="inline-block h-6 w-6 mr-2 text-accent" />}
-            {post.title}
-          </CardTitle>
-          <div className="flex items-center gap-4 text-sm text-muted-foreground mt-4">
-            <div className="flex items-center gap-2">
-              <Avatar className="h-8 w-8">
-                <AvatarImage src={post.author.avatar} alt={post.author.nickname} />
-                <AvatarFallback>{post.author.nickname.charAt(0)}</AvatarFallback>
-              </Avatar>
-              <NicknameDisplay user={post.author} />
+    if (!post) {
+        return <div className="container mx-auto py-8 text-center">게시글을 찾을 수 없습니다.</div>;
+    }
+
+    const isAuthor = user && post && user.id === post.author.id;
+
+    return (
+        <div className="container mx-auto py-8">
+            <Card>
+                <CardHeader>
+                    <CardTitle className="text-3xl font-bold">{post.title}</CardTitle>
+                    <div className="flex items-center space-x-4 text-sm text-gray-500 mt-2">
+                        <div className="flex items-center space-x-2">
+                            <Avatar className="w-8 h-8">
+                                <AvatarImage src={post.author.avatar} alt={post.author.nickname} />
+                                <AvatarFallback>{post.author.nickname.charAt(0)}</AvatarFallback>
+                            </Avatar>
+                            <NicknameDisplay user={post.author} context="postAuthor" />
+                        </div>
+                        {post.createdAt instanceof Timestamp && <FormattedDateDisplay date={post.createdAt.toDate()} />}
+                        <span>조회수 {post.views}</span>
+                    </div>
+                </CardHeader>
+                <CardContent>
+                    <div className="prose dark:prose-invert max-w-none" dangerouslySetInnerHTML={{ __html: post.content }} />
+                    {isAuthor && (
+                         <div className="mt-4 text-right">
+                            <Link href={`/tavern/${post.id}/edit`}>
+                                <Button variant="outline">수정</Button>
+                            </Link>
+                         </div>
+                    )}
+                </CardContent>
+            </Card>
+
+            <div className="mt-8">
+                <CommentSection postId={post.id} initialComments={comments} />
             </div>
-            <span>|</span>
-            <FormattedDateDisplay dateString={post.createdAt} />
-            {post.isEdited && (
-              <>
-                <span>|</span>
-                <span className="text-xs italic">(수정됨)</span>
-              </>
-            )}
-          </div>
-        </CardHeader>
-        <CardContent className="prose dark:prose-invert max-w-none mt-6 text-lg">
-          <div dangerouslySetInnerHTML={{ __html: sanitizedContent(post.content) }} />
-        </CardContent>
-        <CardFooter className="flex flex-col items-start gap-4 mt-6 border-t pt-4">
-          <div className="flex items-center gap-4 text-muted-foreground">
-            <span className="flex items-center gap-1.5">
-              <ThumbsUp className="h-5 w-5" /> {post.upvotes}
-            </span>
-            <span className="flex items-center gap-1.5">
-              <ThumbsDown className="h-5 w-5" /> {post.downvotes}
-            </span>
-            <span className="flex items-center gap-1.5">
-              <Eye className="h-5 w-5" /> {post.views}
-            </span>
-            <span className="flex items-center gap-1.5">
-              <MessageSquare className="h-5 w-5" /> {comments.length}
-            </span>
-          </div>
-        </CardFooter>
-      </Card>
-      
-      <CommentSection 
-        postId={postId} 
-        initialComments={comments} 
-        currentUser={currentUser} 
-      />
-    </div>
-  );
+        </div>
+    );
 }

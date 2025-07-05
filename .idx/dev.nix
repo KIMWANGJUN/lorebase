@@ -3,38 +3,23 @@
   
   packages = [
     pkgs.nodejs_20
-    pkgs.zulu
   ];
   
-  env = {};
-  
-  services.firebase.emulators = {
-    detect = true;
-    projectId = "demo-app";
-    services = ["auth" "firestore"];
+  env = {
+    NEXT_PUBLIC_ENVIRONMENT = "development";
   };
   
   idx = {
-    extensions = [];
-    
-    workspace = {
-      onCreate = {
-        default.openFiles = [
-          "src/app/page.tsx"
-        ];
-      };
-    };
-    
     previews = {
       enable = true;
       previews = {
-        web = {
-          command = [
-            "npm"
-            "run"
-            "dev:studio"
-          ];
+              web = {
+          command = ["npm" "run" "dev"];
           manager = "web";
+          env = {
+            PORT = "9002";
+            HOSTNAME = "0.0.0.0";
+          };
         };
       };
     };

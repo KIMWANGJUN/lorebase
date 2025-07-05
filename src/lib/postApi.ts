@@ -1,50 +1,58 @@
 
 // src/lib/postApi.ts
 import { db } from './firebase';
-import { collection, getDocs, getDoc, doc, addDoc, updateDoc, serverTimestamp, query, where, orderBy, limit, DocumentData } from 'firebase/firestore';
-import type { Post, User, PostMainCategory, PostType } from '@/types';
+import { collection, getDocs, getDoc, doc, addDoc, updateDoc, deleteDoc, serverTimestamp, query, where, orderBy, limit, DocumentData, Timestamp } from 'firebase/firestore';
+import type { Post, User } from '@/types';
 import { getUser } from './userApi';
 
-// Helper function to fetch author and enrich post data
+// 기본 사용자 객체 생성 함수
+const createPlaceholderUser = (authorId: string): User => ({
+  id: authorId,
+  nickname: '알 수 없는 사용자',
+  avatar: '/default-avatar.png',
+  username: 'unknown',
+  email: '',
+  score: 0,
+  rank: 0,
+  tetrisRank: 0,
+  categoryStats: {},
+  isBlocked: true,
+  socialProfiles: {},
+  selectedTitleIdentifier: 'none',
+  selectedNicknameEffectIdentifier: 'none',
+  selectedLogoIdentifier: 'none',
+  twoFactorEnabled: false,
+  isAdmin: false,
+  createdAt: Timestamp.now(),
+  nicknameLastChanged: Timestamp.now(),
+  lastEmailChangeDate: null,
+  emailChangesToday: 0,
+  lastPasswordChangeDate: null,
+  passwordChangesToday: 0,
+});
+
+
+// 게시물 데이터에 작성자 정보 추가 (단순화된 버전)
 async function enrichPostWithAuthor(postData: DocumentData, id: string): Promise<Post> {
   const author = await getUser(postData.authorId);
+
   if (!author) {
-    const placeholderAuthor: User = {
-      id: postData.authorId,
-      nickname: postData.authorNickname || '탈퇴한 사용자',
-      avatar: postData.authorAvatar || '',
-      username: 'unknown',
-      email: '',
-      score: 0,
-      rank: 0,
-      tetrisRank: 0,
-      categoryStats: { Unity: { score: 0 }, Unreal: { score: 0 }, Godot: { score: 0 }, General: { score: 0 } },
-      nicknameLastChanged: new Date(),
-      isBlocked: true,
-      socialProfiles: {},
-      selectedTitleIdentifier: 'none',
-      selectedNicknameEffectIdentifier: 'none',
-      selectedLogoIdentifier: 'none',
-      twoFactorEnabled: false,
-    };
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { authorId, authorNickname, authorAvatar, ...restData } = postData;
-    return { id, ...restData, author: placeholderAuthor } as Post;
+    console.warn(`게시물(ID: ${id})의 작성자(ID: ${postData.authorId})를 찾을 수 없어 플레이스홀더를 사용합니다.`);
+    const placeholderAuthor = createPlaceholderUser(postData.authorId);
+    return { id, ...postData, author: placeholderAuthor } as Post;
   }
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { authorId, authorNickname, authorAvatar, ...restData } = postData;
-  return { id, ...restData, author } as Post;
+  
+  return { id, ...postData, author } as Post;
 }
 
 export async function getPost(id: string): Promise<Post | null> {
   try {
     const postDocRef = doc(db, 'posts', id);
     const docSnap = await getDoc(postDocRef);
-
     if (docSnap.exists()) {
       return await enrichPostWithAuthor(docSnap.data(), docSnap.id);
     } else {
-      console.log("No such document!");
+      console.warn(`Post with ID ${id} not found.`);
       return null;
     }
   } catch (error) {
@@ -56,14 +64,9 @@ export async function getPost(id: string): Promise<Post | null> {
 export async function getPosts(): Promise<Post[]> {
   try {
     const postsCollection = collection(db, 'posts');
-    const q = query(postsCollection, orderBy('createdAt', 'desc'), limit(50)); // Increased limit
+    const q = query(postsCollection, orderBy('createdAt', 'desc'), limit(50));
     const querySnapshot = await getDocs(q);
-    
-    const posts = await Promise.all(
-      querySnapshot.docs.map(doc => enrichPostWithAuthor(doc.data(), doc.id))
-    );
-
-    return posts;
+    return await Promise.all(querySnapshot.docs.map(doc => enrichPostWithAuthor(doc.data(), doc.id)));
   } catch (error) {
     console.error("Error fetching posts from Firestore:", error);
     return [];
@@ -75,23 +78,20 @@ export async function getPostsByAuthor(authorId: string): Promise<Post[]> {
     const postsCollection = collection(db, 'posts');
     const q = query(postsCollection, where('authorId', '==', authorId), orderBy('createdAt', 'desc'));
     const querySnapshot = await getDocs(q);
-    const posts = await Promise.all(
-      querySnapshot.docs.map(doc => enrichPostWithAuthor(doc.data(), doc.id))
-    );
-    return posts;
+    return await Promise.all(querySnapshot.docs.map(doc => enrichPostWithAuthor(doc.data(), doc.id)));
   } catch (error) {
     console.error(`Error fetching posts for author ${authorId}:`, error);
     return [];
   }
 }
 
-// The data passed to this function should not contain the full author object.
-// Instead, it should just provide the ID of the author.
-export async function addPost(postData: Omit<Post, 'id' | 'createdAt' | 'updatedAt' | 'author' | 'upvotes' | 'downvotes' | 'views' | 'commentCount' | 'isPinned' | 'tags' | 'isEdited' | 'postScore'>, authorId: string): Promise<string> {
+// Omit에서 'author' 관련 필드를 제거하고, 필요한 필드를 명시적으로 정의합니다.
+type AddPostData = Omit<Post, 'id' | 'createdAt' | 'updatedAt' | 'author' | 'upvotes' | 'downvotes' | 'views' | 'commentCount' | 'isPinned' | 'tags' | 'isEdited' | 'postScore' | 'isPopular'> & { authorId: string };
+
+export async function addPost(postData: AddPostData): Promise<string> {
   try {
     const docRef = await addDoc(collection(db, 'posts'), {
       ...postData,
-      authorId: authorId, // Store only the author's ID
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
       upvotes: 0,
@@ -100,7 +100,9 @@ export async function addPost(postData: Omit<Post, 'id' | 'createdAt' | 'updated
       commentCount: 0,
       isPinned: false,
       isEdited: false,
-      tags: [], // Default tags
+      isPopular: false, // 기본값 추가
+      postScore: 0,       // 기본값 추가
+      tags: [],
     });
     return docRef.id;
   } catch (error) {
@@ -109,17 +111,26 @@ export async function addPost(postData: Omit<Post, 'id' | 'createdAt' | 'updated
   }
 }
 
-
-export async function updatePost(postId: string, postData: Partial<Omit<Post, 'id' | 'author'>>): Promise<void> {
+export async function updatePost(postId: string, postData: Partial<Omit<Post, 'id' | 'author' | 'createdAt'>>): Promise<void> {
     try {
       const postDocRef = doc(db, 'posts', postId);
       await updateDoc(postDocRef, {
         ...postData,
         updatedAt: serverTimestamp(),
-        isEdited: true, // Mark as edited on update
+        isEdited: true,
       });
     } catch (error) {
       console.error("Error updating post in Firestore:", error);
       throw new Error("Failed to update post.");
     }
+}
+
+export async function deletePost(postId: string): Promise<void> {
+  try {
+    const postDocRef = doc(db, 'posts', postId);
+    await deleteDoc(postDocRef);
+  } catch (error) {
+    console.error("Error deleting post from Firestore:", error);
+    throw new Error("Failed to delete post.");
   }
+}

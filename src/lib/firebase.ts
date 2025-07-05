@@ -15,6 +15,7 @@ const firebaseConfig = {
   messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
   measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID,
+  databaseId: "lorebasedatabase" // 스크린샷에서 확인한 데이터베이스 ID
 };
 
 // Initialize Firebase for SSR and SSG, and prevent re-initialization on the client
@@ -33,9 +34,9 @@ if (!getApps().length) {
 }
 
 // Initialize services
-// These can be initialized on the server or client, and will use the singleton app instance.
 const auth: Auth = getAuth(app);
-const db: Firestore = getFirestore(app);
+// 데이터베이스 ID 지정하여 Firestore 초기화
+const db: Firestore = getFirestore(app, "lorebasedatabase");
 const storage: FirebaseStorage = getStorage(app);
 
 let analytics: Analytics | null = null;
