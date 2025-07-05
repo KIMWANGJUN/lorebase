@@ -172,11 +172,6 @@ export default function Header() {
           z-index: 2;
         }
 
-        /* LOREBASE 제목 크기 증가 */
-        .logo-title {
-          font-size: 1.375rem; /* 기존 1.25rem(20px)에서 1.375rem(22px)로 10% 증가 */
-        }
-
         /* 햄버거 메뉴 버튼 - 가로폭 기준으로만 표시 */
         .hamburger-button {
           position: relative;
@@ -1073,7 +1068,7 @@ export default function Header() {
                 height={28}
                 className="transition-transform duration-300 group-hover:rotate-[-15deg] group-hover:scale-110"
               />
-              <h1 className="font-logo logo-title font-bold text-foreground group-hover:text-primary transition-colors duration-300">LOREBASE</h1>
+              <h1 className="font-logo text-2xl font-bold leading-none text-foreground group-hover:text-primary transition-colors duration-300">LOREBASE</h1>
             </Link>
           </div>
 
