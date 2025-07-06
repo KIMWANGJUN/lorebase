@@ -9,7 +9,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import type { Post, PostMainCategory, TetrisRanker, RankEntry, Ranking } from '@/types';
-import PostList from '@/components/shared/PostList';
 import CategoryRankingSidebar from '@/components/shared/CategoryRankingSidebar';
 import NicknameDisplay from '@/components/shared/NicknameDisplay';
 import FormattedDateDisplay from '@/components/shared/FormattedDateDisplay';
@@ -19,7 +18,7 @@ import {
   Gamepad2, TrendingUp, Crown, Star, 
   ThumbsUp, Eye, MessageSquare, Play, Trophy,
   Box, AppWindow, PenTool, LayoutGrid,
-  Clock, Flame, Award, Hammer, Beer, Gift, Sparkles
+  Flame, Award, Hammer, Beer, Gift, Sparkles
 } from 'lucide-react';
 
 // 수채화 스켈레톤 컴포넌트들
@@ -326,17 +325,6 @@ export default function HomePage() {
                   })}
                 </div>
               )}
-            </section>
-
-            {/* 최신 게시물 섹션 */}
-            <section className="floating" style={{animationDelay: '-4s'}}>
-              <div className="flex items-center gap-2 mb-6">
-                <Clock className="h-6 w-6 text-watercolor-secondary animate-watercolor-pulse" />
-                <h2 className="text-2xl font-bold watercolor-text-gradient">최신 게시물</h2>
-              </div>
-              <div className="watercolor-card">
-                <PostList initialPosts={posts.slice(1, 11)} initialMainCategory={'General'} initialSearchTerm="" />
-              </div>
             </section>
           </div>
 
