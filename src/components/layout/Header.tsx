@@ -1055,7 +1055,7 @@ export default function Header() {
           ? '' 
           : 'bg-background/60 shadow-md'
       }`}
-      style={isDark ? { backgroundColor: 'rgba(28, 28, 28, 0.8)' } : {}}
+      style={isDark ? { backgroundColor: 'hsl(0 0% 5% / 0.6)' } : {}}
       >
         <div className="container mx-auto flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
           {/* Logo Group */}

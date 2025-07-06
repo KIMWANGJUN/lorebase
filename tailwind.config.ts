@@ -1,4 +1,3 @@
-
 import type {Config} from 'tailwindcss';
 
 export default {
@@ -9,6 +8,30 @@ export default {
     './src/app/**/*.{js,ts,jsx,tsx,mdx}',
   ],
   safelist: [
+    // 수채화 관련 클래스들 추가
+    'watercolor-bg',
+    'watercolor-card',
+    'watercolor-hover',
+    'watercolor-transition',
+    'watercolor-text-gradient',
+    'watercolor-button',
+    'floating',
+    'animate-watercolor-float',
+    'animate-watercolor-pulse',
+    'shadow-watercolor-light',
+    'shadow-watercolor-dark',
+    'shadow-watercolor-glow',
+    'text-watercolor-primary',
+    'text-watercolor-secondary',
+    'text-watercolor-accent',
+    'text-watercolor-text',
+    'text-watercolor-muted',
+    'bg-watercolor-primary',
+    'bg-watercolor-surface',
+    'border-watercolor-border',
+    'border-watercolor-primary',
+    
+    // 기존 클래스들
     'text-gradient-gold',
     'text-gradient-silver',
     'text-gradient-bronze',
@@ -71,10 +94,21 @@ export default {
       fontFamily: {
         body: ['Jua', 'sans-serif'], 
         headline: ['Do Hyeon', 'sans-serif'], 
-        logo: ['Black Han Sans', 'sans-serif'], // 로고 폰트 추가
+        logo: ['Black Han Sans', 'sans-serif'],
         code: ['monospace'],
       },
       colors: {
+        // 수채화 테마 색상 추가
+        watercolor: {
+          primary: 'var(--watercolor-primary)',
+          secondary: 'var(--watercolor-secondary)',
+          accent: 'var(--watercolor-accent)',
+          background: 'var(--watercolor-background)',
+          surface: 'var(--watercolor-surface)',
+          text: 'var(--watercolor-text)',
+          muted: 'var(--watercolor-muted)',
+          border: 'var(--watercolor-border)',
+        },
         background: 'hsl(var(--background))',
         foreground: 'hsl(var(--foreground))',
         card: {
@@ -148,11 +182,36 @@ export default {
             height: '0',
           },
         },
+        // 수채화 애니메이션 추가
+        'watercolor-float': {
+          '0%, 100%': { transform: 'translateY(0px)' },
+          '50%': { transform: 'translateY(-10px)' },
+        },
+        'watercolor-pulse': {
+          '0%, 100%': { opacity: '1' },
+          '50%': { opacity: '0.8' },
+        },
       },
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
         'accordion-up': 'accordion-up 0.2s ease-out',
+        // 수채화 애니메이션 추가
+        'watercolor-float': 'watercolor-float 6s ease-in-out infinite',
+        'watercolor-pulse': 'watercolor-pulse 4s ease-in-out infinite',
       },
+      // 수채화 효과를 위한 그라디언트 추가
+      backgroundImage: {
+        'watercolor-light': 'linear-gradient(135deg, #F8F6F3 0%, #EFEBE6 50%, #E6E1DA 100%)',
+        'watercolor-dark': 'linear-gradient(135deg, #2A2838 0%, #3D3A4B 50%, #4A4758 100%)',
+        'watercolor-accent-light': 'linear-gradient(45deg, #D4B896 0%, #A8C0D4 100%)',
+        'watercolor-accent-dark': 'linear-gradient(45deg, #C4A484 0%, #9FBACD 100%)',
+      },
+      // 수채화 효과를 위한 박스 섀도우 추가
+      boxShadow: {
+        'watercolor-light': '0 4px 20px rgba(139, 135, 151, 0.1), 0 1px 3px rgba(139, 135, 151, 0.05)',
+        'watercolor-dark': '0 4px 20px rgba(28, 26, 36, 0.3), 0 1px 3px rgba(28, 26, 36, 0.1)',
+        'watercolor-glow': '0 0 30px rgba(139, 127, 184, 0.3)',
+      }
     },
   },
   plugins: [require('tailwindcss-animate')],
