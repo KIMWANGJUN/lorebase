@@ -265,7 +265,7 @@ export default function HomePage() {
             </section>
 
             {/* 인기 게시물 섹션 */}
-            <section className="floating" style={{animationDelay: '-2s'}}>
+            <section>
               <div className="flex items-center gap-2 mb-6">
                 <Flame className="h-6 w-6 text-watercolor-accent animate-watercolor-pulse" />
                 <h2 className="text-2xl font-bold watercolor-text-gradient">인기 게시물</h2>
@@ -331,7 +331,7 @@ export default function HomePage() {
           {/* 사이드바 */}
           <div className="lg:col-span-1 space-y-6">
             {/* 테트리스 랭킹 */}
-            <Card className="watercolor-card watercolor-hover floating">
+            <Card className="watercolor-card watercolor-hover">
               <CardHeader>
                 <CardTitle className="text-lg flex items-center gap-2">
                   <Gamepad2 className="h-5 w-5 text-watercolor-primary" />
@@ -372,7 +372,7 @@ export default function HomePage() {
             </Card>
             
             {/* 전체 랭킹 */}
-            <Card className="watercolor-card watercolor-hover floating" style={{animationDelay: '-2s'}}>
+            <Card className="watercolor-card watercolor-hover">
               <CardHeader>
                 <CardTitle className="text-lg flex items-center gap-2">
                   <Crown className="h-5 w-5 text-watercolor-secondary" />
@@ -412,7 +412,7 @@ export default function HomePage() {
             </Card>
 
             {/* 카테고리 랭킹 */}
-            <div className="floating" style={{animationDelay: '-4s'}}>
+            <div>
               <CategoryRankingSidebar rankings={categoryRankings} />
             </div>
           </div>
