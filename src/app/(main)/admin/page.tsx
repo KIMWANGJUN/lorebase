@@ -116,7 +116,7 @@ export default function AdminPage() {
      return <div className="text-center text-foreground py-8 px-4">접근 권한이 없습니다.</div>;
   }
 
-  const bannerImageUrl = "https://placehold.co/1920x600.png";
+  const bannerImageUrl = "https://placehold.co/1920x600.webp";
 
   return (
     <div className="py-8 px-4">

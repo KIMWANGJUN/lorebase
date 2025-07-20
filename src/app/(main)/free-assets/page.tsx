@@ -43,7 +43,7 @@ export default function FreeAssetsPage() {
     return matchesSearch && matchesType;
   });
 
-  const bannerImageUrl = "https://placehold.co/1920x800.png";
+  const bannerImageUrl = "https://placehold.co/1920x800.webp";
 
   return (
     <div className="py-8 px-4">
@@ -95,7 +95,7 @@ export default function FreeAssetsPage() {
           {filteredAssets.map((asset) => (
             <Card key={asset.id} className="flex flex-col overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 ease-in-out transform hover:-translate-y-1 bg-card border-border hover:border-accent/70">
               <Image 
-                src={asset.imageUrl || `https://placehold.co/400x300.png?text=${asset.type}`}
+                src={asset.imageUrl || `https://placehold.co/400x300.webp?text=${asset.type}`}
                 alt={asset.name} 
                 width={400} 
                 height={225} 

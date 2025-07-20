@@ -78,7 +78,7 @@ export default function UserProfilePage() {
           <div className="flex flex-col md:flex-row items-center gap-8">
             <div className="relative">
               <Avatar className="w-32 h-32 border-4 border-primary/50 shadow-2xl">
-                <AvatarImage src={profileUser.avatar || '/assets/images/malamute-icon.png'} alt={profileUser.nickname} />
+                <AvatarImage src={profileUser.avatar || '/assets/images/malamute-icon.webp'} alt={profileUser.nickname} />
                 <AvatarFallback className="text-4xl font-bold bg-gradient-to-br from-primary to-accent text-primary-foreground">
                   {profileUser.nickname.charAt(0).toUpperCase()}
                 </AvatarFallback>

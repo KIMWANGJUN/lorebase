@@ -68,7 +68,7 @@ export default function ProfilePage() {
       setNickname(user.nickname);
       setInputEmail(user.email);
       setOriginalEmail(user.email);
-      setSelectedImageUrl(user.avatar || '/assets/images/malamute-icon.png');
+      setSelectedImageUrl(user.avatar || '/assets/images/malamute-icon.webp');
       setSelectedTitleIdentifier(user.selectedTitleIdentifier || 'none');
       setSelectedNicknameEffectIdentifier(user.selectedNicknameEffectIdentifier || 'none');
       setSelectedLogoIdentifier(user.selectedLogoIdentifier || 'none');

@@ -7,7 +7,7 @@ import { getUser } from './userApi';
 const createPlaceholderUser = (authorId: string): User => ({
   id: authorId,
   nickname: '알 수 없는 사용자',
-  avatar: '/default-avatar.png',
+  avatar: '/default-avatar.webp',
   username: 'unknown',
   email: '',
   score: 0,

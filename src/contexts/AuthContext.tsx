@@ -100,7 +100,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 username: firebaseUser.email!, 
                 nickname: firebaseUser.displayName || firebaseUser.email?.split('@')[0] || '새 사용자',
                 email: firebaseUser.email!,
-                avatar: firebaseUser.photoURL || `https://placehold.co/100x100.png?text=${(firebaseUser.displayName || firebaseUser.email || 'N').substring(0,1).toUpperCase()}`,
+                avatar: firebaseUser.photoURL || `https://placehold.co/100x100.webp?text=${(firebaseUser.displayName || firebaseUser.email || 'N').substring(0,1).toUpperCase()}`,
                 score: 0, rank: 0, tetrisRank: 0,
                 categoryStats: { Unity: { score: 0 }, Unreal: { score: 0 }, Godot: { score: 0 }, General: { score: 0 } },
                 nicknameLastChanged: serverTimestamp(), isBlocked: false, socialProfiles: {},

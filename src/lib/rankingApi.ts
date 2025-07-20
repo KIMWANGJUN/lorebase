@@ -19,7 +19,7 @@ const fetchTopUsers = async (
       nickname: user.nickname,
       score: user.score,
       rank: index + 1,
-      avatar: user.avatar || '/default-avatar.png',
+      avatar: user.avatar || '/default-avatar.webp',
     };
   });
 };

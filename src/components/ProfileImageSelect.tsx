@@ -17,31 +17,31 @@ const AVAILABLE_PROFILE_IMAGES = [
   {
     id: 'malamute',
     name: '말라뮤트',
-    url: '/assets/images/malamute-icon.png',
+    url: '/assets/images/malamute-icon.webp',
     isDefault: true
   },
   {
     id: 'dog-1',
     name: '강아지 1',
-    url: '/assets/images/dog-1.png',
+    url: '/assets/images/dog-1.webp',
     isDefault: false
   },
   {
     id: 'dog-2',
     name: '강아지 2',
-    url: '/assets/images/dog-2.png',
+    url: '/assets/images/dog-2.webp',
     isDefault: false
   },
   {
     id: 'cat-1',
     name: '고양이 1',
-    url: '/assets/images/cat-1.png',
+    url: '/assets/images/cat-1.webp',
     isDefault: false
   },
   {
     id: 'cat-2',
     name: '고양이 2',
-    url: '/assets/images/cat-2.png',
+    url: '/assets/images/cat-2.webp',
     isDefault: false
   },
   // 관리자가 추가할 수 있는 더 많은 이미지들...

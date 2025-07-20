@@ -163,7 +163,7 @@ body {
     color: hsl(var(--foreground));
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    background-image: url('/assets/images/white-wood.png');
+    background-image: url('/assets/images/white-wood.webp');
     background-repeat: repeat;
     background-attachment: fixed;
     background-size: 400px 400px;
@@ -172,7 +172,7 @@ body {
   
   html.dark body,
   .dark body {
-    background-image: url('/assets/images/dark-wood.png');
+    background-image: url('/assets/images/dark-wood.webp');
   }
 }
 

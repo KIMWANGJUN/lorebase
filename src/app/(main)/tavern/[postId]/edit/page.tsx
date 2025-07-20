@@ -78,7 +78,7 @@ export default function EditPostPage() {
     return <div className="container mx-auto py-8 px-4 text-center">페이지를 불러오는 중...</div>;
   }
 
-  const bannerImageUrl = "https://placehold.co/1920x600.png";
+  const bannerImageUrl = "https://placehold.co/1920x600.webp";
 
   return (
     <div className="container mx-auto py-8 px-4">

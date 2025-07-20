@@ -42,7 +42,7 @@ export default function GameWorkshopPage() {
     return matchesSearch && matchesEngine;
   });
 
-  const bannerImageUrl = "https://placehold.co/1920x800.png";
+  const bannerImageUrl = "https://placehold.co/1920x800.webp";
 
   return (
     <div className="py-8 px-4">
@@ -93,7 +93,7 @@ export default function GameWorkshopPage() {
           {filteredProjects.map((project) => (
             <Card key={project.id} className="flex flex-col overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 ease-in-out transform hover:-translate-y-1 bg-card border-border hover:border-accent/70">
               <Image 
-                src={project.imageUrl || `https://placehold.co/600x400.png?text=${project.engine}`} 
+                src={project.imageUrl || `https://placehold.co/600x400.webp?text=${project.engine}`} 
                 alt={project.name} 
                 width={600} 
                 height={300} 

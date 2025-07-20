@@ -23,7 +23,7 @@ export function getCurrentUser(): Promise<User | null> {
           username: user.email || '',
           nickname: user.displayName || 'Anonymous',
           email: user.email || '',
-          avatar: user.photoURL || '/default-avatar.png',
+          avatar: user.photoURL || '/default-avatar.webp',
           score: 0, // Default value
           rank: 0, // Default value
           tetrisRank: 0, // Default value

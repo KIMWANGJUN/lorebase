@@ -1062,7 +1062,7 @@ export default function Header() {
           <div className="flex-shrink-0">
             <Link href="/" className="flex items-end gap-0.5 group logo-button">
               <Image
-                src="/assets/images/malamute-icon.png"
+                src="/assets/images/malamute-icon.webp"
                 alt="LOREBASE Logo"
                 width={28}
                 height={28}
