@@ -1,7 +1,7 @@
 // src/components/shared/PostListSearch.tsx
 "use client";
 import React, { useState, useEffect } from 'react';
-import { Input } from '@/components/ui/input';
+import { Input } from '@/components/ui/form/input';
 import { Search } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
 

@@ -61,10 +61,15 @@ export async function getPost(id: string): Promise<Post | null> {
   }
 }
 
-export async function getPosts(): Promise<Post[]> {
+export async function getPosts(mainCategories?: PostMainCategory[]): Promise<Post[]> {
   try {
     const postsCollection = collection(db, 'posts');
-    const q = query(postsCollection, orderBy('createdAt', 'desc'), limit(50));
+    let q = query(postsCollection, orderBy('createdAt', 'desc'), limit(50));
+
+    if (mainCategories && mainCategories.length > 0) {
+      q = query(postsCollection, where('mainCategory', 'in', mainCategories), orderBy('createdAt', 'desc'), limit(50));
+    }
+
     const querySnapshot = await getDocs(q);
     return await Promise.all(querySnapshot.docs.map(doc => enrichPostWithAuthor(doc.data(), doc.id)));
   } catch (error) {

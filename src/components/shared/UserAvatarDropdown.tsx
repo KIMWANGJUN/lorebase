@@ -4,14 +4,16 @@
 import type { User } from '@/types';
 import Link from 'next/link';
 import {
+  import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
+} from "@/components/ui/overlay/dropdown-menu";
 } from "@/components/ui/dropdown-menu";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/data-display/avatar";
 import { LogOut, UserCircle, Settings, ShieldCheck, ShieldAlert } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import NicknameDisplay from './NicknameDisplay'; // Import NicknameDisplay

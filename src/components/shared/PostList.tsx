@@ -4,22 +4,23 @@
 
 import React, { useState, useMemo, FC, ElementType, useEffect } from 'react';
 import type { AppRouterInstance } from 'next/dist/shared/lib/app-router-context.shared-runtime';
-import { Card, CardHeader, CardFooter } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { Card, CardHeader, CardFooter } from '@/components/ui/layout/card';
+import { Button } from '@/components/ui/form/button';
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/layout/tabs";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/overlay/alert-dialog";
 import type { Post, PostMainCategory, PostType, User as UserType } from '@/types';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import { Timestamp } from 'firebase/firestore';
 import { deletePost } from '@/lib/postApi';
 import { MessageSquare, ThumbsUp, Eye, Pin, Edit, Trash2, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, ScrollText, ListChecks, HelpCircle, BookOpen, ClipboardList, Smile, Flame } from 'lucide-react';
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/data-display/avatar";
 import { useAuth } from '@/contexts/AuthContext';
 import { cn } from '@/lib/utils';
 import NicknameDisplay from '@/components/shared/NicknameDisplay';
 import FormattedDateDisplay from '@/components/shared/FormattedDateDisplay';
 import { useToast } from '@/hooks/use-toast';
+import { COMMUNITY_CHANNELS, getChannelBySlug } from '@/lib/communityChannels';
 
 const POSTS_PER_PAGE = 10;
 
@@ -49,7 +50,7 @@ const PostItem = ({ post, currentUser, isAdmin, router, onDelete }: { post: Post
     
     const getCategoryLabel = (mainCategory: PostMainCategory, type: PostType) => {
         const typeLabel = postTypes.find(pt => pt.value === type)?.label || type;
-        if (mainCategory === 'General' || mainCategory === 'tavern') {
+        if (mainCategory === 'General') {
             return typeLabel;
         }
         return `${mainCategory} - ${typeLabel}`;
@@ -57,7 +58,7 @@ const PostItem = ({ post, currentUser, isAdmin, router, onDelete }: { post: Post
 
     return (
         <Card className={cn("shadow-md hover:shadow-lg transition-shadow duration-300 ease-in-out bg-card border-border hover:border-primary/30", post.isPinned && "border-t-4 border-accent", post.type === 'Notice' && "bg-primary/10 border-primary/50")}>
-            <Link href={`/tavern/${post.id}`} className="block hover:bg-card/5 transition-colors rounded-lg relative group">
+            <Link href={`/community/${post.mainCategory}/${post.id}`} className="block hover:bg-card/5 transition-colors rounded-lg relative group">
                 <CardHeader className="pb-1 pt-2 px-3">
                     <div className="flex justify-between items-start">
                         <h3 className={cn("text-base mb-0.5 flex items-center font-headline font-bold", post.type === 'Notice' ? "text-primary" : "text-foreground group-hover:text-primary transition-colors")}>
@@ -68,7 +69,7 @@ const PostItem = ({ post, currentUser, isAdmin, router, onDelete }: { post: Post
                         </h3>
                         {(currentUser?.id === post.author.id || isAdmin) && (
                             <div className="flex gap-1 absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-foreground" onClick={(e) => { e.preventDefault(); router.push(`/tavern/${post.id}/edit`); }}><Edit className="h-3 w-3" /></Button>
+                                <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-foreground" onClick={(e) => { e.preventDefault(); router.push(`/community/${post.mainCategory}/${post.id}/edit`); }}><Edit className="h-3 w-3" /></Button>
                                 <AlertDialog>
                                     <AlertDialogTrigger asChild>
                                         <Button variant="ghost" size="icon" className="h-6 w-6 text-destructive/70 hover:text-destructive" onClick={(e) => e.preventDefault()}><Trash2 className="h-3 w-3" /></Button>
@@ -106,9 +107,9 @@ interface SubTabInfo { value: PostType | 'popular' | 'all'; label: string; icon?
 const engineSubTabs: SubTabInfo[] = [ { value: 'all', label: '전체 글', icon: ListChecks }, { value: 'QnA', label: 'Q&A', icon: HelpCircle }, { value: 'Knowledge', label: '지식', icon: BookOpen }, { value: 'DevLog', label: '개발 일지', icon: ClipboardList }, { value: 'popular', label: '인기 글', icon: Flame }, ];
 const generalSubTabs: SubTabInfo[] = [ { value: 'all', label: '전체 글', icon: ListChecks }, { value: 'GeneralPost', label: '자유글', icon: MessageSquare }, { value: 'Humor', label: '유머', icon: Smile }, { value: 'Notice', label: '공지', icon: ScrollText}, { value: 'popular', label: '인기 글', icon: Flame }, ];
 
-interface PostListProps { initialPosts: Post[]; initialMainCategory: PostMainCategory; initialSearchTerm: string; }
+interface PostListProps { initialPosts: Post[]; channelSlug: string; initialSearchTerm: string; }
 
-const PostList: FC<PostListProps> = ({ initialPosts, initialMainCategory, initialSearchTerm }) => {
+const PostList: FC<PostListProps> = ({ initialPosts, channelSlug, initialSearchTerm }) => {
   const [posts, setPosts] = useState(initialPosts);
   useEffect(() => { setPosts(initialPosts); }, [initialPosts]);
 
@@ -117,12 +118,14 @@ const PostList: FC<PostListProps> = ({ initialPosts, initialMainCategory, initia
   const { user, isAdmin } = useAuth();
   const router = useRouter();
 
-  useEffect(() => { setCurrentPage(1); }, [initialMainCategory, initialSearchTerm]);
+  const currentChannel = getChannelBySlug(channelSlug) || COMMUNITY_CHANNELS[0];
+
+  useEffect(() => { setCurrentPage(1); }, [channelSlug, initialSearchTerm]);
 
   const handleDeletePost = (postId: string) => { setPosts(currentPosts => currentPosts.filter(p => p.id !== postId)); };
 
   const filteredPosts = useMemo(() => {
-    let currentPosts = posts.filter(p => p.mainCategory === initialMainCategory);
+    let currentPosts = posts.filter(p => currentChannel.categories.includes(p.mainCategory));
     if (initialSearchTerm) {
       const lowercasedTerm = initialSearchTerm.toLowerCase();
       currentPosts = currentPosts.filter(p => p.title.toLowerCase().includes(lowercasedTerm) || p.author.nickname.toLowerCase().includes(lowercasedTerm));
@@ -145,7 +148,7 @@ const PostList: FC<PostListProps> = ({ initialPosts, initialMainCategory, initia
     const pinnedPosts = otherPosts.filter(p => p.isPinned);
     const regularPosts = otherPosts.filter(p => !p.isPinned);
     return [...notices.sort(sortByDate), ...pinnedPosts, ...regularPosts];
-  }, [posts, initialMainCategory, subCategory, initialSearchTerm]);
+  }, [posts, currentChannel, subCategory, initialSearchTerm]);
 
   const totalPages = Math.ceil(filteredPosts.length / POSTS_PER_PAGE);
   const currentPostsToDisplay = filteredPosts.slice((currentPage - 1) * POSTS_PER_PAGE, currentPage * POSTS_PER_PAGE);
@@ -159,8 +162,8 @@ const PostList: FC<PostListProps> = ({ initialPosts, initialMainCategory, initia
     for (let i = startPage; i <= endPage; i++) { pageNumbers.push(<Button key={i} variant={currentPage === i ? 'default' : 'outline'} size="sm" onClick={() => paginate(i)} className="h-8 w-8 p-0">{i}</Button>); }
     return pageNumbers;
   };
-  const currentSubTabs = initialMainCategory === 'General' ? generalSubTabs : engineSubTabs;
-  useEffect(() => { if (!currentSubTabs.some(tab => tab.value === subCategory)) setSubCategory('all'); }, [initialMainCategory, subCategory, currentSubTabs]);
+  const currentSubTabs = currentChannel.slug === 'general' ? generalSubTabs : engineSubTabs;
+  useEffect(() => { if (!currentSubTabs.some(tab => tab.value === subCategory)) setSubCategory('all'); }, [currentChannel, subCategory, currentSubTabs]);
 
   return (
     <>

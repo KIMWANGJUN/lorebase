@@ -3,11 +3,11 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Timestamp } from 'firebase/firestore';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/layout/card";
+import { Button } from "@/components/ui/form/button";
+import { Skeleton } from "@/components/ui/data-display/skeleton";
+import { Badge } from "@/components/ui/data-display/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/data-display/avatar";
 import type { Post, PostMainCategory, TetrisRanker, RankEntry, Ranking } from '@/types';
 import CategoryRankingSidebar from '@/components/shared/CategoryRankingSidebar';
 import NicknameDisplay from '@/components/shared/NicknameDisplay';

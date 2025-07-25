@@ -3,11 +3,12 @@
 import './globals.css';
 import { ThemeProvider } from 'next-themes';
 import { ReactNode, useEffect, useState } from 'react';
-import { Toaster } from "@/components/ui/toaster";
+import { Toaster } from "@/components/ui/overlay/toaster";
 import AuthProvider, { useAuth } from '@/contexts/AuthContext';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import { Loader2 } from 'lucide-react';
+import { ThemeCustomizationProvider } from '@/contexts/ThemeCustomizationContext';
 
 // This new component, AppShell, will handle both client mounting and auth loading states
 // to prevent hydration errors and ensure a smooth loading experience.
@@ -63,7 +64,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             enableSystem={false}
             disableTransitionOnChange
           >
-            <AppShell>{children}</AppShell>
+            <ThemeCustomizationProvider>
+              <AppShell>{children}</AppShell>
+            </ThemeCustomizationProvider>
             <Toaster />
           </ThemeProvider>
         </AuthProvider>

@@ -1,15 +1,15 @@
 "use client";
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
-import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/form/button';
+import { Textarea } from '@/components/ui/form/textarea';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/layout/card';
 import type { Comment as CommentType, User, Post, PostMainCategory, PostType } from '@/types';
 import FormattedDateDisplay from './FormattedDateDisplay';
 import { useAuth } from '@/contexts/AuthContext';
 import { addComment, AddCommentData } from '@/lib/commentApi';
 import { Timestamp, FieldValue } from 'firebase/firestore';
 import NicknameDisplay from './NicknameDisplay';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/data-display/avatar';
 import { 
   MessageSquare, CornerDownRight, ArrowUp, ArrowDown, ChevronDown, ChevronUp,
   ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight,

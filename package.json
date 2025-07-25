@@ -4,11 +4,10 @@
   "private": true,
   "scripts": {
     "dev": "next dev -p 9002 --hostname 0.0.0.0",
-    "dev:studio": "next dev -p 9002 --hostname 0.0.0.0",
-    "dev:web": "next dev -p 9002 --hostname 0.0.0.0",
     "build": "next build",
     "start": "next start -p 9002 --hostname 0.0.0.0",
     "lint": "next lint",
+    "format": "prettier --write .",
     "clean": "rm -rf .next && rm -rf node_modules/.cache && npm cache clean --force"
   },
   "dependencies": {
@@ -42,7 +41,6 @@
     "react-day-picker": "^9.7.0",
     "react-dom": "^18",
     "react-hook-form": "^7.51.5",
-    "react-hot-toast": "^2.5.2",
     "tailwind-merge": "^2.3.0",
     "tailwindcss-animate": "^1.0.7",
     "zod": "^3.23.8"

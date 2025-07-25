@@ -4,15 +4,15 @@ import React, { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/layout/card';
+import { Button } from '@/components/ui/form/button';
+import { Input } from '@/components/ui/form/input';
+import { Label } from '@/components/ui/form/label';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/data-display/avatar';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/layout/tabs";
+import { ScrollArea } from '@/components/ui/layout/scroll-area';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/form/select";
+import { Switch } from "@/components/ui/form/switch";
 import { Edit3, Mail, MessageSquare, ShieldAlert, UserCog, ShieldCheck, Crown, Users, Clock, CheckCircle, Wand2, Palette, Link2, Key, Shield, Send, Timer, Lock, Unlock, Camera, X, PenTool } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import type { User, Post, Inquiry, PostMainCategory, TitleIdentifier, NicknameEffectIdentifier, LogoIdentifier } from '@/types';
@@ -23,6 +23,7 @@ import { cn, toDate, toTimestamp } from '@/lib/utils';
 import NicknameDisplay from '@/components/shared/NicknameDisplay';
 import ProfileImageSelect from '@/components/ProfileImageSelect';
 import { setupTwoFactorAuth, verifyTwoFactorCode, disableTwoFactorAuth } from '@/lib/twoFactorAuth';
+import ThemeSelector from '@/components/profile/ThemeSelector';
 
 const MAX_PASSWORD_CHANGES_PER_DAY = 3;
 const MAX_EMAIL_CHANGES_PER_DAY = 3;
@@ -620,6 +621,24 @@ export default function ProfilePage() {
                 </TabsList>
 
                 {/* 탭 내용들... */}
+                <TabsContent value="customization">
+                  <div className="space-y-8">
+                    <ThemeSelector />
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>닉네임/칭호 꾸미기</CardTitle>
+                        <CardDescription>획득한 칭호와 효과를 적용해보세요.</CardDescription>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        {/* ... 기존 꾸미기 옵션들 ... */}
+                      </CardContent>
+                      <CardFooter>
+                        <Button onClick={handleCustomizationSave} className="ml-auto">꾸미기 설정 저장</Button>
+                      </CardFooter>
+                    </Card>
+                  </div>
+                </TabsContent>
+
                 <TabsContent value="inquiries">
                    <Card className="bg-card border-border">
                     <CardHeader><CardTitle>내 문의 내역 ({userInquiries.length})</CardTitle></CardHeader>

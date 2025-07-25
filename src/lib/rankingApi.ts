@@ -29,12 +29,12 @@ const fetchTopUsers = async (
  * Fetches overall and category-specific rankings from Firestore.
  * @returns A promise that resolves to an array of Ranking objects.
  */
-export async function getRankings(): Promise<Ranking[]> {
+export async function getRankings(channelCategories?: PostMainCategory[]): Promise<Ranking[]> {
   try {
-    const categories: PostMainCategory[] = ['Unity', 'Unreal', 'Godot', 'General'];
+    const categoriesToFetch: PostMainCategory[] = channelCategories && channelCategories.length > 0 ? channelCategories : ['Unity', 'Unreal', 'Godot', 'General'];
     
     const overallPromise = fetchTopUsers('score', 5);
-    const categoryPromises = categories.map(category => 
+    const categoryPromises = categoriesToFetch.map(category => 
       fetchTopUsers(`categoryStats.${category}.score`, 3)
     );
 
@@ -45,7 +45,7 @@ export async function getRankings(): Promise<Ranking[]> {
         category: 'Overall',
         entries: overallEntries,
       },
-      ...categories.map((category, index) => ({
+      ...categoriesToFetch.map((category, index) => ({
         category: category,
         entries: categoryEntries[index],
       }))

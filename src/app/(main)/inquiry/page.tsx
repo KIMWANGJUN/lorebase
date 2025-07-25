@@ -5,16 +5,16 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Button } from '@/components/ui/form/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/layout/card';
+import { Input } from '@/components/ui/form/input';
+import { Textarea } from '@/components/ui/form/textarea';
+import { Label } from '@/components/ui/form/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/form/select';
 import { useToast } from '@/hooks/use-toast';
 import type { Inquiry, InquiryCategory } from '@/types';
 import { addInquiry, getInquiriesByUser } from '@/lib/inquiryApi';
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/layout/accordion';
 import FormattedDateDisplay from '@/components/shared/FormattedDateDisplay';
 import { Timestamp } from 'firebase/firestore';
 
