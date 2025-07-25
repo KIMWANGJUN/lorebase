@@ -110,7 +110,7 @@ export interface UserCategoryStat {
   rankInCate?: number;
 }
 
-export type PostMainCategory = 'Unity' | 'Unreal' | 'Godot' | 'General' | 'game-workshop' | 'tavern' | 'free-assets';
+export type PostMainCategory = 'unity' | 'unreal' | 'godot' | 'general';
 export type PostType = 'QnA' | 'Knowledge' | 'DevLog' | 'Notice' | 'GeneralPost' | 'Humor';
 export type InquiryCategory = 'account' | 'payment' | 'technical' | 'other' | 'user-report';
 

@@ -1,10 +1,10 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/form/button';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/data-display/avatar';
 import { Check, User } from 'lucide-react';
-import { toast } from 'react-hot-toast';
+import { useToast } from '@/hooks/use-toast';
 
 interface ProfileImageSelectProps {
   currentImageUrl?: string;
@@ -52,6 +52,7 @@ export default function ProfileImageSelect({
   onImageSelect, 
   disabled = false 
 }: ProfileImageSelectProps) {
+  const { toast } = useToast();
   const [selectedImage, setSelectedImage] = useState<string>(
     currentImageUrl || AVAILABLE_PROFILE_IMAGES[0].url
   );
@@ -61,7 +62,10 @@ export default function ProfileImageSelect({
     
     setSelectedImage(imageUrl);
     onImageSelect(imageUrl);
-    toast.success('프로필 이미지가 선택되었습니다.');
+    toast({
+      title: '성공',
+      description: '프로필 이미지가 선택되었습니다.',
+    });
   };
 
   return (

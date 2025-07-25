@@ -12,8 +12,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
   DropdownMenuSeparator,
-} from "@/components/ui/dropdown-menu";
-import { Button } from '@/components/ui/button';
+} from "@/components/ui/overlay/dropdown-menu";
+import { Button } from '@/components/ui/form/button';
 import {
   MessageSquare, User as UserIcon, ShieldAlert, Ban, Box, AppWindow, PenTool, LayoutGrid, ShieldCheck
 } from 'lucide-react';

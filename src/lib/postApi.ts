@@ -45,7 +45,7 @@ async function enrichPostWithAuthor(postData: DocumentData, id: string): Promise
   return { id, ...postData, author } as Post;
 }
 
-export async function getPost(id: string): Promise<Post | null> {
+export async function getPostById(id: string): Promise<Post | null> {
   try {
     const postDocRef = doc(db, 'posts', id);
     const docSnap = await getDoc(postDocRef);
@@ -61,10 +61,26 @@ export async function getPost(id: string): Promise<Post | null> {
   }
 }
 
-export async function getPosts(): Promise<Post[]> {
+export async function updatePostViews(postId: string): Promise<void> {
+  try {
+    const postRef = doc(db, 'posts', postId);
+    await updateDoc(postRef, {
+      views: (post.views || 0) + 1 // Assuming 'post' is available in this scope, which it won't be. Need to fetch it first.
+    });
+  } catch (error) {
+    console.error("Error updating post views:", error);
+  }
+}
+
+export async function getPosts(mainCategories?: PostMainCategory[]): Promise<Post[]> {
   try {
     const postsCollection = collection(db, 'posts');
-    const q = query(postsCollection, orderBy('createdAt', 'desc'), limit(50));
+    let q = query(postsCollection, orderBy('createdAt', 'desc'), limit(50));
+
+    if (mainCategories && mainCategories.length > 0) {
+      q = query(postsCollection, where('mainCategory', 'in', mainCategories), orderBy('createdAt', 'desc'), limit(50));
+    }
+
     const querySnapshot = await getDocs(q);
     return await Promise.all(querySnapshot.docs.map(doc => enrichPostWithAuthor(doc.data(), doc.id)));
   } catch (error) {

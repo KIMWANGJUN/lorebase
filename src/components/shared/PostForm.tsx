@@ -3,23 +3,29 @@
 "use client";
 
 import { useState, useEffect, FormEvent } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { CardContent, CardFooter } from '@/components/ui/card';
+import { Button } from '@/components/ui/form/button';
+import { Input } from '@/components/ui/form/input';
+import { Textarea } from '@/components/ui/form/textarea';
+import { Label } from '@/components/ui/form/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/form/select";
+import { CardContent, CardFooter } from '@/components/ui/layout/card';
 import { useToast } from "@/hooks/use-toast";
 import type { Post, PostMainCategory, PostType, User } from '@/types';
 import { LayoutPanelLeft, ListFilter, PenLine, Send, Bold, Italic, Strikethrough, Image as ImageIcon, Video } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 
-const mainCategories: { value: PostMainCategory; label: string }[] = [
-  { value: 'Unity', label: 'Unity 게시판' },
-  { value: 'Unreal', label: 'Unreal 게시판' },
-  { value: 'Godot', label: 'Godot 게시판' },
-  { value: 'General', label: '일반 게시판' },
-];
+import { useState, useEffect, FormEvent } from 'react';
+import { Button } from '@/components/ui/form/button';
+import { Input } from '@/components/ui/form/input';
+import { Textarea } from '@/components/ui/form/textarea';
+import { Label } from '@/components/ui/form/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/form/select";
+import { CardContent, CardFooter } from '@/components/ui/layout/card';
+import { useToast } from "@/hooks/use-toast";
+import type { Post, PostMainCategory, PostType, User } from '@/types';
+import { LayoutPanelLeft, ListFilter, PenLine, Send, Bold, Italic, Strikethrough, Image as ImageIcon, Video } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
+import { COMMUNITY_CHANNELS } from '@/lib/communityChannels';
 
 const postTypes: { value: PostType; label: string; mainCategories: PostMainCategory[] }[] = [
   { value: 'QnA', label: '질문/답변', mainCategories: ['Unity', 'Unreal', 'Godot'] },
@@ -93,7 +99,11 @@ interface PostFormProps {
             <Select value={selectedMainCategory} onValueChange={handleMainCategoryChange}>
               <SelectTrigger id="mainCategory" className="w-full bg-input border-border text-foreground focus:ring-accent"><SelectValue placeholder="게시판을 선택하세요" /></SelectTrigger>
               <SelectContent className="bg-popover border-border text-popover-foreground">
-                {mainCategories.map(cat => <SelectItem key={cat.value} value={cat.value}>{cat.label}</SelectItem>)}
+                {COMMUNITY_CHANNELS.map(channel => (
+                  channel.categories.map(cat => (
+                    <SelectItem key={cat} value={cat}>{channel.name} ({cat})</SelectItem>
+                  ))
+                )).flat()}
               </SelectContent>
             </Select>
           </div>

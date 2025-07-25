@@ -163,15 +163,17 @@ body {
     color: hsl(var(--foreground));
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    min-height: 100vh;
+  }
+
+  .theme-wood body {
     background-image: url('/assets/images/white-wood.webp');
     background-repeat: repeat;
     background-attachment: fixed;
     background-size: 400px 400px;
-    min-height: 100vh;
   }
-  
-  html.dark body,
-  .dark body {
+
+  .dark.theme-wood body {
     background-image: url('/assets/images/dark-wood.webp');
   }
 }
