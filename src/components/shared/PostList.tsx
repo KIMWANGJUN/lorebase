@@ -58,7 +58,7 @@ const PostItem = ({ post, currentUser, isAdmin, router, onDelete }: { post: Post
 
     return (
         <Card className={cn("shadow-md hover:shadow-lg transition-shadow duration-300 ease-in-out bg-card border-border hover:border-primary/30", post.isPinned && "border-t-4 border-accent", post.type === 'Notice' && "bg-primary/10 border-primary/50")}>
-            <Link href={`/tavern/${post.id}`} className="block hover:bg-card/5 transition-colors rounded-lg relative group">
+            <Link href={`/community/posts/${post.id}`} className="block hover:bg-card/5 transition-colors rounded-lg relative group">
                 <CardHeader className="pb-1 pt-2 px-3">
                     <div className="flex justify-between items-start">
                         <h3 className={cn("text-base mb-0.5 flex items-center font-headline font-bold", post.type === 'Notice' ? "text-primary" : "text-foreground group-hover:text-primary transition-colors")}>
@@ -69,7 +69,7 @@ const PostItem = ({ post, currentUser, isAdmin, router, onDelete }: { post: Post
                         </h3>
                         {(currentUser?.id === post.author.id || isAdmin) && (
                             <div className="flex gap-1 absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-foreground" onClick={(e) => { e.preventDefault(); router.push(`/tavern/${post.id}/edit`); }}><Edit className="h-3 w-3" /></Button>
+                                <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-foreground" onClick={(e) => { e.preventDefault(); router.push(`/community/posts/${post.id}/edit`); }}><Edit className="h-3 w-3" /></Button>
                                 <AlertDialog>
                                     <AlertDialogTrigger asChild>
                                         <Button variant="ghost" size="icon" className="h-6 w-6 text-destructive/70 hover:text-destructive" onClick={(e) => e.preventDefault()}><Trash2 className="h-3 w-3" /></Button>

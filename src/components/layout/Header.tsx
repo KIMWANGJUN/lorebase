@@ -11,8 +11,7 @@ import { ThemeToggleButton } from '@/components/shared/ThemeToggleButton';
 import { useAuth } from '@/contexts/AuthContext';
 
 const navItems = [
-  { href: '/game-workshop', label: '게임 공방', icon: Store },
-  { href: '/tavern', label: '선술집', icon: Users },
+  { href: '/community/channels/general', label: '커뮤니티', icon: Users },
   { href: '/free-assets', label: '무료 에셋', icon: Gamepad2 },
 ];
 

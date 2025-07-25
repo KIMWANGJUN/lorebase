@@ -110,7 +110,7 @@ export default function HomePage() {
         
         const sortedPosts = [...fetchedPosts].sort((a, b) => {
           if (a.createdAt instanceof Timestamp && b.createdAt instanceof Timestamp) {
-            return b.createdAt.toDate().getTime() - a.createdAt.toDate().getTime();
+            return (b.createdAt instanceof Timestamp ? b.createdAt.toDate().getTime() : 0) - (a.createdAt instanceof Timestamp ? a.createdAt.toDate().getTime() : 0);
           }
           return 0;
         });

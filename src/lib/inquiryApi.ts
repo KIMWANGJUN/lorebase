@@ -1,7 +1,8 @@
 // src/lib/inquiryApi.ts
 import { db } from './firebase';
-import { collection, getDocs, query, where, orderBy, addDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, getDocs, query, where, orderBy, addDoc, serverTimestamp, Timestamp } from 'firebase/firestore';
 import type { Inquiry } from '@/types';
+import { toDate } from './dateUtils';
 
 /**
  * Fetches inquiries for a specific user from Firestore.
@@ -20,10 +21,11 @@ export async function getInquiriesByUser(userId: string): Promise<Inquiry[]> {
 
     const inquiries = querySnapshot.docs.map(doc => {
       const data = doc.data();
+      const createdAtDate = toDate(data.createdAt);
       return {
         id: doc.id,
         ...data,
-        createdAt: data.createdAt.toDate().toISOString(),
+        createdAt: createdAtDate ? createdAtDate.toISOString() : null,
       } as Inquiry;
     });
 
