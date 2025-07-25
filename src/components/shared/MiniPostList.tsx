@@ -2,7 +2,7 @@
 // src/components/shared/MiniPostList.tsx
 import React from 'react';
 import Link from 'next/link';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/layout/card';
 import type { Post, PostMainCategory } from '@/types';
 import FormattedDateDisplay from './FormattedDateDisplay';
 import { toDate } from '@/lib/dateUtils';

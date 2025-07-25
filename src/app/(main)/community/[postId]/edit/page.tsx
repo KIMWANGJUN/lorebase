@@ -5,8 +5,8 @@
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/form/button';
+import { Card } from '@/components/ui/layout/card';
 import PostForm from '@/components/shared/PostForm';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from "@/hooks/use-toast";
@@ -37,7 +37,7 @@ export default function EditPostPage() {
 
     if (!postId) {
         toast({ title: "오류", description: "잘못된 접근입니다.", variant: "destructive" });
-        router.push('/tavern');
+        router.push('/community/general');
         return;
     }
     
@@ -45,13 +45,13 @@ export default function EditPostPage() {
         if (post) {
             if (post.author.id !== user.id && !isAdmin) {
                 toast({ title: "권한 없음", description: "이 게시글을 수정할 권한이 없습니다.", variant: "destructive" });
-                router.push(`/tavern/${postId}`);
+                router.push(`/community/${post.mainCategory}/${postId}`);
                 return;
             }
             setPostToEdit(post);
         } else {
             toast({ title: "오류", description: "게시글을 찾을 수 없습니다.", variant: "destructive" });
-            router.push('/tavern');
+            router.push('/community/general');
         }
         setPageLoading(false);
     });
@@ -65,7 +65,7 @@ export default function EditPostPage() {
     try {
         await updatePost(postToEdit.id, { ...data, isEdited: true });
         toast({ title: "성공!", description: "게시글이 성공적으로 수정되었습니다." });
-        router.push(`/tavern/${postToEdit.id}`);
+        router.push(`/community/${postToEdit.mainCategory}/${postToEdit.id}`);
     } catch (error) {
         console.error("Failed to update post:", error);
         toast({ title: "오류", description: "게시글 수정에 실패했습니다.", variant: "destructive" });

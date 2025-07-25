@@ -3,9 +3,9 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/ui/form/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/data-display/avatar";
 import type { Post, Comment } from '@/types';
 import CommentSection from '@/components/shared/CommentSection';
 import { getPost } from '@/lib/postApi';
@@ -15,6 +15,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import Link from 'next/link';
 import { Timestamp } from 'firebase/firestore';
 import NicknameDisplay from '@/components/shared/NicknameDisplay';
+import { getChannelByCategory } from '@/lib/communityChannels';
 
 export default function PostPage() {
     const { postId } = useParams();
@@ -59,6 +60,7 @@ export default function PostPage() {
     }
 
     const isAuthor = user && post && user.id === post.author.id;
+    const channelSlug = getChannelByCategory(post.mainCategory)?.slug || 'general';
 
     return (
         <div className="container mx-auto py-8">
@@ -81,7 +83,7 @@ export default function PostPage() {
                     <div className="prose dark:prose-invert max-w-none" dangerouslySetInnerHTML={{ __html: post.content }} />
                     {isAuthor && (
                          <div className="mt-4 text-right">
-                            <Link href={`/tavern/${post.id}/edit`}>
+                            <Link href={`/community/${channelSlug}/${post.id}/edit`}>
                                 <Button variant="outline">수정</Button>
                             </Link>
                          </div>

@@ -2,10 +2,10 @@
 // src/app/(main)/free-assets/page.tsx
 "use client";
 import { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/layout/card';
+import { Button } from '@/components/ui/form/button';
+import { Input } from '@/components/ui/form/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/form/select";
 import type { AssetInfo } from '@/types';
 import Image from 'next/image';
 import { Search, Compass, ExternalLink, Image as ImageIcon, Music, Box, PlusCircle, Edit, Trash2, Gem } from 'lucide-react';
