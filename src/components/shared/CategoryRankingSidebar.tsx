@@ -1,10 +1,25 @@
+// CategoryRankingSidebar.tsx의 상단 타입 정의 부분을 다음과 같이 수정:
 
 import { Crown } from 'lucide-react';
-import { getChannelByCategory } from '@/lib/communityChannels';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import type { PostMainCategory, Ranking } from '@/types'; // 이미 정의된 타입 사용
 
+// 기존 RankingEntry 인터페이스를 제거하고 다음으로 교체:
 interface CategoryRankingSidebarProps {
   rankings: Ranking[];
 }
+
+// getChannelByCategory 함수 (임시)
+const getChannelByCategory = (category: PostMainCategory) => {
+  const categoryNames = {
+    unity: 'Unity',
+    unreal: 'Unreal', 
+    godot: 'Godot',
+    general: '일반'
+  };
+  return { name: categoryNames[category] };
+};
 
 export default function CategoryRankingSidebar({ rankings }: CategoryRankingSidebarProps) {
   if (!rankings || rankings.length === 0) {
@@ -40,7 +55,7 @@ export default function CategoryRankingSidebar({ rankings }: CategoryRankingSide
                         {index === 0 ? <Crown className="w-5 h-5 text-yellow-500" /> : entry.rank}
                       </span>
                       <Avatar className="h-9 w-9">
-                        <AvatarImage src={entry.avatar} alt={entry.nickname} />
+                        <AvatarImage src={entry.avatar || ''} alt={entry.nickname} />
                         <AvatarFallback>{entry.nickname.charAt(0)}</AvatarFallback>
                       </Avatar>
                       <div className="flex-1">

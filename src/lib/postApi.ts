@@ -1,8 +1,7 @@
-
 // src/lib/postApi.ts
 import { db } from './firebase';
-import { collection, getDocs, getDoc, doc, addDoc, updateDoc, deleteDoc, serverTimestamp, query, where, orderBy, limit, DocumentData, Timestamp } from 'firebase/firestore';
-import type { Post, User } from '@/types';
+import { collection, getDocs, getDoc, doc, addDoc, updateDoc, deleteDoc, serverTimestamp, query, where, orderBy, limit, DocumentData, Timestamp, increment } from 'firebase/firestore';
+import type { Post, User, PostMainCategory } from '@/types';
 import { getUser } from './userApi';
 
 // 기본 사용자 객체 생성 함수
@@ -30,7 +29,6 @@ const createPlaceholderUser = (authorId: string): User => ({
   lastPasswordChangeDate: null,
   passwordChangesToday: 0,
 });
-
 
 // 게시물 데이터에 작성자 정보 추가 (단순화된 버전)
 async function enrichPostWithAuthor(postData: DocumentData, id: string): Promise<Post> {
@@ -61,11 +59,14 @@ export async function getPostById(id: string): Promise<Post | null> {
   }
 }
 
+// getPost 별칭 추가
+export const getPost = getPostById;
+
 export async function updatePostViews(postId: string): Promise<void> {
   try {
     const postRef = doc(db, 'posts', postId);
     await updateDoc(postRef, {
-      views: (post.views || 0) + 1 // Assuming 'post' is available in this scope, which it won't be. Need to fetch it first.
+      views: increment(1)
     });
   } catch (error) {
     console.error("Error updating post views:", error);

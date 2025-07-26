@@ -1,20 +1,18 @@
-
-// src/components/shared/PostList.tsx
 "use client";
 
 import React, { useState, useMemo, FC, ElementType, useEffect } from 'react';
 import type { AppRouterInstance } from 'next/dist/shared/lib/app-router-context.shared-runtime';
-import { Card, CardHeader, CardFooter } from '@/components/ui/layout/card';
-import { Button } from '@/components/ui/form/button';
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/layout/tabs";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/overlay/alert-dialog";
+import { Card, CardHeader, CardFooter } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import type { Post, PostMainCategory, PostType, User as UserType } from '@/types';
 import Link from 'next/link';
 import { useRouter, useParams } from 'next/navigation';
 import { Timestamp } from 'firebase/firestore';
 import { deletePost } from '@/lib/postApi';
 import { MessageSquare, ThumbsUp, Eye, Pin, Edit, Trash2, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, ScrollText, ListChecks, HelpCircle, BookOpen, ClipboardList, Smile, Flame } from 'lucide-react';
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/data-display/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from '@/contexts/AuthContext';
 import { cn } from '@/lib/utils';
 import NicknameDisplay from '@/components/shared/NicknameDisplay';
@@ -25,12 +23,12 @@ import { COMMUNITY_CHANNELS, getChannelBySlug } from '@/lib/communityChannels';
 const POSTS_PER_PAGE = 10;
 
 const postTypes: { value: PostType; label: string; mainCategories: PostMainCategory[] }[] = [
-    { value: 'QnA', label: 'Q&A', mainCategories: ['Unity', 'Unreal', 'Godot'] },
-    { value: 'Knowledge', label: '지식공유', mainCategories: ['Unity', 'Unreal', 'Godot'] },
-    { value: 'DevLog', label: '개발일지', mainCategories: ['Unity', 'Unreal', 'Godot'] },
-    { value: 'GeneralPost', label: '자유글', mainCategories: ['General'] },
-    { value: 'Humor', label: '유머', mainCategories: ['General'] },
-    { value: 'Notice', label: '공지', mainCategories: ['General'] },
+    { value: 'QnA', label: 'Q&A', mainCategories: ['unity', 'unreal', 'godot'] },
+    { value: 'Knowledge', label: '지식공유', mainCategories: ['unity', 'unreal', 'godot'] },
+    { value: 'DevLog', label: '개발일지', mainCategories: ['unity', 'unreal', 'godot'] },
+    { value: 'GeneralPost', label: '자유글', mainCategories: ['general'] },
+    { value: 'Humor', label: '유머', mainCategories: ['general'] },
+    { value: 'Notice', label: '공지', mainCategories: ['general'] },
 ];
 
 const PostItem = ({ post, currentUser, isAdmin, router, onDelete }: { post: Post; currentUser: UserType | null; isAdmin: boolean; router: AppRouterInstance; onDelete: (postId: string) => void; }) => {
@@ -50,10 +48,16 @@ const PostItem = ({ post, currentUser, isAdmin, router, onDelete }: { post: Post
     
     const getCategoryLabel = (mainCategory: PostMainCategory, type: PostType) => {
         const typeLabel = postTypes.find(pt => pt.value === type)?.label || type;
-        if (mainCategory === 'General') {
+        if (mainCategory === 'general') {
             return typeLabel;
         }
-        return `${mainCategory} - ${typeLabel}`;
+        const categoryNames = {
+            unity: 'Unity',
+            unreal: 'Unreal', 
+            godot: 'Godot',
+            general: '일반'
+        };
+        return `${categoryNames[mainCategory]} - ${typeLabel}`;
     }
 
     return (
@@ -107,7 +111,7 @@ interface SubTabInfo { value: PostType | 'popular' | 'all'; label: string; icon?
 const engineSubTabs: SubTabInfo[] = [ { value: 'all', label: '전체 글', icon: ListChecks }, { value: 'QnA', label: 'Q&A', icon: HelpCircle }, { value: 'Knowledge', label: '지식', icon: BookOpen }, { value: 'DevLog', label: '개발 일지', icon: ClipboardList }, { value: 'popular', label: '인기 글', icon: Flame }, ];
 const generalSubTabs: SubTabInfo[] = [ { value: 'all', label: '전체 글', icon: ListChecks }, { value: 'GeneralPost', label: '자유글', icon: MessageSquare }, { value: 'Humor', label: '유머', icon: Smile }, { value: 'Notice', label: '공지', icon: ScrollText}, { value: 'popular', label: '인기 글', icon: Flame }, ];
 
-interface PostListProps { initialPosts: Post[]; channelSlug: string; initialSearchTerm: string; }
+interface PostListProps { initialPosts: Post[]; channelSlug: string; initialSearchTerm: string; initialMainCategory?: PostMainCategory; }
 
 const PostList: FC<PostListProps> = ({ initialPosts, channelSlug, initialSearchTerm }) => {
   const [posts, setPosts] = useState(initialPosts);

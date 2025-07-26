@@ -35,26 +35,26 @@ interface NicknameDisplayProps {
 const CategoryIcon: React.FC<{ category: PostMainCategory; className?: string }> = ({ category, className }) => {
     const defaultClassName = "h-3.5 w-3.5 shrink-0";
      const iconColorClass =
-      category === 'Unity' ? 'icon-unity' :
-      category === 'Unreal' ? 'icon-unreal' :
-      category === 'Godot' ? 'icon-godot' :
+      category === 'unity' ? 'icon-unity' :
+      category === 'unreal' ? 'icon-unreal' :
+      category === 'godot' ? 'icon-godot' :
       'icon-general';
   
     switch (category) {
-      case 'Unity': return <Box className={cn(defaultClassName, iconColorClass, className)} />;
-      case 'Unreal': return <AppWindow className={cn(defaultClassName, iconColorClass, className)} />;
-      case 'Godot': return <PenTool className={cn(defaultClassName, iconColorClass, className)} />;
-      case 'General': return <LayoutGrid className={cn(defaultClassName, iconColorClass, className)} />;
+      case 'unity': return <Box className={cn(defaultClassName, iconColorClass, className)} />;
+      case 'unreal': return <AppWindow className={cn(defaultClassName, iconColorClass, className)} />;
+      case 'godot': return <PenTool className={cn(defaultClassName, iconColorClass, className)} />;
+      case 'general': return <LayoutGrid className={cn(defaultClassName, iconColorClass, className)} />;
       default: return null;
     }
   };
   
   const getCategoryDisplayName = (category: PostMainCategory): string => {
     switch (category) {
-      case 'Unity': return 'Unity';
-      case 'Unreal': return 'Unreal';
-      case 'Godot': return 'Godot';
-      case 'General': return '일반&유머';
+      case 'unity': return 'Unity';
+      case 'unreal': return 'Unreal';
+      case 'godot': return 'Godot';
+      case 'general': return '일반&유머';
       default: return category;
     }
   };

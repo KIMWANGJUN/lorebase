@@ -102,7 +102,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 email: firebaseUser.email!,
                 avatar: firebaseUser.photoURL || `https://placehold.co/100x100.webp?text=${(firebaseUser.displayName || firebaseUser.email || 'N').substring(0,1).toUpperCase()}`,
                 score: 0, rank: 0, tetrisRank: 0,
-                categoryStats: { Unity: { score: 0 }, Unreal: { score: 0 }, Godot: { score: 0 }, General: { score: 0 } },
+                categoryStats: { unity: { score: 0 }, unreal: { score: 0 }, godot: { score: 0 }, general: { score: 0 } },
                 nicknameLastChanged: serverTimestamp(), isBlocked: false, socialProfiles: {},
                 selectedTitleIdentifier: 'none', selectedNicknameEffectIdentifier: 'none', selectedLogoIdentifier: 'none',
                 twoFactorEnabled: false, emailChangesToday: 0, lastEmailChangeDate: null,

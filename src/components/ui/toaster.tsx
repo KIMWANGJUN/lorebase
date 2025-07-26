@@ -1,13 +1,13 @@
 "use client"
 
 import { useToast } from "@/hooks/use-toast"
-import { 
-  Toast, 
-  ToastProvider, 
-  ToastViewport,
-  ToastTitle,
+import {
+  Toast,
+  ToastClose,
   ToastDescription,
-  ToastClose 
+  ToastProvider,
+  ToastTitle,
+  ToastViewport,
 } from "@/components/ui/toast"
 
 export function Toaster() {

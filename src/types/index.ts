@@ -1,4 +1,3 @@
-
 import { FieldValue, Timestamp } from 'firebase/firestore';
 
 export interface User {
@@ -68,7 +67,7 @@ export interface RankEntry {
   nickname: string;
   score: number;
   rank: number;
-  avatar?: string;
+  avatar: string;
 }
 
 export interface Post {
@@ -110,9 +109,25 @@ export interface UserCategoryStat {
   rankInCate?: number;
 }
 
+// 기본 타입 정의 (소문자 - 데이터베이스와 일치)
 export type PostMainCategory = 'unity' | 'unreal' | 'godot' | 'general';
 export type PostType = 'QnA' | 'Knowledge' | 'DevLog' | 'Notice' | 'GeneralPost' | 'Humor';
 export type InquiryCategory = 'account' | 'payment' | 'technical' | 'other' | 'user-report';
+
+// 호환성을 위한 타입 매핑
+export const CATEGORY_DISPLAY_NAMES: Record<PostMainCategory, string> = {
+  unity: 'Unity',
+  unreal: 'Unreal',
+  godot: 'Godot',
+  general: '일반'
+};
+
+export const CATEGORY_SLUGS: Record<string, PostMainCategory> = {
+  unity: 'unity',
+  unreal: 'unreal', 
+  godot: 'godot',
+  general: 'general'
+};
 
 export type TitleIdentifier = 
   | 'none'
@@ -129,34 +144,35 @@ export type LogoIdentifier =
   | 'bronze-quill' | 'silver-quill' | 'gold-quill' | 'diamond-crown';
 
 export interface TetrisRanker {
-    userId: string;
-    nickname: string;
-    score: number;
-    rank: number;
+  avatar: any;
+  userId: string;
+  nickname: string;
+  score: number;
+  rank: number;
 }
 
 export interface StarterProject {
-    id: string;
-    engine: string;
-    name: string;
-    description: string;
-    imageUrl: string;
-    downloadUrl: string;
-    version: string;
-    lastUpdatedAt: string;
-    tags: string[];
+  id: string;
+  engine: string;
+  name: string;
+  description: string;
+  imageUrl: string;
+  downloadUrl: string;
+  version: string;
+  lastUpdatedAt: string;
+  tags: string[];
 }
 
 export interface AssetInfo {
-    id: string;
-    name: string;
-    type: 'Model' | 'Texture' | 'Sound' | 'Plugin';
-    description: string;
-    siteUrl: string;
-    imageUrl: string;
-    isFree: boolean;
-    updateFrequency?: string;
-    tags: string[];
+  id: string;
+  name: string;
+  type: 'Model' | 'Texture' | 'Sound' | 'Plugin';
+  description: string;
+  siteUrl: string;
+  imageUrl: string;
+  isFree: boolean;
+  updateFrequency?: string;
+  tags: string[];
 }
 
 export interface NewUserDto {
@@ -176,4 +192,46 @@ export interface TwoFactorSetupResult {
 export interface TwoFactorVerifyResult {
   success: boolean;
   message: string;
+}
+
+// 추가 유틸리티 타입들
+export interface PostFormData {
+  title: string;
+  content: string;
+  type: PostType;
+  mainCategory: PostMainCategory;
+  tags: string[];
+}
+
+export interface CommentFormData {
+  content: string;
+  postId: string;
+  parentId?: string;
+}
+
+// Props 인터페이스들
+export interface PostListProps {
+  initialPosts: Post[];
+  channelSlug: string;
+  initialSearchTerm: string;
+  initialMainCategory?: PostMainCategory; // 이 줄 추가
+}
+
+export interface CommentSectionProps {
+  postId: string;
+  initialComments: Comment[];
+}
+
+// 랭킹 관련 추가 타입
+export interface RankingEntry {
+  userId: string;
+  nickname: string;
+  avatar: string;
+  score: number;
+  rank: number;
+}
+
+export interface CategoryRanking {
+  category: string;
+  entries: RankingEntry[];
 }

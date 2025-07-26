@@ -1,4 +1,3 @@
-// src/components/shared/DynamicTavernSearch.tsx
 "use client";
 
 import React from 'react';

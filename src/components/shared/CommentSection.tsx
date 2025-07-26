@@ -31,13 +31,10 @@ interface CommentSectionProps {
 }
 
 const categoryIcons: Record<PostMainCategory, React.ElementType> = {
-  Unity: Box,
-  Unreal: AppWindow,
-  Godot: PenTool,
-  General: LayoutGrid,
-  'game-workshop': LayoutGrid,
-  tavern: LayoutGrid,
-  'free-assets': LayoutGrid,
+  unity: Box,
+  unreal: AppWindow,
+  godot: PenTool,
+  general: LayoutGrid
 };
 
 const getDateFromTimestamp = (ts: Timestamp | FieldValue | Date | undefined): Date => {

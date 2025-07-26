@@ -1,44 +1,56 @@
-// src/app/(main)/community/posts/[postId]/page.tsx
 "use client";
 
 import React, { useState, useEffect, Suspense } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { getPostById, updatePostViews } from '@/lib/postApi';
+import { getComments } from '@/lib/commentApi';
 import { useAuth } from '@/contexts/AuthContext';
-import type { Post, User as UserType } from '@/types';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/layout/card';
-import { Button } from '@/components/ui/form/button';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/data-display/avatar';
-import { Badge } from '@/components/ui/data-display/badge';
-import { Separator } from '@/components/ui/layout/separator';
+import type { Post, Comment, User as UserType } from '@/types';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
 import { ArrowLeft, Edit, Trash2, ThumbsUp, ThumbsDown, MessageSquare, Eye, Pin, Clock, User as UserIcon } from 'lucide-react';
 import { deletePost } from '@/lib/postApi';
 import { useToast } from "@/hooks/use-toast";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/overlay/alert-dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import CommentSection from '@/components/shared/CommentSection';
 import NicknameDisplay from '@/components/shared/NicknameDisplay';
 import FormattedDateDisplay from '@/components/shared/FormattedDateDisplay';
-import { Skeleton } from '@/components/ui/data-display/skeleton';
+import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
 import { COMMUNITY_CHANNELS, getChannelBySlug } from '@/lib/communityChannels';
+import { Timestamp } from 'firebase/firestore';
+
+// Timestamp 타입 가드 함수
+function isTimestamp(value: any): value is Timestamp {
+  return value && typeof value.toDate === 'function';
+}
 
 function PostContent() {
   const { postId } = useParams();
   const { user, isAdmin } = useAuth();
   const [post, setPost] = useState<Post | null>(null);
+  const [comments, setComments] = useState<Comment[]>([]);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
   const { toast } = useToast();
 
   useEffect(() => {
     if (typeof postId === 'string') {
-      const fetchPost = async () => {
+      const fetchData = async () => {
         try {
           const fetchedPost = await getPostById(postId);
           if (fetchedPost) {
             setPost(fetchedPost);
-            // Increment views only once per session, for example
+            
+            // 댓글 가져오기
+            const fetchedComments = await getComments(postId);
+            setComments(fetchedComments);
+            
+            // Increment views only once per session
             const viewedPosts = JSON.parse(sessionStorage.getItem('viewedPosts') || '[]');
             if (!viewedPosts.includes(postId)) {
               await updatePostViews(postId);
@@ -55,7 +67,7 @@ function PostContent() {
           setLoading(false);
         }
       };
-      fetchPost();
+      fetchData();
     }
   }, [postId, router, toast]);
 
@@ -79,6 +91,17 @@ function PostContent() {
   }
 
   const currentChannel = getChannelBySlug(post.mainCategory) || COMMUNITY_CHANNELS[0];
+
+  // 안전한 날짜 처리
+  const getPostDate = () => {
+    if (isTimestamp(post.createdAt)) {
+      return post.createdAt.toDate();
+    } else if (post.createdAt instanceof Date) {
+      return post.createdAt;
+    } else {
+      return new Date(); // 기본값
+    }
+  };
 
   return (
     <div className="container mx-auto py-8 px-4">
@@ -110,7 +133,7 @@ function PostContent() {
                 </div>
                 <div className="flex items-center gap-1">
                   <Clock className="h-4 w-4" />
-                  <FormattedDateDisplay date={post.createdAt.toDate()} />
+                  <FormattedDateDisplay date={getPostDate()} />
                   {post.isEdited && <span className="text-xs ml-1">(수정됨)</span>}
                 </div>
               </div>
@@ -160,12 +183,11 @@ function PostContent() {
             <span className="flex items-center gap-1.5"><MessageSquare className="h-4 w-4" /> {post.commentCount}</span>
             <span className="flex items-center gap-1.5"><Eye className="h-4 w-4" /> {post.views}</span>
           </div>
-          {/* Social Share Buttons can be added here */}
         </CardFooter>
       </Card>
 
       <div className="mt-8">
-        <CommentSection postId={post.id} />
+        <CommentSection postId={post.id} initialComments={comments} />
       </div>
     </div>
   );

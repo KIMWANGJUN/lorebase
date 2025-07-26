@@ -28,10 +28,10 @@ export function getCurrentUser(): Promise<User | null> {
           rank: 0, // Default value
           tetrisRank: 0, // Default value
           categoryStats: {
-            Unity: { score: 0, rankInCate: 0 },
-            Unreal: { score: 0, rankInCate: 0 },
-            Godot: { score: 0, rankInCate: 0 },
-            General: { score: 0, rankInCate: 0 },
+            unity: { score: 0, rankInCate: 0 },
+            unreal: { score: 0, rankInCate: 0 },
+            godot: { score: 0, rankInCate: 0 },
+            general: { score: 0, rankInCate: 0 },
           },
           isBlocked: false,
           socialProfiles: {},

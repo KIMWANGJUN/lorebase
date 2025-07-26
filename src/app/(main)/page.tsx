@@ -3,22 +3,21 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Timestamp } from 'firebase/firestore';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/layout/card";
-import { Button } from "@/components/ui/form/button";
-import { Skeleton } from "@/components/ui/data-display/skeleton";
-import { Badge } from "@/components/ui/data-display/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/data-display/avatar";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import type { Post, PostMainCategory, TetrisRanker, RankEntry, Ranking } from '@/types';
-import CategoryRankingSidebar from '@/components/shared/CategoryRankingSidebar';
 import NicknameDisplay from '@/components/shared/NicknameDisplay';
 import FormattedDateDisplay from '@/components/shared/FormattedDateDisplay';
+import IntegratedRankingPanel from '@/components/shared/IntegratedRankingPanel';
+import AdBanner from '@/components/shared/AdBanner';
 import { getPosts } from '@/lib/postApi';
 import { getRankings, getTetrisRankers } from '@/lib/rankingApi';
 import { 
-  Gamepad2, TrendingUp, Crown, Star, 
-  ThumbsUp, Eye, MessageSquare, Play, Trophy,
-  Box, AppWindow, PenTool, LayoutGrid,
-  Flame, Award, Hammer, Beer, Gift, Sparkles
+  Star, ThumbsUp, Eye, MessageSquare, Flame, Sparkles,
+  Box, AppWindow, PenTool, LayoutGrid
 } from 'lucide-react';
 
 // 수채화 스켈레톤 컴포넌트들
@@ -44,50 +43,23 @@ function FeaturedPostSkeleton() {
   );
 }
 
-function RankingSkeleton() {
-  return (
-    <Card className="watercolor-card">
-      <CardHeader>
-        <Skeleton className="h-6 w-32 bg-gradient-to-r from-watercolor-primary/20 to-watercolor-secondary/20" />
-      </CardHeader>
-      <CardContent className="space-y-3">
-        {[1, 2, 3].map((i) => (
-          <div key={i} className="flex items-center gap-3">
-            <Skeleton className="h-8 w-8 rounded-full bg-watercolor-accent/30" />
-            <div className="flex-1">
-              <Skeleton className="h-4 w-24 mb-1 bg-watercolor-primary/15" />
-              <Skeleton className="h-3 w-16 bg-watercolor-secondary/15" />
-            </div>
-            <Skeleton className="h-4 w-12 bg-watercolor-accent/20" />
-          </div>
-        ))}
-      </CardContent>
-    </Card>
-  );
-}
-
 const getCategoryPath = (category: PostMainCategory): string => {
   const paths: Record<PostMainCategory, string> = {
-    'Unity': 'tavern', 'Unreal': 'tavern', 'Godot': 'tavern', 'General': 'tavern',
-    'game-workshop': 'game-workshop', 'tavern': 'tavern', 'free-assets': 'free-assets'
+    'unity': 'tavern', 'unreal': 'tavern', 'godot': 'tavern', 'general': 'tavern'
   };
   return paths[category] || 'tavern';
 }
 
 const categoryIcons: { [key in PostMainCategory]: React.ElementType } = {
-  Unity: Box, Unreal: AppWindow, Godot: PenTool, General: LayoutGrid,
-  'game-workshop': Hammer, 'tavern': Beer, 'free-assets': Gift,
+  unity: Box, unreal: AppWindow, godot: PenTool, general: LayoutGrid 
 };
 
 // 수채화 테마에 맞는 카테고리 색상
 const categoryColors: { [key in PostMainCategory]: string } = {
-  Unity: "text-watercolor-primary", 
-  Unreal: "text-watercolor-secondary", 
-  Godot: "text-watercolor-accent",
-  General: "text-watercolor-primary", 
-  'game-workshop': "text-watercolor-accent",
-  'tavern': "text-watercolor-secondary", 
-  'free-assets': "text-watercolor-primary",
+  unity: "text-watercolor-primary", 
+  unreal: "text-watercolor-secondary", 
+  godot: "text-watercolor-accent",
+  general: "text-watercolor-primary"
 };
 
 export default function HomePage() {
@@ -105,7 +77,7 @@ export default function HomePage() {
       setError(null);
       try {
         const [fetchedPosts, fetchedRankings, fetchedTetrisRankers] = await Promise.all([
-          getPosts(), getRankings(), getTetrisRankers({ limit: 5 }),
+          getPosts(), getRankings(), getTetrisRankers({ limit: 50 }), // 더 많은 데이터 가져오기
         ]);
         
         const sortedPosts = [...fetchedPosts].sort((a, b) => {
@@ -143,7 +115,7 @@ export default function HomePage() {
   if (error) {
     return (
       <div className="flex items-center justify-center min-h-[50vh] relative">
-        {/* 수채화 배경 효과 (텍스처 위에 오버레이) */}
+        {/* 수채화 배경 효과 */}
         <div className="absolute inset-0 pointer-events-none">
           <div className="absolute top-1/4 left-1/4 w-32 h-32 bg-gradient-to-br from-watercolor-primary/10 to-transparent rounded-full blur-2xl animate-watercolor-float"></div>
           <div className="absolute bottom-1/4 right-1/4 w-40 h-40 bg-gradient-to-br from-watercolor-secondary/10 to-transparent rounded-full blur-2xl animate-watercolor-float" style={{animationDelay: '-2s'}}></div>
@@ -163,7 +135,7 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen relative">
-      {/* 수채화 배경 효과 (텍스처 이미지 위에 오버레이) */}
+      {/* 수채화 배경 효과 */}
       <div className="fixed inset-0 pointer-events-none z-0">
         <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-gradient-to-br from-watercolor-primary/8 to-transparent rounded-full blur-3xl animate-watercolor-float"></div>
         <div className="absolute top-1/3 right-1/3 w-96 h-96 bg-gradient-to-br from-watercolor-secondary/6 to-transparent rounded-full blur-3xl animate-watercolor-float" style={{animationDelay: '-3s'}}></div>
@@ -172,39 +144,46 @@ export default function HomePage() {
       </div>
 
       <div className="container mx-auto py-8 relative z-10">
-        {/* 수채화 히어로 섹션 */}
-        <section className="mb-12 text-center relative overflow-hidden">
-          <div className="relative p-8 md:p-16 rounded-3xl border border-watercolor-border bg-gradient-to-br from-watercolor-primary/5 via-watercolor-accent/3 to-watercolor-secondary/5 backdrop-blur-sm shadow-watercolor-light dark:shadow-watercolor-dark">
-            {/* 수채화 배경 효과 */}
-            <div className="absolute inset-0 opacity-15">
-              <div className="absolute top-10 left-10 w-32 h-32 bg-gradient-to-br from-watercolor-primary/40 to-transparent rounded-full blur-2xl animate-watercolor-float"></div>
-              <div className="absolute bottom-10 right-10 w-40 h-40 bg-gradient-to-br from-watercolor-secondary/30 to-transparent rounded-full blur-2xl animate-watercolor-float" style={{animationDelay: '-2s'}}></div>
-              <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-24 h-24 bg-gradient-to-br from-watercolor-accent/35 to-transparent rounded-full blur-2xl animate-watercolor-float" style={{animationDelay: '-4s'}}></div>
-            </div>
-            
-            <div className="relative z-10">
-              <h1 className="text-4xl md:text-6xl font-bold mb-4 watercolor-text-gradient">
-                LOREBASE
-              </h1>
-              <p className="text-lg md:text-xl text-watercolor-muted mb-6">
-                게임 개발자들을 위한 수채화 커뮤니티 플랫폼
-              </p>
-              <div className="flex items-center justify-center gap-2">
-                <Sparkles className="h-5 w-5 text-watercolor-primary animate-watercolor-pulse" />
-                <span className="text-sm text-watercolor-muted">창의적인 아이디어가 흘러나오는 공간</span>
-                <Sparkles className="h-5 w-5 text-watercolor-secondary animate-watercolor-pulse" style={{animationDelay: '0.5s'}} />
-              </div>
-            </div>
+        {/* 메인 레이아웃 - 좌측 광고, 중앙 컨텐츠, 우측 랭킹 및 광고 */}
+        <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
+          {/* 좌측 광고 배너 */}
+          <div className="hidden xl:block xl:col-span-2">
+            <AdBanner position="left" />
           </div>
-        </section>
 
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-          <div className="lg:col-span-3 space-y-8">
+          {/* 중앙 메인 컨텐츠 */}
+          <div className="xl:col-span-7 space-y-8">
+            {/* 수채화 히어로 섹션 */}
+            <section className="mb-12 text-center relative overflow-hidden">
+              <div className="relative p-8 md:p-16 rounded-3xl border border-watercolor-border bg-gradient-to-br from-watercolor-primary/5 via-watercolor-accent/3 to-watercolor-secondary/5 backdrop-blur-sm shadow-watercolor-light dark:shadow-watercolor-dark">
+                {/* 수채화 배경 효과 */}
+                <div className="absolute inset-0 opacity-15">
+                  <div className="absolute top-10 left-10 w-32 h-32 bg-gradient-to-br from-watercolor-primary/40 to-transparent rounded-full blur-2xl animate-watercolor-float"></div>
+                  <div className="absolute bottom-10 right-10 w-40 h-40 bg-gradient-to-br from-watercolor-secondary/30 to-transparent rounded-full blur-2xl animate-watercolor-float" style={{animationDelay: '-2s'}}></div>
+                  <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-24 h-24 bg-gradient-to-br from-watercolor-accent/35 to-transparent rounded-full blur-2xl animate-watercolor-float" style={{animationDelay: '-4s'}}></div>
+                </div>
+                
+                <div className="relative z-10">
+                  <h1 className="text-4xl md:text-6xl font-bold mb-4 watercolor-text-gradient">
+                    LOREBASE
+                  </h1>
+                  <p className="text-lg md:text-xl text-watercolor-muted mb-6">
+                    게임 개발자들을 위한 수채화 커뮤니티 플랫폼
+                  </p>
+                  <div className="flex items-center justify-center gap-2">
+                    <Sparkles className="h-5 w-5 text-watercolor-primary animate-watercolor-pulse" />
+                    <span className="text-sm text-watercolor-muted">창의적인 아이디어가 흘러나오는 공간</span>
+                    <Sparkles className="h-5 w-5 text-watercolor-secondary animate-watercolor-pulse" style={{animationDelay: '0.5s'}} />
+                  </div>
+                </div>
+              </div>
+            </section>
+
             {/* 특집 게시물 섹션 */}
-            <section className="floating">
+            <section>
               <div className="flex items-center gap-2 mb-6">
                 <Star className="h-6 w-6 text-watercolor-primary animate-watercolor-pulse" />
-                <h2 className="text-2xl font-bold watercolor-text-gradient">특집 게시물</h2>
+                <h2 className="text-2xl font-bold watercolor-text-gradient font-headline">특집 게시물</h2>
               </div>
               {loading ? <FeaturedPostSkeleton /> : featuredPost ? (
                 <Card className="watercolor-card watercolor-hover bg-gradient-to-tr from-watercolor-primary/3 to-watercolor-accent/2 border-watercolor-primary/30 shadow-watercolor-glow">
@@ -268,7 +247,7 @@ export default function HomePage() {
             <section>
               <div className="flex items-center gap-2 mb-6">
                 <Flame className="h-6 w-6 text-watercolor-accent animate-watercolor-pulse" />
-                <h2 className="text-2xl font-bold watercolor-text-gradient">인기 게시물</h2>
+                <h2 className="text-2xl font-bold watercolor-text-gradient font-headline">인기 게시물</h2>
               </div>
               {loading ? (
                 <div className="grid gap-4">
@@ -328,92 +307,19 @@ export default function HomePage() {
             </section>
           </div>
 
-          {/* 사이드바 */}
-          <div className="lg:col-span-1 space-y-6">
-            {/* 테트리스 랭킹 */}
-            <Card className="watercolor-card watercolor-hover">
-              <CardHeader>
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <Gamepad2 className="h-5 w-5 text-watercolor-primary" />
-                  <span className="watercolor-text-gradient">테트리스 랭킹</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {loading ? <RankingSkeleton /> : tetrisRankings.length > 0 ? (
-                  <div className="space-y-3">
-                    {tetrisRankings.map((ranker, index) => (
-                      <div key={ranker.userId} className="flex items-center gap-3 p-2 rounded-lg hover:bg-watercolor-primary/5 watercolor-transition">
-                        <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold watercolor-transition ${
-                          index === 0 ? 'bg-gradient-to-r from-watercolor-primary to-watercolor-accent text-white' : 
-                          index === 1 ? 'bg-gradient-to-r from-watercolor-secondary to-watercolor-primary/70 text-white' : 
-                          index === 2 ? 'bg-gradient-to-r from-watercolor-accent to-watercolor-secondary/70 text-white' : 
-                          'bg-watercolor-surface border border-watercolor-border text-watercolor-text'
-                        }`}>
-                          {ranker.rank}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="font-medium text-sm truncate text-watercolor-text">{ranker.nickname}</p>
-                          <p className="text-xs text-watercolor-muted">{ranker.score.toLocaleString()} 점</p>
-                        </div>
-                        {index < 3 && (
-                          <Award className={`h-4 w-4 ${
-                            index === 0 ? 'text-watercolor-primary' : 
-                            index === 1 ? 'text-watercolor-secondary' : 
-                            'text-watercolor-accent'
-                          }`} />
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-watercolor-muted text-sm text-center py-4">아직 랭킹이 없습니다</p>
-                )}
-              </CardContent>
-            </Card>
+          {/* 우측 사이드바 - 랭킹 및 광고 */}
+          <div className="xl:col-span-3 space-y-6">
+            {/* 통합 랭킹 패널 */}
+            <IntegratedRankingPanel
+              globalRankings={globalRankings}
+              categoryRankings={categoryRankings}
+              tetrisRankings={tetrisRankings}
+              loading={loading}
+            />
             
-            {/* 전체 랭킹 */}
-            <Card className="watercolor-card watercolor-hover">
-              <CardHeader>
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <Crown className="h-5 w-5 text-watercolor-secondary" />
-                  <span className="watercolor-text-gradient">전체 랭킹</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {loading ? <RankingSkeleton /> : globalRankings.length > 0 ? (
-                  <div className="space-y-3">
-                    {globalRankings.map((user) => (
-                      <div key={user.userId} className="flex items-center gap-3 p-2 rounded-lg hover:bg-watercolor-secondary/5 watercolor-transition">
-                        <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold watercolor-transition ${
-                          user.rank === 1 ? 'bg-gradient-to-r from-watercolor-primary to-watercolor-accent text-white' : 
-                          user.rank === 2 ? 'bg-gradient-to-r from-watercolor-secondary to-watercolor-primary/70 text-white' : 
-                          user.rank === 3 ? 'bg-gradient-to-r from-watercolor-accent to-watercolor-secondary/70 text-white' : 
-                          'bg-watercolor-surface border border-watercolor-border text-watercolor-text'
-                        }`}>
-                          {user.rank}
-                        </div>
-                        <Avatar className="h-8 w-8 border border-watercolor-border">
-                          <AvatarImage src={user.avatar} />
-                          <AvatarFallback className="bg-watercolor-accent/20 text-watercolor-text">
-                            {user.nickname.charAt(0)}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div className="flex-1 min-w-0">
-                          <p className="font-medium text-sm truncate text-watercolor-text">{user.nickname}</p>
-                          <p className="text-xs text-watercolor-muted">{user.score.toLocaleString()} 점</p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-watercolor-muted text-sm text-center py-4">랭킹 정보가 없습니다</p>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* 카테고리 랭킹 */}
-            <div>
-              <CategoryRankingSidebar rankings={categoryRankings} />
+            {/* 우측 광고 배너 */}
+            <div className="hidden xl:block">
+              <AdBanner position="right" />
             </div>
           </div>
         </div>

@@ -2,8 +2,8 @@
 
 import React, { Suspense, useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useParams, useSearchParams } from 'next/navigation'; // useParams 추가
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/layout/tabs";
+import { useParams, useSearchParams } from 'next/navigation';
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { getPosts } from '@/lib/postApi';
 import { getRankings } from '@/lib/rankingApi';
 import type { Post, PostMainCategory, Ranking } from '@/types';
@@ -13,27 +13,26 @@ import DynamicCommunitySearch from '@/components/shared/DynamicCommunitySearch';
 import CreateButton from '@/components/shared/CreateButton';
 import { PlusCircle, Box, AppWindow, PenTool, LayoutGrid, Loader2 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
-import { Skeleton } from '@/components/ui/data-display/skeleton';
-import { COMMUNITY_CHANNELS, getChannelBySlug, CommunityChannel } from '@/lib/communityChannels'; // 채널 정보 import
+import { Skeleton } from '@/components/ui/skeleton';
+import { COMMUNITY_CHANNELS, getChannelBySlug } from '@/lib/communityChannels';
 
 function CommunityContent() {
   const { user } = useAuth();
-  const params = useParams(); // useParams 훅 사용
+  const params = useParams();
   const searchParams = useSearchParams();
   const [initialPosts, setInitialPosts] = useState<Post[]>([]);
   const [categoryRankings, setCategoryRankings] = useState<Ranking[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const channelSlug = params.channelSlug as string; // URL 파라미터에서 channelSlug 가져오기
-  const currentChannel = getChannelBySlug(channelSlug) || COMMUNITY_CHANNELS[0]; // 채널 정보 가져오기, 없으면 첫 번째 채널로 기본값 설정
-  const mainCategory = currentChannel.categories[0] as PostMainCategory; // 채널의 첫 번째 카테고리를 기본으로 사용
+  const channelSlug = params.channelSlug as string;
+  const currentChannel = getChannelBySlug(channelSlug) || COMMUNITY_CHANNELS[0];
+  const mainCategory = currentChannel.categories[0] as PostMainCategory;
   const searchTerm = searchParams.get('search') || '';
 
   useEffect(() => {
     setLoading(true);
     Promise.all([getPosts(currentChannel.categories), getRankings(currentChannel.categories)]).then(([allPosts, allRankings]) => {
       const filteredPosts = allPosts.filter(post => {
-        // 채널의 카테고리에 포함되는 게시물만 필터링
         const categoryMatch = currentChannel.categories.includes(post.mainCategory);
         const searchMatch = !searchTerm || 
           post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -41,9 +40,15 @@ function CommunityContent() {
         return categoryMatch && searchMatch;
       });
       setInitialPosts(filteredPosts);
-      setCategoryRankings(allRankings.filter((r: Ranking) => currentChannel.categories.includes(r.category))); // 채널 카테고리에 맞는 랭킹만 표시
+      
+      // Overall 타입 필터링 수정
+      const filteredRankings = allRankings.filter((r: Ranking) => {
+        if (r.category === 'Overall') return true;
+        return currentChannel.categories.includes(r.category as PostMainCategory);
+      });
+      setCategoryRankings(filteredRankings);
     }).finally(() => setLoading(false));
-  }, [channelSlug, searchTerm, currentChannel]); // 의존성 배열에 channelSlug와 currentChannel 추가
+  }, [channelSlug, searchTerm, currentChannel]);
 
   if (loading) {
     return <CommunityPageSkeleton />;
@@ -84,7 +89,12 @@ function CommunityContent() {
 
       <div className="grid lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2">
-          <PostList key={channelSlug + searchTerm} initialPosts={initialPosts} channelSlug={channelSlug} initialSearchTerm={searchTerm} />
+          <PostList 
+            key={channelSlug + searchTerm} 
+            initialPosts={initialPosts} 
+            channelSlug={channelSlug} 
+            initialSearchTerm={searchTerm} 
+          />
         </div>
         <aside className="lg:col-span-1 space-y-6 sticky top-20 self-start">
            <CategoryRankingSidebar rankings={categoryRankings} />
@@ -98,11 +108,20 @@ function CommunityPageSkeleton() {
   return (
     <div className="py-8 px-4">
       <Skeleton className="h-[200px] md:h-[300px] rounded-xl shadow-xl mb-10" />
-      <div className="mb-6 flex flex-col md:flex-row gap-4 items-center"><Skeleton className="h-10 w-full" /><Skeleton className="h-10 w-40 flex-shrink-0" /></div>
+      <div className="mb-6 flex flex-col md:flex-row gap-4 items-center">
+        <Skeleton className="h-10 w-full" />
+        <Skeleton className="h-10 w-40 flex-shrink-0" />
+      </div>
       <Skeleton className="h-12 w-full mb-8" />
       <div className="grid lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2 space-y-4"><Skeleton className="h-32 w-full" /><Skeleton className="h-32 w-full" /><Skeleton className="h-32 w-full" /></div>
-        <aside className="lg:col-span-1 space-y-6"><Skeleton className="h-64 w-full" /></aside>
+        <div className="lg:col-span-2 space-y-4">
+          <Skeleton className="h-32 w-full" />
+          <Skeleton className="h-32 w-full" />
+          <Skeleton className="h-32 w-full" />
+        </div>
+        <aside className="lg:col-span-1 space-y-6">
+          <Skeleton className="h-64 w-full" />
+        </aside>
       </div>
     </div>
   );

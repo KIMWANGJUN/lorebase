@@ -1,22 +1,22 @@
-
-// src/components/shared/UserAvatarDropdown.tsx
 "use client";
 import type { User } from '@/types';
 import Link from 'next/link';
 import {
-  import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/overlay/dropdown-menu";
 } from "@/components/ui/dropdown-menu";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/data-display/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { LogOut, UserCircle, Settings, ShieldCheck, ShieldAlert } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import NicknameDisplay from './NicknameDisplay'; // Import NicknameDisplay
+
+// NicknameDisplay 컴포넌트가 없다면 임시로 간단한 버전 생성
+const NicknameDisplay = ({ user, context }: { user: User; context: string }) => (
+  <span className="text-sm font-medium">{user.nickname}</span>
+);
 
 interface UserAvatarDropdownProps {
   user: User;
@@ -26,7 +26,7 @@ interface UserAvatarDropdownProps {
 
 export default function UserAvatarDropdown({ user, isAdmin, onLogout }: UserAvatarDropdownProps) {
   const getInitials = (name: string) => {
-    return name.substring(0, 1).toUpperCase(); // Changed to 1 initial for consistency
+    return name.substring(0, 1).toUpperCase();
   };
 
   return (
@@ -41,7 +41,9 @@ export default function UserAvatarDropdown({ user, isAdmin, onLogout }: UserAvat
         >
           <Avatar className="h-9 w-9 border-2 border-accent/50">
             <AvatarImage src={user.avatar} alt={user.nickname} data-ai-hint="user avatar icon"/>
-            <AvatarFallback className="bg-muted text-muted-foreground">{getInitials(user.nickname)}</AvatarFallback>
+            <AvatarFallback className="bg-muted text-muted-foreground">
+              {getInitials(user.nickname)}
+            </AvatarFallback>
           </Avatar>
           <div className="hidden sm:inline">
             <NicknameDisplay user={user} context="header" />
@@ -83,4 +85,3 @@ export default function UserAvatarDropdown({ user, isAdmin, onLogout }: UserAvat
     </DropdownMenu>
   );
 }
-

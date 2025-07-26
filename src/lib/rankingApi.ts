@@ -1,5 +1,3 @@
-
-// src/lib/rankingApi.ts
 import { db } from './firebase';
 import { collection, getDocs, query, orderBy, limit } from 'firebase/firestore';
 import type { User, Ranking, RankEntry, PostMainCategory, TetrisRanker } from '@/types';
@@ -24,14 +22,16 @@ const fetchTopUsers = async (
   });
 };
 
-
 /**
  * Fetches overall and category-specific rankings from Firestore.
  * @returns A promise that resolves to an array of Ranking objects.
  */
 export async function getRankings(channelCategories?: PostMainCategory[]): Promise<Ranking[]> {
   try {
-    const categoriesToFetch: PostMainCategory[] = channelCategories && channelCategories.length > 0 ? channelCategories : ['Unity', 'Unreal', 'Godot', 'General'];
+    // 기본 카테고리를 소문자로 수정
+    const categoriesToFetch: PostMainCategory[] = channelCategories && channelCategories.length > 0 
+      ? channelCategories 
+      : ['unity', 'unreal', 'godot', 'general'];
     
     const overallPromise = fetchTopUsers('score', 5);
     const categoryPromises = categoriesToFetch.map(category => 
@@ -77,13 +77,46 @@ export async function getTetrisRankers(options: { limit: number }): Promise<Tetr
         const q = query(rankersCollection, orderBy('score', 'desc'), limit(options.limit));
         const querySnapshot = await getDocs(q);
         
-        return querySnapshot.docs.map((doc, index) => ({
-            userId: doc.id,
-            ...doc.data(),
-            rank: index + 1
-        } as TetrisRanker));
+        return querySnapshot.docs.map((doc, index) => {
+            const data = doc.data();
+            return {
+                userId: doc.id,
+                nickname: data.nickname,
+                score: data.score,
+                rank: index + 1
+            } as TetrisRanker;
+        });
     } catch (error) {
         console.error("Error fetching Tetris rankers:", error);
+        return [];
+    }
+}
+
+/**
+ * 카테고리별 상위 사용자를 가져오는 헬퍼 함수
+ * @param category 카테고리
+ * @param limit 제한 수
+ * @returns RankEntry 배열
+ */
+export async function getCategoryRanking(category: PostMainCategory, limit: number = 5): Promise<RankEntry[]> {
+    try {
+        return await fetchTopUsers(`categoryStats.${category}.score`, limit);
+    } catch (error) {
+        console.error(`Error fetching ${category} category ranking:`, error);
+        return [];
+    }
+}
+
+/**
+ * 전체 랭킹을 가져오는 헬퍼 함수
+ * @param limit 제한 수
+ * @returns RankEntry 배열
+ */
+export async function getOverallRanking(limit: number = 10): Promise<RankEntry[]> {
+    try {
+        return await fetchTopUsers('score', limit);
+    } catch (error) {
+        console.error("Error fetching overall ranking:", error);
         return [];
     }
 }
